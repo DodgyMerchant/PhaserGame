@@ -21,8 +21,11 @@ const config = {
 			// 	showBody: true,
 			// 	showStaticBody: true,
 			// },
+      
 		},
 	},
 };
+
+
 
 new Phaser.Game(config);

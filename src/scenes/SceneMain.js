@@ -1,3 +1,6 @@
+import { GameObjects } from "phaser";
+import Player from "../player/Player";
+
 export default class SceneMain extends Phaser.Scene {
 	constructor() {
 		super("SceneMain");
@@ -8,26 +11,11 @@ export default class SceneMain extends Phaser.Scene {
 	}
 	create() {
 		console.log("createeeeee");
-		this.player = new Phaser.Physics.Matter.Sprite(this.matter.world);
-		// this.player.setSleepThreshold(-1);
+		this.player = new Player(this.matter.world, 50, 50);
 
-		this.inputKeys = this.input.keyboard.addKeys({
-			up: Phaser.Input.Keyboard.KeyCodes.W,
-			down: Phaser.Input.Keyboard.KeyCodes.S,
-			left: Phaser.Input.Keyboard.KeyCodes.A,
-			right: Phaser.Input.Keyboard.KeyCodes.D,
-		});
+		// Phaser.GameObjects.UpdateList.
+		// Phaser.GameObjects.DisplayList
+		// this.add.existing(this.player);
 	}
-	update() {
-		const speed = 2.5;
-		let playerVelocity = new Phaser.Math.Vector2();
-
-		playerVelocity.x = this.inputKeys.right.isDown - this.inputKeys.left.isDown;
-		playerVelocity.y = this.inputKeys.down.isDown - this.inputKeys.up.isDown;
-
-		playerVelocity.normalize();
-		playerVelocity.scale(speed);
-		this.player.setVelocity(playerVelocity.x, playerVelocity.y);
-    this.player.setAwake();
-	}
+	update() {}
 }
