@@ -12,41 +12,31 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 
 		//general
 		this.setActive();
-		this.setName("Player");
+		this.setName("PlayerObject");
 		this.world = world;
+		this.setCircle(20);
 
-		//input
-		this.input_Keyboard = this.scene.input.keyboard.addKeys({
-			up: Phaser.Input.Keyboard.KeyCodes.W,
-			down: Phaser.Input.Keyboard.KeyCodes.S,
-			left: Phaser.Input.Keyboard.KeyCodes.A,
-			right: Phaser.Input.Keyboard.KeyCodes.D,
-		});
+		///// phys
 
-		this.input_vector = new Phaser.Math.Vector2();
+		this.setFriction(0.1);
+		this.setFrictionStatic(0.5);
+		this.setDensity(1);
 
-		//#region--------------movement-----------------
-		/** if player/system input to movement is possible */
-		this.move_canMove = true;
-
-		/** movement input and movement are disabled */
-		this.frozen = false;
-
-		//move speed
 		/** movement speed when connected to a wall */
-		this.moveSpd_connected = 2;
+		this.moveSpd_connected = 0.5;
+		/** air friction of the object if connected */
+		this.move_connAirFric = 0.05;
 		/** movement speed when jumping */
 		this.moveSpd_jump = 5;
+		/** maximum movement speed when connected */
+		this.moveMax_connected = 3;
 
-		//#endregion
-		//#region connections (tentacles)
+		///// phys
 
-		/** if the playes aarms are connected to a wall */
-		this.conn_isConnected = true;
+		//#region state
 
-		//#endregion
-
-		/** enum-like for player states */
+		/** enum-like for player states
+		 * only change states with: this.stateSwitch(this.STATES.state);*/
 		this.STATES = {
 			/** player is free to move */
 			free: "free",
@@ -60,8 +50,49 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 
 		this.stateSwitch(this.STATES.free);
 
+		//#endregion
+		//#region input
+		this.input_Keyboard = this.scene.input.keyboard.addKeys({
+			up: Phaser.Input.Keyboard.KeyCodes.W,
+			down: Phaser.Input.Keyboard.KeyCodes.S,
+			left: Phaser.Input.Keyboard.KeyCodes.A,
+			right: Phaser.Input.Keyboard.KeyCodes.D,
+		});
+
+		this.input_vector = new Phaser.Math.Vector2();
+		/** if player gave jump input */
+		this.input_jumping = false;
+
+		//#endregion
+		//#region movement
+
+		/** if player/system input to movement is possible */
+		this.move_canMove = true;
+		/** movement input and movement are disabled */
+		this.frozen = false;
+
+		//move speed
+
+		//max speed
+
+		//#endregion
+		//#region connections (tentacles)
+
+		/** if the playes aarms are connected to a wall */
+		this.conn_isConnected;
+		this.conn_setConnected(true);
+
+		//#endregion
+
 		// this.addToDisplayList();
 		// this.addToUpdateList();
+
+		/**
+		 * vector to be used and thrown away for calculations
+		 * dont save stuff in it
+		 * alsways reset before using
+		 */
+		this.workVec = new Phaser.Math.Vector2();
 	}
 
 	//#region general
@@ -78,27 +109,79 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 	//#region states
 
 	/**
+	 * switchtches object to given state including changes depending on the state.
 	 *
 	 * @param {string} str STATE state string. f.e. this.STATES.free
 	 */
 	stateSwitch(stateString) {
-		this.state = stateString;
-
 		switch (stateString) {
 			case this.STATES.free:
 				this.move_canMoveSet(true);
+				this.move_frozenSet(false);
 				break;
 			case this.STATES.stunned:
+				this.move_canMoveSet(false);
+				this.move_frozenSet(false);
 				break;
 			case this.STATES.controlled:
+				this.move_canMoveSet(false);
+				this.move_frozenSet(false);
 				break;
 			case this.STATES.frozen:
+				this.move_canMoveSet(false);
+				this.move_frozenSet(true);
 				break;
-
 			default:
-				// console.error("///// Unknown state in: " + this.name + "!!!");
-				break;
+				console.error("///// Unknown state in: " + this.name + "!!!");
+				return;
 		}
+
+		this.setState(stateString);
+	}
+
+	/**
+	 * returns the current objects state as a string
+	 * from this.STATES enum-like
+	 * @returns {string} state as a string
+	 */
+	stateGet() {
+		return this.state;
+	}
+
+	//#endregion
+	//#region input
+	/**
+	 * gets the movement input as a vector
+	 * @param {Phaser.Math.Vector2 | undefined} vec2 optional vector to overwrite
+	 * @returns {Phaser.Math.Vector2} vector with a limit of 1
+	 */
+	getInputMovementVector(vec2) {
+		if (vec2 == undefined) {
+			vec2 = new Phaser.Math.Vector2();
+		} else {
+			vec2.reset();
+		}
+
+		// #region gamepad
+		if (this.scene.input.gamepad.total > 0) {
+			var gamepad = this.scene.input.gamepad.gamepads[0];
+
+			if (gamepad.axes.length) {
+				vec2.x = gamepad.axes[0].getValue();
+				vec2.y = gamepad.axes[1].getValue();
+			}
+		}
+		//#endregion
+		//#region keyboard
+
+		vec2.x +=
+			this.input_Keyboard.right.isDown - this.input_Keyboard.left.isDown;
+		vec2.y += this.input_Keyboard.down.isDown - this.input_Keyboard.up.isDown;
+
+		// #endregion
+
+		vec2.limit(1);
+		return vec2;
 	}
 
 	//#endregion
@@ -109,22 +192,61 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 	 * uses input to move player
 	 */
 	move_update() {
-		this.input_vector = this.getInputMovementVector(this.input_vector);
+		if (!this.move_isJumping()) {
+			this.input_vector = this.getInputMovementVector(this.input_vector);
 
-		this.input_vector.scale(this.move_GetSpeed());
-		this.move(this.input_vector);
+			if (this.input_vector.x != 0 || this.input_vector.y != 0) {
+				var _scale = this.input_vector.length();
+
+				this.workVec.copy(this.input_vector).scale(this.move_getSpeed());
+				this.moveAdd(this.workVec);
+				// this.move_RestrictTo(this.move_getMaximum() * _scale);
+
+				console.log(
+					"input: ",
+					this.input_vector.x.toFixed(2),
+					"/",
+					this.input_vector.y.toFixed(2),
+					"|| speed: ",
+					this.body.velocity.x.toFixed(2),
+					"/",
+					this.body.velocity.y.toFixed(2)
+				);
+			}
+		} else {
+		}
 	}
 
 	/**
-	 * moves the player if he can move
+	 * sets the player movement
 	 * wakes the physics body up
-	 * @param {Phaser.Math.Vector2} vec2
+	 * @param {number} x movement on the x axis
+	 * @param {number} y movement on the y axis
 	 */
-	move(vec2) {
-		if (this.move_canMove()) {
-			this.setVelocity(vec2.x, vec2.y);
+	moveSet(x, y) {
+		if (this.move_canMoveGet()) {
+			this.setVelocity(x, y);
 			this.setAwake();
 		}
+	}
+
+	/**
+	 * adds to the player movement
+	 * wakes the physics body up
+	 * @param {Phaser.Math.Vector2} vec2 vector 2D with movement x y
+	 */
+	moveAdd(vec2) {
+		this.applyForce(vec2);
+	}
+
+	/**
+	 * restricts the player movement speed to a maximum
+	 * @param {number} val number to restrict the player movement speed to
+	 */
+	move_RestrictTo(val) {
+		this.workVec.copy(this.body.velocity).limit(val);
+
+		this.setVelocity(this.workVec.x, this.workVec.y);
 	}
 
 	/**
@@ -132,14 +254,14 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 	 * @returns {boolean} if player is moving
 	 */
 	move_isMoving() {
-		return this.move_velocity.x != 0 || this.move_velocity.y != 0;
+		return this.body.velocity.x != 0 || this.body.velocity.y != 0;
 	}
 
 	/**
 	 * if the player can move
 	 * @returns {boolean} if player can move
 	 */
-	move_canMove() {
+	move_canMoveGet() {
 		return this.move_canMove;
 	}
 
@@ -175,44 +297,55 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 	 * determines the current movement speed and returns it
 	 * @returns {number} movement speed
 	 */
-	move_GetSpeed() {
+	move_getSpeed() {
 		return this.moveSpd_connected;
 	}
 
-	//#endregion
-	//#region input
 	/**
-	 * gets the movement input as a vector
-	 * @param {Phaser.Math.Vector2 | undefined} vec2 optional vector to overwrite
-	 * @returns {Phaser.Math.Vector2} vector with a limit of 1
+	 * determines the current maximum movement speed and returns it
+	 * @returns {number} maximum movement speed
 	 */
-	getInputMovementVector(vec2) {
-		if (vec2 == undefined) {
-			vec2 = new Phaser.Math.Vector2();
+	move_getMaximum() {
+		return this.moveMax_connected;
+	}
+
+	/**
+	 * returns if the player is jumping
+	 * can move + connected + player input
+	 * @returns {boolean} if the player is jumping
+	 */
+	move_isJumping() {
+		return (
+			this.conn_getConnected() && this.move_canMoveGet() && this.input_jumping
+		);
+	}
+
+	//#endregion
+	//#region connections
+
+	/**
+	 * set if the object is connected to a wall
+	 * @param {boolean} bool if the object is connected
+	 */
+	conn_setConnected(bool) {
+		this.conn_isConnected = bool;
+
+		switch (bool) {
+			case true:
+				this.setFrictionAir(this.move_connAirFric);
+
+				break;
+			case false:
+				this.setFrictionAir(0);
+				break;
 		}
-
-		//#region keyboard
-		vec2.x = this.input_Keyboard.right.isDown - this.input_Keyboard.left.isDown;
-		vec2.y = this.input_Keyboard.down.isDown - this.input_Keyboard.up.isDown;
-
-		//#endregion
-		//#region gamepad
-		// var pads = this.scene.input.gamepad.gamepads;
-
-		// for (var i = 0; i < pads.length; i++) {
-		// 	var gamepad = pads[i];
-
-		// 	if (!gamepad) {
-		// 		continue;
-		// 	}
-
-		// 	vec2.add(gamepad.leftStick);
-		// }
-
-		//#endregion
-
-		vec2.limit(1).normalize();
-		return vec2;
+	}
+	/**
+	 * returns if the object is connected to a wall
+	 * @returns {boolean} if the object is connected
+	 */
+	conn_getConnected() {
+		return this.conn_isConnected;
 	}
 
 	//#endregion

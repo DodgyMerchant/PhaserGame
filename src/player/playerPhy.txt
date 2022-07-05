@@ -1,0 +1,38 @@
+
+
+
+phy player austesten
+///////////////////////////////////////////////////////
+
+fühlt sich ganz gut an
+
+this.setFriction(0.1);
+this.setFrictionStatic(0.5);
+this.setDensity(1);
+
+/** movement speed when connected to a wall */
+this.moveSpd_connected = 0.5;
+/** air friction of the object if connected */
+this.move_connAirFric = 0.05;
+/** movement speed when jumping */
+this.moveSpd_jump = 5;
+/** maximum movement speed when connected */
+this.moveMax_connected = 3;
+
+///////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////
