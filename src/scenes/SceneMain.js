@@ -1,4 +1,3 @@
-import { GameObjects } from "phaser";
 import Player from "../player/Player";
 
 export default class SceneMain extends Phaser.Scene {
