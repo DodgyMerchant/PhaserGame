@@ -28,7 +28,7 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 		this.move_connAirFric = 0.05;
 		/** movement speed when jumping */
 		this.moveSpd_jump = 5;
-		/** maximum movement speed when connected */
+		/** maximum movement speed when connected UN-USED */
 		this.moveMax_connected = 3;
 
 		///// phys
@@ -198,10 +198,13 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 			if (this.input_vector.x != 0 || this.input_vector.y != 0) {
 				var _scale = this.input_vector.length();
 
+				//applying movement speed
 				this.workVec.copy(this.input_vector).scale(this.move_getSpeed());
+				//moving player
 				this.moveAdd(this.workVec);
 				// this.move_RestrictTo(this.move_getMaximum() * _scale);
 
+				//debug
 				console.log(
 					"input: ",
 					this.input_vector.x.toFixed(2),
