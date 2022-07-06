@@ -1,8 +1,11 @@
-import Player from "../player/Player";
+import Player from "../player/Player.js";
+import STATES from "../player/Player.js";
 
 export default class SceneMain extends Phaser.Scene {
 	constructor() {
 		super("SceneMain");
+
+		//information on the plaayer start
 
 		this.playerStart = {
 			x: 50,

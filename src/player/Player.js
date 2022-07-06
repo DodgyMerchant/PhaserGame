@@ -34,21 +34,7 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 		///// phys
 
 		//#region state
-
-		/** enum-like for player states
-		 * only change states with: this.stateSwitch(this.STATES.state);*/
-		this.STATES = {
-			/** player is free to move */
-			free: "free",
-			/** players action is disabled */
-			stunned: "stunned",
-			/** player obj is controlled by scene */
-			controlled: "controlled",
-			/** object is frozen */
-			frozen: "frozen",
-		};
-
-		this.stateSwitch(this.STATES.free);
+		this.stateSwitch(STATES.FREE);
 
 		//#endregion
 		//#region input
@@ -111,23 +97,23 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 	/**
 	 * switchtches object to given state including changes depending on the state.
 	 *
-	 * @param {string} str STATE state string. f.e. this.STATES.free
+	 * @param {string} str STATE state string. f.e. STATES.FREE
 	 */
 	stateSwitch(stateString) {
 		switch (stateString) {
-			case this.STATES.free:
+			case STATES.FREE:
 				this.move_canMoveSet(true);
 				this.move_frozenSet(false);
 				break;
-			case this.STATES.stunned:
+			case STATES.STUNNED:
 				this.move_canMoveSet(false);
 				this.move_frozenSet(false);
 				break;
-			case this.STATES.controlled:
+			case STATES.CONTROLLED:
 				this.move_canMoveSet(false);
 				this.move_frozenSet(false);
 				break;
-			case this.STATES.frozen:
+			case STATES.FROZEN:
 				this.move_canMoveSet(false);
 				this.move_frozenSet(true);
 				break;
@@ -141,7 +127,7 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 
 	/**
 	 * returns the current objects state as a string
-	 * from this.STATES enum-like
+	 * from STATES enum-like
 	 * @returns {string} state as a string
 	 */
 	stateGet() {
@@ -352,4 +338,19 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 	}
 
 	//#endregion
+}
+
+/**
+ * enum-like for player states
+ * only change states with: this.stateSwitch(STATES.statename);
+ */
+export class STATES {
+	/** player is free to move */
+	static FREE = Symbol("free");
+	/** players action is disabled */
+	static STUNNED = Symbol("stunned");
+	/** player obj is controlled by scene */
+	static CONTROLLED = Symbol("controlled");
+	/** object is frozen */
+	static FROZEN = Symbol("frozen");
 }
