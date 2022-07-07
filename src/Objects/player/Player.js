@@ -6,11 +6,18 @@ import ConnectObj from "../ConnectObj";
 export default class Player extends ConnectObj {
 	/**
 	 * @param {Phaser.Scene} scene physics world to place the player in
-	 * @param {number} x player position x
-	 * @param {number} y player position y
+	 * @param {number} config config object
 	 */
-	constructor(scene, x, y, image, state) {
-		super(scene, x, y, image, state);
+	constructor(scene, config) {
+		super(
+			scene,
+			config.x,
+			config.y,
+			config.textureBody_Key,
+			config.state,
+			config.collCat,
+			config.collWith
+		);
 
 		//general
 		this.setName("PlayerObject");
@@ -59,6 +66,7 @@ export default class Player extends ConnectObj {
 	}
 
 	//#region input
+
 	/**
 	 * gets the movement input as a vector
 	 * @param {Phaser.Math.Vector2 | undefined} vec2 optional vector to overwrite

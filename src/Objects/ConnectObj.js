@@ -6,8 +6,19 @@ import MovementObj from "./MovementObj";
  * @abstract abstract class, will sabotage itself to not work, please extend
  */
 export default class ConnectObj extends MovementObj {
-	constructor(scene, x, y, image, state) {
-		super(scene, x, y, image, state);
+	/**
+	 * Game physics object with premade movement methods and "arms" to hold onto stuff
+	 *
+	 * @param {Phaser.Scene} scene the object is in
+	 * @param {number} x position
+	 * @param {number} y position
+	 * @param {string | Phaser.Textures.Texture} texture texture to display as the object texture
+	 * @param {STATES.element} state tstate the object is in
+	 * @param {number} collCat byte corresponding to the collision Category of the object
+	 * @param {number | number[]} collWith byte or list of bytes corresponding to collision Categoryies to be collided with
+	 */
+	constructor(scene, x, y, texture, state, collCat, collWith) {
+		super(scene, x, y, texture, state, collCat, collWith);
 
 		//#region movement
 
