@@ -36,8 +36,6 @@ export default class Player extends ConnectObj {
 		super.moveInputMethod = this.getInputMovementVector;
 		super.connJumpInputMethod;
 
-		// super.connJumpInputMethod;
-
 		//#region movement overrides
 
 		super.moveConnAirFric = 0.05;
@@ -45,6 +43,11 @@ export default class Player extends ConnectObj {
 		super.connSpdJump = 5;
 
 		//#endregion
+
+		// TEST TEST TEST TEST TEST TEST TEST TEST temporary TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST
+
+		//used to update the air friction property
+		super.connSetConnected(true);
 	}
 
 	preUpdate(delta, time) {
@@ -53,7 +56,6 @@ export default class Player extends ConnectObj {
 
 	update(delta, time) {
 		super.update(delta, time);
-		console.log("update player babyyyyyyyyyy");
 	}
 
 	//#region input

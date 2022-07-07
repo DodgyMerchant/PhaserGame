@@ -31,7 +31,8 @@ export default class MovementObj extends PhyObj {
 
 		/**
 		 * Method called to get input for movement
-		 * @returns Phaser.Math.Vector2
+		 * @param {Phaser.Math.Vector2 | undefined} vec2 optional vector to overwrite
+		 * @returns {Phaser.Math.Vector2} vector with a limit of 1
 		 * @type method
 		 */
 		this.moveInputMethod;
@@ -45,7 +46,7 @@ export default class MovementObj extends PhyObj {
 		this.moveFrozen = false;
 		/** air friction of the object if connected */
 		this.moveConnAirFric = 1;
-
+		this.setFrictionAir(this.moveConnAirFric);
 		///SPEED
 		/** movement speed*/
 		this.moveSpeed = 0;
@@ -126,19 +127,30 @@ export default class MovementObj extends PhyObj {
 			this.workVec = this.moveInputMethod(this.workVec);
 
 			if (this.workVec.x != 0 || this.workVec.y != 0) {
+				let _x = this.workVec.x;
+				let _y = this.workVec.y;
+				let _spd = this.moveGetSpeed();
+
 				//applying movement speed
-				this.workVec.scale(this.moveGetSpeed());
+
+				this.workVec.scale(_spd);
 				//moving mech
-				this.phyMoveAdd(this.workVec);
+				super.phyMoveAdd(this.workVec);
 
 				this.setRotation(this.workVec.angle());
 
 				//debug
 				console.log(
-					"speed: ",
+					"input: ",
+					_x.toFixed(2),
+					"/",
+					_y.toFixed(2),
+					" | vel: ",
 					this.body.velocity.x.toFixed(2),
 					"/",
-					this.body.velocity.y.toFixed(2)
+					this.body.velocity.y.toFixed(2),
+					" | spd: ",
+					_spd
 				);
 			}
 		}

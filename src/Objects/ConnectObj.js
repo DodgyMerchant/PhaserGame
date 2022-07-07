@@ -13,7 +13,8 @@ export default class ConnectObj extends MovementObj {
 
 		/**
 		 * Method called to get input for jumping
-		 * @returns Phaser.Math.Vector2
+		 * @param {Phaser.Math.Vector2 | undefined} vec2 optional vector to overwrite
+		 * @returns {Phaser.Math.Vector2} vector with a limit of 1
 		 * @type method
 		 */
 		this.connJumpInputMethod;
