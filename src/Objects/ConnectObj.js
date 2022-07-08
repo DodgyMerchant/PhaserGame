@@ -6,8 +6,31 @@ import MovementObj from "./MovementObj";
  * @abstract abstract class, will sabotage itself to not work, please extend
  */
 export default class ConnectObj extends MovementObj {
-	constructor(scene, x, y, image, state) {
-		super(scene, x, y, image, state);
+	/**
+	 * Game physics object with premade movement methods and "arms" to hold onto stuff
+	 *
+	 * @param {Phaser.Scene} scene the object is in
+	 * @param {number} x position
+	 * @param {number} y position
+	 * @param {string | Phaser.Textures.Texture} texture texture to display as the object texture
+	 * @param {STATES.element} state tstate the object is in
+	 * @param {number} collCat byte corresponding to the collision Category of the object
+	 * @param {number | number[]} collWith byte or list of bytes corresponding to collision Categoryies to be collided with
+	 * @param {method | undefined} moveMeth Method called to get input for movement, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set moveInputMethod
+	 * @param {method | undefined} jumpMeth Method called to get input for jumping, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set connJumpInputMethod
+	 */
+	constructor(
+		scene,
+		x,
+		y,
+		texture,
+		state,
+		collCat,
+		collWith,
+		moveMeth,
+		jumpMeth
+	) {
+		super(scene, x, y, texture, state, collCat, collWith, moveMeth);
 
 		//#region movement
 
@@ -18,6 +41,7 @@ export default class ConnectObj extends MovementObj {
 		 * @type method
 		 */
 		this.connJumpInputMethod;
+		if (jumpMeth != undefined) this.connJumpInputMethod = jumpMeth;
 
 		/** movement speed when jumping */
 		this.connSpdJump = 0;

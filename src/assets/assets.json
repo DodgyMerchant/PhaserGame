@@ -6,6 +6,11 @@
 				"key": "playerImageBody",
 				"url": "src/assets/Player/playerBodyTEMP.png"
 			}
+		],
+		"leveldata": [
+			{
+				"name": "meme"
+			}
 		]
 	},
 	"meta": {
