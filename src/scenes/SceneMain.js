@@ -102,6 +102,9 @@ export default class SceneMain extends Phaser.Scene {
 		this.block3.setCollisionCategory(COLLCAT.MAP);
 		this.block3.setCollidesWith([COLLCAT.PLAYER]);
 
+
+    //AYOOEST
+
 		//#endregion
 
 		console.log("SceneMain create");
