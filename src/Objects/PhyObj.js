@@ -105,7 +105,7 @@ export default class PhyObj extends Phaser.Physics.Matter.Sprite {
 	 * @param {number} collToRemove one or more collision categories to remove | 32bit number
 	 */
 	phyCollRemoveCat(collToRemove) {
-		this.phyCollSetCat(this.phyCollRemoveFrom(this.phyCollCat, collToRemove));
+		this.phyCollSetCat(COLLCAT.RemoveFrom(this.phyCollCat, collToRemove));
 	}
 
 	/**
@@ -113,7 +113,7 @@ export default class PhyObj extends Phaser.Physics.Matter.Sprite {
 	 * @param {number} collToAdd one or more collision categories to remove | 32bit number
 	 */
 	phyCollAddCat(collToAdd) {
-		this.phyCollSetCat(this.phyCollAddTo(this.phyCollCat, collToAdd));
+		this.phyCollSetCat(COLLCAT.AddTo(this.phyCollCat, collToAdd));
 	}
 
 	/**
@@ -124,7 +124,7 @@ export default class PhyObj extends Phaser.Physics.Matter.Sprite {
 		this.setCollidesWith(collWith);
 
 		//if array compile
-		this.phyCollWith = this.phyCollcompile(collWith);
+		this.phyCollWith = COLLCAT.compile(collWith);
 	}
 
 	/**
@@ -132,7 +132,7 @@ export default class PhyObj extends Phaser.Physics.Matter.Sprite {
 	 * @param {number} collToRemove one or more collision categories to remove | 32bit number
 	 */
 	phyCollRemoveWith(collToRemove) {
-		this.phyCollSetWith(this.phyCollRemoveFrom(this.phyCollWith, collToRemove));
+		this.phyCollSetWith(COLLCAT.RemoveFrom(this.phyCollWith, collToRemove));
 	}
 
 	/**
@@ -140,25 +140,49 @@ export default class PhyObj extends Phaser.Physics.Matter.Sprite {
 	 * @param {number} collToAdd one or more collision categories to remove | 32bit number
 	 */
 	phyCollAddWith(collToAdd) {
-		this.phyCollSetWith(this.phyCollAddTo(this.phyCollWith, collToAdd));
+		this.phyCollSetWith(COLLCAT.AddTo(this.phyCollWith, collToAdd));
 	}
 
-	//#region operations (maths)
+	//#endregion
+}
+
+/**
+ * object holding collision categories
+ * and methods for them
+ */
+export class COLLCAT {
+	/* 
+  the collision categories are 32bit integer values
+  each category should have a "1" in a unique position for a simple collision system.
+
+  changing these values as soon as the first level daata gest saved will be messy
+
+  if you understand how the bitwise mask works you can get fancy by including other categories bits in categories copying their collision configurations essentially
+  but this could go out of controll eaasily
+  */
+
+	static MAP = 0b000001;
+	static PLAYER = 0b000010;
+	static GAMEOBJ = 0b000100;
+	static NOTHING = 0b00000000000000000000000000000000;
+	static ALL = 0b11111111111111111111111111111111;
 
 	/**
 	 * compiles array with collision 32bit categories into one 32bit number
+	 * mostly used if an array with categories isnt usable
 	 * @param {number | number[]} collArr byte or list of bytes corresponding to collision Categoryies to be collided with
 	 * @returns {number} 32bit number
 	 */
-	phyCollcompile(collArr) {
+	static compile(collArr) {
 		/** 32bit int */
 		let coll = 0b00000000000000000000000000000000;
 
 		if (Array.isArray(collArr)) {
 			//go through all the coll maks bytes and perform pitwise OR on all of them
 			collArr.forEach((element) => {
-				coll = coll | element;
+				coll |= element;
 			});
+			return coll;
 		} else {
 			return collArr;
 		}
@@ -170,7 +194,7 @@ export default class PhyObj extends Phaser.Physics.Matter.Sprite {
 	 * @param {number} collToRemove one or more collision categories to remove | 32bit number
 	 * @returns {number} the edited collision categorie | 32bit number
 	 */
-	phyCollRemoveFrom(collToEdit, collToRemove) {
+	static RemoveFrom(collToEdit, collToRemove) {
 		return collToEdit ^ collToRemove;
 	}
 
@@ -180,11 +204,7 @@ export default class PhyObj extends Phaser.Physics.Matter.Sprite {
 	 * @param {number} collToAdd one or more collision categories to add | 32bit number
 	 * @returns {number} the edited collision categorie | 32bit number
 	 */
-	phyCollAddTo(collToEdit, collToAdd) {
+	static AddTo(collToEdit, collToAdd) {
 		return collToEdit | collToAdd;
 	}
-
-	//#endregion
-
-	//#endregion
 }

@@ -1,6 +1,6 @@
 import Player from "../Objects/player/Player";
 import { STATES } from "../Objects/MovementObj";
-import PhyObj from "../Objects/PhyObj";
+import PhyObj, { COLLCAT } from "../Objects/PhyObj";
 
 export default class SceneMain extends Phaser.Scene {
 	constructor() {
@@ -17,8 +17,8 @@ export default class SceneMain extends Phaser.Scene {
 			/** sprite key:  */
 			textureBody_Key: "playerImageBody",
 			/** determines the players collision caategory */
-			collCat: COLLBITMASKS.PLAYER,
-			collWith: [COLLBITMASKS.MAP, COLLBITMASKS.PLAYER, COLLBITMASKS.GAMEOBJ],
+			collCat: COLLCAT.PLAYER,
+			collWith: [COLLCAT.MAP, COLLCAT.PLAYER, COLLCAT.GAMEOBJ],
 		};
 
 		//#region game objects
@@ -39,15 +39,19 @@ export default class SceneMain extends Phaser.Scene {
 	}
 
 	preload() {
-		this.load.pack("tutorial", "src/assets/assets.json");
+		this.load.pack("tutData", "src/assets/assets.json", "tutorial");
 
 		console.log("SceneMain preload done");
 	}
 
 	create() {
 		//#region debug
-		this.input.keyboard.on("keydown-R", this.debug_resetPlayerPos, this);
+		this.input.keyboard.on("keydown-R", this.debug_reset, this);
 
+		console.log("loaded: ");
+		this.cache.json.getKeys().forEach((element) => {
+			console.log("--", this.cache.json.get(element));
+		});
 		//#endregion
 
 		//#region game objects
@@ -57,23 +61,46 @@ export default class SceneMain extends Phaser.Scene {
 		this.player.setCollisionCategory(this.playerConfig.collCat);
 		this.player.setCollidesWith(this.playerConfig.collWith);
 
-		this.block1 = this.matter.add.image(100, 200);
-		this.block1.setRectangle(100, 100);
-		this.block1.setStatic(true);
-		this.block1.setCollisionCategory(COLLBITMASKS.MAP);
-		this.block1.setCollidesWith([COLLBITMASKS.PLAYER]);
+		//creating physics shape from vertecies from string
+
+		let vert = "0 0,100 0,100 100,0 100";
+
+		let vecArr = new Array();
+
+		vert = vert.split(",");
+		vert = vert.forEach((string) => {
+			let arr = string.split(" ");
+			vecArr.push(
+				new Phaser.Math.Vector2(
+					Number.parseFloat(arr[0]),
+					Number.parseFloat(arr[1])
+				)
+			);
+		});
+
+		console.log("vecArr: ", vecArr);
+		this.block1 = this.matter.add.image(100, 200, undefined, undefined, {
+			vertices: vecArr,
+			isStatic: true,
+			collisionFilter: {
+				category: COLLCAT.MAP,
+				mask: COLLCAT.compile([COLLCAT.PLAYER, COLLCAT.MAP, COLLCAT.GAMEOBJ]),
+			},
+		});
+
+		console.log("log - this.block1.body.vertices: ", this.block1.body.vertices);
 
 		this.block2 = this.matter.add.image(250, 200);
 		this.block2.setRectangle(100, 100);
 		this.block2.setStatic(true);
-		this.block2.setCollisionCategory(COLLBITMASKS.PLAYER);
-		this.block2.setCollidesWith([COLLBITMASKS.PLAYER]);
+		this.block2.setCollisionCategory(COLLCAT.MAP);
+		this.block2.setCollidesWith([COLLCAT.ALL]);
 
 		this.block3 = this.matter.add.image(400, 200);
 		this.block3.setRectangle(100, 100);
 		this.block3.setStatic(true);
-		this.block3.setCollisionCategory(COLLBITMASKS.GAMEOBJ);
-		this.block3.setCollidesWith([COLLBITMASKS.PLAYER]);
+		this.block3.setCollisionCategory(COLLCAT.MAP);
+		this.block3.setCollidesWith([COLLCAT.PLAYER]);
 
 		//#endregion
 
@@ -87,9 +114,8 @@ export default class SceneMain extends Phaser.Scene {
 	/**
 	 * reset player position
 	 */
-	debug_resetPlayerPos() {
-		this.player.setPosition(this.playerConfig.x, this.playerConfig.y);
-		this.player.setVelocity(0);
+	debug_reset() {
+		this.scene.restart();
 	}
 
 	//#endregion
@@ -124,13 +150,14 @@ export default class SceneMain extends Phaser.Scene {
 	gameObjectCreateCustom(config, GameObj, collCat, collWith) {
 		let obj = this.add.existing(new GameObj(this, config));
 
-		if (
-			obj instanceof PhyObj &&
-			collCat != undefined &&
-			collWith != undefined
-		) {
-			obj.phyCollSetCat(collCat);
-			obj.phyCollSetWith(collWith);
+		if (collCat != undefined && collWith != undefined) {
+			if (obj instanceof PhyObj) {
+				obj.phyCollSetCat(collCat);
+				obj.phyCollSetWith(collWith);
+			} else {
+				obj.setCollisionCategory(collCat);
+				obj.setCollidesWith(collWith);
+			}
 		}
 
 		this.gameObjectAddUpdate(obj);
@@ -154,10 +181,3 @@ export default class SceneMain extends Phaser.Scene {
  * enum-like for collision bit masks
  * maximum of 32-bit integer
  */
-export class COLLBITMASKS {
-	static MAP = 0b000001;
-	static PLAYER = 0b000010;
-	static GAMEOBJ = 0b000100;
-	static NOTHING = 0b00000000000000000000000000000000;
-	static ALL = 0b11111111111111111111111111111111;
-}
