@@ -1,4 +1,4 @@
-import MovementObj from "./MovementObj";
+import MovementObj from "../WorldObjects/MovementObj";
 
 /**
  * mecha object for bosses payer and other
@@ -17,6 +17,7 @@ export default class ConnectObj extends MovementObj {
 	 * @param {number} collCat byte corresponding to the collision Category of the object
 	 * @param {number | number[]} collWith byte or list of bytes corresponding to collision Categoryies to be collided with
 	 * @param {method | undefined} moveMeth Method called to get input for movement, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set moveInputMethod
+	 * @param {method | boolean | undefined} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation. If it cant be supplied set moveInputMethod.
 	 * @param {method | undefined} jumpMeth Method called to get input for jumping, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set connJumpInputMethod
 	 */
 	constructor(
@@ -28,9 +29,10 @@ export default class ConnectObj extends MovementObj {
 		collCat,
 		collWith,
 		moveMeth,
+		rotMeth,
 		jumpMeth
 	) {
-		super(scene, x, y, texture, state, collCat, collWith, moveMeth);
+		super(scene, x, y, texture, state, collCat, collWith, moveMeth, rotMeth);
 
 		//#region movement
 
@@ -93,7 +95,7 @@ export default class ConnectObj extends MovementObj {
 
 		switch (bool) {
 			case true:
-				this.setFrictionAir(this.moveConnAirFric);
+				this.setFrictionAir(this.move_ConnAirFric);
 
 				break;
 			case false:

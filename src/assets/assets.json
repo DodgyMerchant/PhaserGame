@@ -5,6 +5,16 @@
 				"type": "image",
 				"key": "playerImageBody",
 				"url": "src/assets/Player/playerBodyTEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallSmall",
+				"url": "src/assets/World/SmallWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
 			}
 		],
 		"leveldata": [

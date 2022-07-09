@@ -1,6 +1,7 @@
-import Player from "../Objects/player/Player";
-import { STATES } from "../Objects/MovementObj";
-import PhyObj, { COLLCAT } from "../Objects/PhyObj";
+import Player from "../Objects/WorldObjects/player/Player";
+import { STATES } from "../Objects/WorldObjects/MovementObj";
+import PhyObj, { COLLCAT } from "../Objects/WorldObjects/PhyObj";
+import DebugSceneObj from "../Objects/Systems/DebugSceneObj";
 
 export default class SceneMain extends Phaser.Scene {
 	constructor() {
@@ -21,6 +22,11 @@ export default class SceneMain extends Phaser.Scene {
 			collWith: [COLLCAT.MAP, COLLCAT.PLAYER, COLLCAT.GAMEOBJ],
 		};
 
+		/** debug object if created
+		 * @type {DebugSceneObj} debugging object
+		 */
+		this.debug;
+
 		//#region game objects
 
 		/**
@@ -36,25 +42,41 @@ export default class SceneMain extends Phaser.Scene {
 		this.player;
 
 		//#endregion
+		//#region loading
+
+		/** loading bar object
+		 * @type {Phaser.GameObjects.Graphics} graphics object
+		 */
+		this.load_bar;
+
+		//#endregion
 	}
 
 	preload() {
 		this.load.pack("tutData", "src/assets/assets.json", "tutorial");
 
-		console.log("SceneMain preload done");
+		//create loading bar
+		this.loadBarCreate();
 	}
 
 	create() {
-		//#region debug
-		this.input.keyboard.on("keydown-R", this.debug_reset, this);
+		//#region debug setup
+		//disaable debug drawing
+		this.matter.world.drawDebug = false;
 
-		console.log("loaded: ");
-		this.cache.json.getKeys().forEach((element) => {
-			console.log("--", this.cache.json.get(element));
-		});
+		//#region debug
+		// this.input.keyboard.once("keydown-J", this.debug_setup, this);
+		this.debug_setup();
+
+		// console.log("loaded: ");
+		// this.cache.json.getKeys().forEach((element) => {
+		// 	console.log("--", this.cache.json.get(element));
+		// });
+
 		//#endregion
 
 		//#region game objects
+
 		this.aliveGroup = this.add.group({ runChildUpdate: true });
 		this.player = this.gameObjectCreatePlayer(this.playerConfig);
 
@@ -78,32 +100,45 @@ export default class SceneMain extends Phaser.Scene {
 			);
 		});
 
-		console.log("vecArr: ", vecArr);
-		this.block1 = this.matter.add.image(100, 200, undefined, undefined, {
+		/**
+		 * block config
+		 * @type {Phaser.Types.Physics.Matter.MatterBodyConfig}
+		 */
+		let blockConf = {
+			label: "block",
 			vertices: vecArr,
 			isStatic: true,
 			collisionFilter: {
 				category: COLLCAT.MAP,
 				mask: COLLCAT.compile([COLLCAT.PLAYER, COLLCAT.MAP, COLLCAT.GAMEOBJ]),
 			},
-		});
+		};
 
-		console.log("log - this.block1.body.vertices: ", this.block1.body.vertices);
+		this.block1 = this.matter.add.image(
+			100,
+			200,
+			"worldWallSmall",
+			undefined,
+			blockConf
+		);
 
-		this.block2 = this.matter.add.image(250, 200);
-		this.block2.setRectangle(100, 100);
-		this.block2.setStatic(true);
-		this.block2.setCollisionCategory(COLLCAT.MAP);
-		this.block2.setCollidesWith([COLLCAT.ALL]);
+		this.block2 = this.matter.add.image(
+			220,
+			200,
+			"worldWallSmall",
+			undefined,
+			blockConf
+		);
 
-		this.block3 = this.matter.add.image(400, 200);
-		this.block3.setRectangle(100, 100);
-		this.block3.setStatic(true);
-		this.block3.setCollisionCategory(COLLCAT.MAP);
-		this.block3.setCollidesWith([COLLCAT.PLAYER]);
+		this.block3 = this.matter.add.image(
+			370,
+			200,
+			"worldWallSmall",
+			undefined,
+			blockConf
+		);
 
-
-    //AYOOEST
+		//AYOOEST
 
 		//#endregion
 
@@ -114,11 +149,9 @@ export default class SceneMain extends Phaser.Scene {
 
 	//#region debug
 
-	/**
-	 * reset player position
-	 */
-	debug_reset() {
-		this.scene.restart();
+	debug_setup() {
+		this.debug = new DebugSceneObj(this);
+		console.log("debug setup done");
 	}
 
 	//#endregion
@@ -175,6 +208,35 @@ export default class SceneMain extends Phaser.Scene {
 	 */
 	gameObjectAddUpdate(obj) {
 		this.aliveGroup.add(obj);
+	}
+
+	//#endregion
+	//#region loading
+
+	loadBarCreate() {
+		this.load_bar = this.add.graphics({
+			fillStyle: {
+				alpha: 1,
+				color: 0xffffff,
+			},
+		});
+
+		this.load.on("progress", (percent) => {
+			//draw loaading bar
+			this.load_bar.fillRect(
+				0,
+				this.game.renderer.height / 2,
+				this.game.renderer.width * percent,
+				50
+			);
+
+			console.log("loading%: ", percent);
+		});
+		this.load.on("complete", (percent) => {
+			//draw loaading bar
+			// this.scene.start()
+			this.load_bar.destroy(true);
+		});
 	}
 
 	//#endregion

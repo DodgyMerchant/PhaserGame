@@ -11,9 +11,9 @@ this.setFrictionStatic(0.5);
 this.setDensity(1);
 
 /** movement speed when connected to a wall */
-this.moveSpeed = 0.5;
+this.move_Speed = 0.5;
 /** air friction of the object if connected */
-this.moveConnAirFric = 0.05;
+this.move_ConnAirFric = 0.05;
 /** movement speed when jumping */
 this.connSpdJump = 5;
 /** maximum movement speed when connected */
