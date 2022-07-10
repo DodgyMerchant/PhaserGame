@@ -2,7 +2,7 @@ import LevelEditor from "./LevelEditor";
 
 /** debugging class */
 export default class DebugSceneObj {
-	/** READ ONLY, if debug is active. set with debug() method
+	/** READ ONLY, if debug is active. set with toggle() method
 	 * @type {boolean} bool
 	 */
 	static active = false;
@@ -10,31 +10,52 @@ export default class DebugSceneObj {
 	/**
 	 * created a debugging object
 	 * @param {Phaser.Scene} scene scene this is created in
+	 * @param {boolean | undefined} bool if active
 	 */
-	constructor(scene) {
+	constructor(scene, bool) {
 		/** scene created in
 		 * @type {Phaser.Scene} scene
 		 */
 		this.scene = scene;
 
-		this.debugToggle(true);
+		this.toggle(bool);
+
+		/**
+		 * the level editor if created
+		 * @type {LevelEditor | undefined}
+		 */
+		this.levelEditor = undefined;
+		/**
+		 * if the level editor WAS active as this obj got disabled
+		 * @type {boolean}
+		 */
+		this.levelEditorWasActive = false;
+
+		this.createLevelEditor(true);
 
 		//#region
 
 		this.scene.input.keyboard.on("keydown-R", this.restart, this);
 
-		var keyObj = this.scene.input.keyboard.addKey("J"); // Get key object
-		keyObj.on(
+		this.KeyToggle = this.scene.input.keyboard.addKey("J"); // Get key object
+		this.KeyToggle.on(
 			"down",
 			function (event) {
-				this.debugToggle();
+				this.toggle();
+			},
+			this
+		);
+
+		this.KeyEditorToggle = this.scene.input.keyboard.addKey("L"); // Get key object
+		this.KeyEditorToggle.on(
+			"down",
+			function (event) {
+				this.levelEditor.toggle();
 			},
 			this
 		);
 
 		//#endregion
-
-		this.levelEditor == new LevelEditor(scene);
 
 		console.log("//////////// Debug Obj Created ////////////");
 	}
@@ -44,12 +65,31 @@ export default class DebugSceneObj {
 	 * @param {boolean | undefined} bool boolean to set or undefined
 
 	 */
-	debugToggle(bool) {
+	toggle(bool) {
 		if (bool == undefined) {
 			DebugSceneObj.active = !DebugSceneObj.active;
 		} else {
 			DebugSceneObj.active = bool;
 		}
+
+		//#region level editor
+
+		if (this.levelEditor != undefined) {
+			//turning on debug
+			if (DebugSceneObj.active) {
+				//if level editor was on as we disaabled debug
+				if (this.levelEditorWasActive) this.levelEditor.toggle(true);
+			} else {
+				//turning off the debug obj
+
+				//if level editor is on, keep in mind and open auto on enable
+				if (LevelEditor.active) {
+					this.levelEditorWasActive = true;
+					this.levelEditor.toggle(false);
+				}
+			}
+		}
+		//#endregion
 
 		this.scene.matter.world.drawDebug = DebugSceneObj.active;
 
@@ -67,5 +107,13 @@ export default class DebugSceneObj {
 			console.log("restart");
 			this.scene.scene.restart();
 		}
+	}
+
+	/**
+	 * @param {bool | undefined} bool if active. default true
+	 * @return {LevelEditor}
+	 */
+	createLevelEditor(bool) {
+		this.levelEditor = new LevelEditor(this.scene, 0, 0, bool);
 	}
 }

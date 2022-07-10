@@ -133,22 +133,22 @@ export default class MovementObj extends PhyObj {
 
 		//#region debug
 
-		let input = this.moveInputMethod();
-		if (this.body.speed != 0 || !this.moveRotationIsSettled())
-			console.log(
-				"trn spd: ",
-				this.move_RotSpeed.toFixed(2),
-				"input: ",
-				input.x.toFixed(2),
-				"/",
-				input.y.toFixed(2),
-				" | spd: ",
-				this.body.speed.toFixed(4),
-				" | vel: ",
-				this.body.velocity.x.toFixed(2),
-				"/",
-				this.body.velocity.y.toFixed(2)
-			);
+		// let input = this.moveInputMethod();
+		// if (this.body.speed != 0 || !this.moveRotationIsSettled())
+		// 	console.log(
+		// 		"trn spd: ",
+		// 		this.move_RotSpeed.toFixed(2),
+		// 		"input: ",
+		// 		input.x.toFixed(2),
+		// 		"/",
+		// 		input.y.toFixed(2),
+		// 		" | spd: ",
+		// 		this.body.speed.toFixed(4),
+		// 		" | vel: ",
+		// 		this.body.velocity.x.toFixed(2),
+		// 		"/",
+		// 		this.body.velocity.y.toFixed(2)
+		// 	);
 
 		//#endregion
 	}

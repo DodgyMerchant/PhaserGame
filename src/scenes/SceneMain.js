@@ -22,6 +22,37 @@ export default class SceneMain extends Phaser.Scene {
 			collWith: [COLLCAT.MAP, COLLCAT.PLAYER, COLLCAT.GAMEOBJ],
 		};
 
+		/**
+		 * camera optionen
+		 * @type {object} config object
+		 */
+		this.camConfig = {
+			/** background color
+			 * @type {number}
+			 */
+			backCol: "0x11041a", //"0x11041a" blackpurple
+
+			//#region movement
+			/** A value between 0 and 1. This value specifies the amount of linear interpolation to use when horizontally tracking the target. The closer the value to 1, the faster the camera will track. Default 1.
+			 * @type {number}
+			 */
+			lerpX: 0.1,
+			/** A value between 0 and 1. This value specifies the amount of linear interpolation to use when vertically tracking the target. The closer the value to 1, the faster the camera will track. Default 1.
+			 * @type {number}
+			 */
+			lerpX: 0.1,
+			/** The horizontal offset from the camera follow target.x position. Default 0.
+			 * @type {number}
+			 */
+			offsetX: 0,
+			/** The vertical offset from the camera follow target.y position. Default 0.
+			 * @type {number}
+			 */
+			offsety: 0,
+
+			//#endregion
+		};
+
 		/** debug object if created
 		 * @type {DebugSceneObj} debugging object
 		 */
@@ -53,6 +84,15 @@ export default class SceneMain extends Phaser.Scene {
 	}
 
 	preload() {
+		//#region  debug
+
+		//load abung of stuff
+		// for (let index = 0; index < 500; index++) {
+		// 	this.load.pack("tutData" + index, "src/assets/assets.json", "tutorial");
+		// }
+
+		//#endregion
+
 		this.load.pack("tutData", "src/assets/assets.json", "tutorial");
 
 		//create loading bar
@@ -142,6 +182,26 @@ export default class SceneMain extends Phaser.Scene {
 
 		//#endregion
 
+		//#region camera
+		/**
+		 * main cam
+		 * @type {Phaser.Cameras.Scene2D.Camera}
+		 */
+		this.mainCam = this.cameras.main;
+
+		this.mainCam.setBackgroundColor(this.camConfig.backCol);
+
+		this.mainCam.startFollow(
+			this.player,
+			false,
+			this.camConfig.lerpX,
+			this.camConfig.lerpY,
+			this.camConfig.lerpX,
+			this.camConfig.lerpY
+		);
+
+		//#endregion
+
 		console.log("SceneMain create");
 	}
 
@@ -214,23 +274,34 @@ export default class SceneMain extends Phaser.Scene {
 	//#region loading
 
 	loadBarCreate() {
+		let h = 25;
+
+		let loadBarConfig = {
+			x1: 0,
+			y1: this.game.renderer.height - h,
+			w: this.game.renderer.width,
+			h: h,
+			color: 0x00ffff,
+			alpha: 1,
+		};
+
 		this.load_bar = this.add.graphics({
 			fillStyle: {
-				alpha: 1,
-				color: 0xffffff,
+				alpha: loadBarConfig.alpha,
+				color: loadBarConfig.color,
 			},
 		});
 
-		this.load.on("progress", (percent) => {
+		this.load.on("progress", (p) => {
 			//draw loaading bar
 			this.load_bar.fillRect(
-				0,
-				this.game.renderer.height / 2,
-				this.game.renderer.width * percent,
-				50
+				loadBarConfig.x1,
+				loadBarConfig.y1,
+				loadBarConfig.w * p,
+				loadBarConfig.h
 			);
 
-			console.log("loading%: ", percent);
+			console.log("loading%: ", p);
 		});
 		this.load.on("complete", (percent) => {
 			//draw loaading bar

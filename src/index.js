@@ -8,7 +8,7 @@ const config = {
 	parent: "div-game",
 	width: view_size,
 	height: view_size,
-	backgroundColor: "#333333",
+	backgroundColor: "0xffffff",
 	scene: [SceneMain],
 	scale: {
 		zoom: 1,
