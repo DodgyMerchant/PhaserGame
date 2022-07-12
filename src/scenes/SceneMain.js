@@ -5,8 +5,13 @@ import DebugSceneObj from "../Objects/Systems/DebugSceneObj";
 
 export default class SceneMain extends Phaser.Scene {
 	constructor() {
-		super("SceneMain");
+		super({
+			key: "SceneMain",
+			visible: true,
+			active: true,
+		});
 
+		//#region setup
 		/**
 		 * information on the player
 		 * @type {object} config object
@@ -58,6 +63,7 @@ export default class SceneMain extends Phaser.Scene {
 		 */
 		this.debug;
 
+		//#endregion
 		//#region game objects
 
 		/**
@@ -102,11 +108,11 @@ export default class SceneMain extends Phaser.Scene {
 	create() {
 		//#region debug setup
 		//disaable debug drawing
-		this.matter.world.drawDebug = false;
+		
 
 		//#region debug
 		// this.input.keyboard.once("keydown-J", this.debug_setup, this);
-		this.debug_setup();
+		this.debug_setup(true, true);
 
 		// console.log("loaded: ");
 		// this.cache.json.getKeys().forEach((element) => {
@@ -209,8 +215,14 @@ export default class SceneMain extends Phaser.Scene {
 
 	//#region debug
 
-	debug_setup() {
-		this.debug = new DebugSceneObj(this);
+	/**
+	 * create debug obj
+	 * @param {boolean} bool if active
+	 * @param {boolean} levelEditor if level editor should be created?
+	 */
+	debug_setup(bool, levelEditor) {
+		this.debug = new DebugSceneObj(this, bool, levelEditor);
+
 		console.log("debug setup done");
 	}
 
@@ -228,7 +240,8 @@ export default class SceneMain extends Phaser.Scene {
 			config,
 			Player,
 			config.collCat,
-			config.collWith
+			config.collWith,
+			true
 		);
 	}
 
@@ -241,9 +254,10 @@ export default class SceneMain extends Phaser.Scene {
 	 * @param {Phaser.GameObjects.GameObject} GameObj
 	 * @param {number | undefined} collCat the collision Category of the object
 	 * @param {number | undefined} collWith the collision Category to collide with of the object
+	 * @param {boolean | undefined} autoUpdate the collision Category to collide with of the object
 	 * @returns {Phaser.GameObjects.GameObject} GameObj instance
 	 */
-	gameObjectCreateCustom(config, GameObj, collCat, collWith) {
+	gameObjectCreateCustom(config, GameObj, collCat, collWith, autoUpdate) {
 		let obj = this.add.existing(new GameObj(this, config));
 
 		if (collCat != undefined && collWith != undefined) {
@@ -256,7 +270,7 @@ export default class SceneMain extends Phaser.Scene {
 			}
 		}
 
-		this.gameObjectAddUpdate(obj);
+		if (autoUpdate == true) this.gameObjectAddUpdate(obj);
 
 		return obj;
 	}

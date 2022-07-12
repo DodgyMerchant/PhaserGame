@@ -1,24 +1,28 @@
 import LevelEditor from "./LevelEditor";
 
 /** debugging class */
-export default class DebugSceneObj {
-	/** READ ONLY, if debug is active. set with toggle() method
-	 * @type {boolean} bool
-	 */
-	static active = false;
-
+export default class DebugSceneObj extends Phaser.GameObjects.GameObject {
 	/**
 	 * created a debugging object
 	 * @param {Phaser.Scene} scene scene this is created in
 	 * @param {boolean | undefined} bool if active
+	 * @param {boolean | undefined} levelEditor if level editor should be created?
 	 */
-	constructor(scene, bool) {
-		/** scene created in
-		 * @type {Phaser.Scene} scene
+	constructor(scene, bool, levelEditor) {
+		super(scene, "DebugSceneObj");
+
+		//#region setup
+
+		/** debug group
+		 * @type {Phaser.GameObjects.Group} group for debug
 		 */
-		this.scene = scene;
+		this.debugGroup = this.scene.add.group({ runChildUpdate: true });
+		this.debugGroup.add(this);
 
 		this.toggle(bool);
+
+		//#endregion
+		//#region level editor
 
 		/**
 		 * the level editor if created
@@ -31,11 +35,20 @@ export default class DebugSceneObj {
 		 */
 		this.levelEditorWasActive = false;
 
-		this.createLevelEditor(true);
+		if (levelEditor) this.createLevelEditor(true);
 
-		//#region
+		//#endregion
+		//#region debug input and actions
 
-		this.scene.input.keyboard.on("keydown-R", this.restart, this);
+		//dont work???
+		this.KeyRestart = this.scene.input.keyboard.addKey("R"); // Get key object
+		this.KeyRestart.on(
+			"down",
+			function (event) {
+				this.restart();
+			},
+			this
+		);
 
 		this.KeyToggle = this.scene.input.keyboard.addKey("J"); // Get key object
 		this.KeyToggle.on(
@@ -50,7 +63,9 @@ export default class DebugSceneObj {
 		this.KeyEditorToggle.on(
 			"down",
 			function (event) {
-				this.levelEditor.toggle();
+				if (this.levelEditor != undefined) {
+					this.levelEditor.toggle();
+				}
 			},
 			this
 		);
@@ -60,6 +75,8 @@ export default class DebugSceneObj {
 		console.log("//////////// Debug Obj Created ////////////");
 	}
 
+	update() {}
+
 	/**
 	 * toggles or set debug
 	 * @param {boolean | undefined} bool boolean to set or undefined
@@ -67,33 +84,34 @@ export default class DebugSceneObj {
 	 */
 	toggle(bool) {
 		if (bool == undefined) {
-			DebugSceneObj.active = !DebugSceneObj.active;
+			this.setActive(!this.active);
 		} else {
-			DebugSceneObj.active = bool;
+			this.setActive(bool);
 		}
 
 		//#region level editor
 
-		if (this.levelEditor != undefined) {
-			//turning on debug
-			if (DebugSceneObj.active) {
-				//if level editor was on as we disaabled debug
-				if (this.levelEditorWasActive) this.levelEditor.toggle(true);
-			} else {
-				//turning off the debug obj
+		// if (this.levelEditor != undefined) {
+		// 	//turning on debug
+		// 	if (DebugSceneObj.active) {
+		// 		//if level editor was on as we disaabled debug
+		// 		if (this.levelEditorWasActive) this.levelEditor.toggle(true);
+		// 	} else {
+		// 		//turning off the debug obj
 
-				//if level editor is on, keep in mind and open auto on enable
-				if (LevelEditor.active) {
-					this.levelEditorWasActive = true;
-					this.levelEditor.toggle(false);
-				}
-			}
-		}
+		// 		//if level editor is on, keep in mind and open auto on enable
+		// 		if (this.levelEditor.active) {
+		// 			this.levelEditorWasActive = true;
+		// 			this.levelEditor.toggle(false);
+		// 		}
+		// 	}
+		// }
+
 		//#endregion
 
-		this.scene.matter.world.drawDebug = DebugSceneObj.active;
+		this.scene.matter.world.drawDebug = this.active;
 
-		if (DebugSceneObj.active) {
+		if (this.active) {
 		} else {
 			this.scene.matter.world.debugGraphic.clear();
 		}
@@ -114,6 +132,16 @@ export default class DebugSceneObj {
 	 * @return {LevelEditor}
 	 */
 	createLevelEditor(bool) {
-		this.levelEditor = new LevelEditor(this.scene, 0, 0, bool);
+		this.levelEditor = new LevelEditor(
+			"LevelEditor",
+			this.scene,
+			this.debugGroup,
+			0,
+			0,
+			this.scene.cameras.main.displayWidth / this.scene.cameras.main.zoom,
+			this.scene.cameras.main.displayHeight / this.scene.cameras.main.zoom,
+			bool
+		);
+		this.debugGroup.add(this.levelEditor);
 	}
 }

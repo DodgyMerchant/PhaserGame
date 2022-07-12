@@ -1,25 +1,28 @@
-import { Events } from "phaser";
-import UIObj from "./UIObj";
+import UIObj from "./UI/UIObj";
 
 /**
  * level editor
  */
 export default class LevelEditor extends UIObj {
-	/** READ ONLY, if level editor is active. set with toggle() method
-	 * @type {boolean} bool
-	 */
-	static active = false;
-
 	/**
 	 * create a level editor
+	 * @param {String} name a name
 	 * @param {Phaser.Scene} scene The Scene to which this Game Object belongs. A Game Object can only belong to one Scene at a time.
+	 * @param {Phaser.GameObjects.Group} debugGroup The Scene to which this Game Object belongs. A Game Object can only belong to one Scene at a time.
 	 * @param {number | undefined} x The horizontal position of this Game Object in the world. Default 0.
 	 * @param {number | undefined} y The vertical position of this Game Object in the world. Default 0.
-	 * @param {bool | undefined} bool if aactive. default true
+	 * @param {bool | undefined} bool if active. default true
 	 */
-	constructor(scene, x, y, bool) {
-		super(scene, x, y, undefined);
+	constructor(name, scene, debugGroup, x, y, bool) {
+		super(name, scene, x, y, undefined);
 
+		//#region this obj setup
+		/**
+		 * @type {Phaser.GameObjects.Group} group im in
+		 */
+		this.group = debugGroup;
+
+		//#endregion
 		//#region conf
 		/**
 		 * text config
@@ -57,44 +60,64 @@ export default class LevelEditor extends UIObj {
 			 * @type {number}
 			 */
 			backCol: "#828282",
-
 			moveEventName: "LevelEditorCamMainMove",
-			/** move speed */
-			spd: 5,
-			/** move speed */
-			zoomStrg: 0.1,
-			/** move speed */
-			zoomMin: 0.1,
+			speed: 5,
+
+			//zoom
+			zoomBase: this.scene.cameras.main.zoom,
+			zoomSpeed: 0.01,
+			maxZoom: 10,
+			minZoom: 0.1,
+			zoomWheelComp: 8,
 		};
 
 		//#endregion
 		//#region input
 
-		// /**
-		//  * input
-		//  */
-		// this.inputKeys = this.scene.input.keyboard.addKeys(
-		// 	{
-		// 		//cam
-		// 		/** @type {Phaser.Input.Keyboard.Key} */
-		// 		up: Phaser.Input.Keyboard.KeyCodes.UP,
-		// 		/** @type {Phaser.Input.Keyboard.Key} */
-		// 		down: Phaser.Input.Keyboard.KeyCodes.DOWN,
-		// 		/** @type {Phaser.Input.Keyboard.Key} */
-		// 		left: Phaser.Input.Keyboard.KeyCodes.LEFT,
-		// 		/** @type {Phaser.Input.Keyboard.Key} */
-		// 		right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+		/**
+		 * input
+		 */
+		this.inputKeys = this.scene.input.keyboard.addKeys(
+			{
+				//#region cam
+				//cam movement
+				/** @type {Phaser.Input.Keyboard.Key} */
+				up: Phaser.Input.Keyboard.KeyCodes.UP,
+				/** @type {Phaser.Input.Keyboard.Key} */
+				down: Phaser.Input.Keyboard.KeyCodes.DOWN,
+				/** @type {Phaser.Input.Keyboard.Key} */
+				left: Phaser.Input.Keyboard.KeyCodes.LEFT,
+				/** @type {Phaser.Input.Keyboard.Key} */
+				right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
 
-		// 		//
-		// 	},
-		// 	true,
-		// 	true
-		// );
+				//cam zoom
+				/** @type {Phaser.Input.Keyboard.Key} */
+				zoomIn: Phaser.Input.Keyboard.KeyCodes.MINUS,
+				/** @type {Phaser.Input.Keyboard.Key} */
+				zoomOut: Phaser.Input.Keyboard.KeyCodes.PLUS,
+				/** @type {Phaser.Input.Keyboard.Key} */
+				zoomReset: Phaser.Input.Keyboard.KeyCodes.BACKSPACE,
+
+				//#endregion
+			},
+			true,
+			true
+		);
+
+		//mouse
+		this.pointer = this.scene.input.activePointer;
+		// this.scene.input.on()
 
 		//#endregion
 		//#region camera
 
 		//#region setup
+
+		/**
+		 * if the level editor obj will move with its camera
+		 * @type {boolean}
+		 */
+		this.moveCamWidth = true;
 		/**
 		 * the original main camera
 		 * @type {Phaser.Cameras.Scene2D.Camera}
@@ -128,7 +151,12 @@ export default class LevelEditor extends UIObj {
 				width: 7,
 			},
 		});
-		this.add(this.CamMainGraph);
+		// this.add(this.CamMainGraph); dont add or ittl move with
+
+		/** cam controls
+		 * @type {Phaser.Cameras.Controls.FixedKeyControl}
+		 */
+		this.camControls;
 
 		//#endregion
 		//#region main cam outline
@@ -150,75 +178,43 @@ export default class LevelEditor extends UIObj {
 		//#endregion
 		//#region movement
 
-		//#region dragging
+		this.camControls = new Phaser.Cameras.Controls.FixedKeyControl({
+			camera: this.CamEditor,
+			up: this.inputKeys.up,
+			down: this.inputKeys.down,
+			left: this.inputKeys.left,
+			right: this.inputKeys.right,
+			speed: this.camConfig.speed,
+			//zoom
+			zoomIn: this.inputKeys.zoomIn,
+			zoomOut: this.inputKeys.zoomOut,
+			zoomSpeed: this.camConfig.zoomSpeed,
+			maxZoom: this.camConfig.maxZoom,
+			minZoom: this.camConfig.minZoom,
+		});
 
-		//#endregion
-		//#region zoom
+		this.inputKeys.zoomReset.on(
+			"down",
+			function () {
+				this.CamEditor.zoomTo(this.camConfig.zoomBase, 100);
+			},
+			this
+		);
 
 		this.scene.input.on(
 			"wheel",
-			function (pointer, gameObjects, deltaX, deltaY, deltaZ) {
-				//start zoom
-				this.CamEditor.zoomTo(
-					Phaser.Math.MinSub(
-						this.CamEditor.zoom,
-						Math.sign(deltaY) * this.camConfig.zoomStrg,
-						this.camConfig.zoomMin
-					),
-					0,
-					undefined,
-					true,
-					undefined,
-					undefined
+			function (pointer, obj, x, y, z) {
+				this.CamEditor.zoom = Phaser.Math.Clamp(
+					this.CamEditor.zoom -
+						Math.sign(y) *
+							this.camConfig.zoomSpeed *
+							this.camConfig.zoomWheelComp,
+					this.camConfig.minZoom,
+					this.camConfig.maxZoom
 				);
-				console.log("wheel: ", pointer, gameObjects, deltaX, deltaY, deltaZ);
 			},
 			this
 		);
-
-		this.scene.input.on(
-			Phaser.Input.MOUSE_DOWN,
-			function (pointer, gameObjects, a, b, c, d) {
-				console.log("MOUSE_DOWN: ", pointer, gameObjects, a, b, c, d);
-			},
-			this
-		);
-
-		//#endregion
-
-		//#region kamera arrow key movement
-
-		//kinda useless
-		// this.inputKeys.up.on(
-		// 	Phaser.Input.Keyboard.Events.DOWN,
-		// 	function (key, keybEv) {
-		// 		this.cameraMoveBy(0, -this.camConfig.spd);
-		// 	},
-		// 	this
-		// );
-		// this.inputKeys.down.on(
-		// 	Phaser.Input.Keyboard.Events.DOWN,
-		// 	function (key, keybEv) {
-		// 		this.cameraMoveBy(0, this.camConfig.spd);
-		// 	},
-		// 	this
-		// );
-		// this.inputKeys.left.on(
-		// 	Phaser.Input.Keyboard.Events.DOWN,
-		// 	function (key, keybEv) {
-		// 		this.cameraMoveBy(-this.camConfig.spd, 0);
-		// 	},
-		// 	this
-		// );
-		// this.inputKeys.right.on(
-		// 	Phaser.Input.Keyboard.Events.DOWN,
-		// 	function (key, keybEv) {
-		// 		this.cameraMoveBy(this.camConfig.spd, 0);
-		// 	},
-		// 	this
-		// );
-
-		//#endregion
 
 		//#endregion
 
@@ -229,8 +225,18 @@ export default class LevelEditor extends UIObj {
 		let txt = this.scene.add.text(x, y, "Level Editor - Active", this.txtConf);
 		this.add(txt);
 
-		this.Inspector = this.createWindow(100, 300, 70, 70, this.graphConf);
+		this.Inspector = this.createWindow(
+			"Inspector",
+			this.graphConf,
+			100,
+			300,
+			70,
+			70,
+			true,
+			true
+		);
 
+		// Phaser.Scene.
 		//#endregion
 
 		//#region setup the rest
@@ -246,79 +252,92 @@ export default class LevelEditor extends UIObj {
 		console.log("//////////// level editor created ////////////");
 	}
 
+	update(time, delta) {
+		//parent update
+		super.update();
+
+		this.camera_update();
+	}
+
 	/**
 	 * toggles or set debug
 	 * @param {boolean | undefined} bool boolean to set or undefined
 	 */
 	toggle(bool) {
-		if (bool == undefined) {
-			LevelEditor.active = !LevelEditor.active;
-		} else {
-			LevelEditor.active = bool;
-		}
+		if (bool == undefined) bool = !this.active;
 
-		if (LevelEditor.active) {
-			this.addToDisplayList();
-			this.addToUpdateList();
-		} else {
-			this.removeFromDisplayList();
-			this.removeFromUpdateList();
-		}
+		this.enable(bool);
 
-		this.cameraActivate(LevelEditor.active);
+		this.cameraActivate(this.active);
+
+		console.log("active: ", this.active);
 	}
 
+	//#region UI
+
 	/**
-	 *
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} w
-	 * @param {number} h
-	 * @param {Phaser.Types.GameObjects.Graphics.Options} config
-	 * @return {UIObj}
+	 * creates a container aand in it a graaphiscs obj thats displaying a rectangle background
+	 * @param {string} name a name
+	 * @param {Phaser.Types.GameObjects.Graphics.Options} config graphic config for displaying
+	 * @param {number} x x
+	 * @param {number} y y
+	 * @param {number} w width
+	 * @param {number} h height
+	 * @param {boolean | undefined} cascadeEnable — The vertical position of this Game Object in the world. Default 0.
+	 * @param {boolean | undefined} cascadeDisable — The vertical position of this Game Object in the world. Default 0.
+	 * @return {object}
 	 */
-	createWindow(x, y, w, h, config) {
-		let winGroup = this.UiGroupCreate(x, y);
-		this.add(winGroup);
+	createWindow(name, config, x, y, w, h, cascadeEnable, cascadeDisable) {
+		let window = this.UiContainerCreate(
+			name,
+			x,
+			y,
+			cascadeEnable,
+			cascadeDisable
+		);
+
+		this.add(window);
 
 		//background
 		let winGraph = this.UiGraphCreate(0, 0, config);
-		winGroup.add(winGraph);
+		window.add(winGraph);
 		let winBack = winGraph.fillRect(0, 0, w, h);
-
-		winGroup.setInteractive(
-			new Phaser.Geom.Rectangle(0, 0, w, h),
-			Phaser.Geom.Rectangle.Contains
-		);
-
-		winGroup.on(
-			"pointerdown",
-			function (a, b, c, d) {
-				console.log("POINTER", a, b, c, d);
-			},
-			this
-		);
 
 		return {
 			/**
-			 * group
+			 * window
 			 * @type {UIObj}
 			 */
-			group: winGroup,
+			window: window,
 			/**
-			 * group
+			 * graphics
 			 * @type {Phaser.GameObjects.Graphics}
 			 */
 			graphic: winGraph,
 			/**
-			 * group
+			 * background
 			 * @type {Phaser.GameObjects.Graphics}
 			 */
 			background: winBack,
 		};
 	}
 
+	//#endregion
 	//#region camera
+
+	camera_update() {
+		//applying camera controls
+		this.camControls.update();
+
+		//moving
+		this.cameraMoveWith();
+	}
+
+	cameraMoveWith() {
+		if (this.moveCamWidth) {
+			this.setPosition(this.CamEditor.scrollX, this.CamEditor.scrollY);
+		}
+	}
 
 	cameraMoveBy(x, y) {
 		this.CamEditor.setScroll(
@@ -328,23 +347,36 @@ export default class LevelEditor extends UIObj {
 	}
 
 	/**
-	 * aactivate or deactivate camera stuff
+	 * activate or deactivate camera stuff
 	 * @param {boolean} active activate or deactivate
 	 */
 	cameraActivate(active) {
 		if (active) {
+			this.setActive(true);
+
 			//set cam pos
 
-			// this.scene.cameras.remove(this.CamMain, false);
-			// this.CamMain.setVisible(false);
-
 			this.CamEditor = this.cameraEditorCreateFrom(this.CamMain);
-			this.scene.cameras.addExisting(this.CamEditor, false);
 
-			//main cam
+			this.scene.cameras.addExisting(this.CamEditor, false);
+			//activate cam controls
+			this.camControls.active = true;
+			this.camControls.camera = this.CamEditor;
+			//enable main cam outline
+			this.CamMainGraph.setVisible(true);
+
+			////main cam
 			this.CamMain.setPosition(0, this.CamMain.height);
 		} else {
+			this.setActive(false);
+
 			this.scene.cameras.remove(this.CamEditor, true);
+			//deactivate cam controls
+			this.camControls.active = false;
+			this.camControls.camera = undefined;
+
+			//disable main cam outline
+			this.CamMainGraph.setVisible(false);
 
 			//main caam
 			this.CamMain.setPosition(0, 0);
@@ -369,10 +401,6 @@ export default class LevelEditor extends UIObj {
 		camNew.setScroll(camToCopy.scrollX, camToCopy.scrollY);
 
 		camNew.setBackgroundColor(this.camConfig.backCol);
-
-		camNew.on(Phaser.Cameras.Scene2D.Events.ZOOM_COMPLETE, function (cam) {
-			console.log("editor cam zoom: ", cam.zoom);
-		});
 
 		//end
 		return camNew;
