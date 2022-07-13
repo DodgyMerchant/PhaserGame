@@ -1,0 +1,23 @@
+{
+	"tutorial": {
+		"files": [
+			{
+				"type": "image",
+				"key": "playerImageBody",
+				"url": "src/assets/Player/playerBodyTEMP.png"
+			}
+		],
+		"leveldata": [
+			{
+				"name": "meme"
+			}
+		]
+	},
+	"meta": {
+		"generated": "1401380327373",
+		"app": "Phaser 3 Asset Packer",
+		"url": "https://phaser.io",
+		"version": "1.0",
+		"copyright": "Photon Storm Ltd. 2018"
+	}
+}
