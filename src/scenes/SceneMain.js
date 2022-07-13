@@ -1,11 +1,17 @@
-import Player from "../Objects/player/Player";
-import { STATES } from "../Objects/MovementObj";
-import PhyObj, { COLLCAT } from "../Objects/PhyObj";
+import Player from "../Objects/WorldObjects/player/Player";
+import { STATES } from "../Objects/WorldObjects/MovementObj";
+import PhyObj, { COLLCAT } from "../Objects/WorldObjects/PhyObj";
+import DebugSceneObj from "../Objects/Systems/DebugSceneObj";
 
 export default class SceneMain extends Phaser.Scene {
 	constructor() {
-		super("SceneMain");
+		super({
+			key: "SceneMain",
+			visible: true,
+			active: true,
+		});
 
+		//#region setup
 		/**
 		 * information on the player
 		 * @type {object} config object
@@ -21,6 +27,43 @@ export default class SceneMain extends Phaser.Scene {
 			collWith: [COLLCAT.MAP, COLLCAT.PLAYER, COLLCAT.GAMEOBJ],
 		};
 
+		/**
+		 * camera optionen
+		 * @type {object} config object
+		 */
+		this.camConfig = {
+			/** background color
+			 * @type {number}
+			 */
+			backCol: "0x11041a", //"0x11041a" blackpurple
+
+			//#region movement
+			/** A value between 0 and 1. This value specifies the amount of linear interpolation to use when horizontally tracking the target. The closer the value to 1, the faster the camera will track. Default 1.
+			 * @type {number}
+			 */
+			lerpX: 0.1,
+			/** A value between 0 and 1. This value specifies the amount of linear interpolation to use when vertically tracking the target. The closer the value to 1, the faster the camera will track. Default 1.
+			 * @type {number}
+			 */
+			lerpX: 0.1,
+			/** The horizontal offset from the camera follow target.x position. Default 0.
+			 * @type {number}
+			 */
+			offsetX: 0,
+			/** The vertical offset from the camera follow target.y position. Default 0.
+			 * @type {number}
+			 */
+			offsety: 0,
+
+			//#endregion
+		};
+
+		/** debug object if created
+		 * @type {DebugSceneObj} debugging object
+		 */
+		this.debug;
+
+		//#endregion
 		//#region game objects
 
 		/**
@@ -36,25 +79,49 @@ export default class SceneMain extends Phaser.Scene {
 		this.player;
 
 		//#endregion
+		//#region loading
+
+		/** loading bar object
+		 * @type {Phaser.GameObjects.Graphics} graphics object
+		 */
+		this.load_bar;
+
+		//#endregion
 	}
 
 	preload() {
+		//#region  debug
+
+		//load abung of stuff
+		// for (let index = 0; index < 500; index++) {
+		// 	this.load.pack("tutData" + index, "src/assets/assets.json", "tutorial");
+		// }
+
+		//#endregion
+
 		this.load.pack("tutData", "src/assets/assets.json", "tutorial");
 
-		console.log("SceneMain preload done");
+		//create loading bar
+		this.loadBarCreate();
 	}
 
 	create() {
-		//#region debug
-		this.input.keyboard.on("keydown-R", this.debug_reset, this);
+		//#region debug setup
+		//disaable debug drawing
 
-		console.log("loaded: ");
-		this.cache.json.getKeys().forEach((element) => {
-			console.log("--", this.cache.json.get(element));
-		});
+		//#region debug
+		// this.input.keyboard.once("keydown-J", this.debug_setup, this);
+		this.debug_setup(true, true);
+
+		// console.log("loaded: ");
+		// this.cache.json.getKeys().forEach((element) => {
+		// 	console.log("--", this.cache.json.get(element));
+		// });
+
 		//#endregion
 
 		//#region game objects
+
 		this.aliveGroup = this.add.group({ runChildUpdate: true });
 		this.player = this.gameObjectCreatePlayer(this.playerConfig);
 
@@ -78,32 +145,65 @@ export default class SceneMain extends Phaser.Scene {
 			);
 		});
 
-		console.log("vecArr: ", vecArr);
-		this.block1 = this.matter.add.image(100, 200, undefined, undefined, {
+		/**
+		 * block config
+		 * @type {Phaser.Types.Physics.Matter.MatterBodyConfig}
+		 */
+		let blockConf = {
+			label: "block",
 			vertices: vecArr,
 			isStatic: true,
 			collisionFilter: {
 				category: COLLCAT.MAP,
 				mask: COLLCAT.compile([COLLCAT.PLAYER, COLLCAT.MAP, COLLCAT.GAMEOBJ]),
 			},
-		});
+		};
 
-		console.log("log - this.block1.body.vertices: ", this.block1.body.vertices);
+		this.block1 = this.matter.add.image(
+			100,
+			200,
+			"worldWallSmall",
+			undefined,
+			blockConf
+		);
 
-		this.block2 = this.matter.add.image(250, 200);
-		this.block2.setRectangle(100, 100);
-		this.block2.setStatic(true);
-		this.block2.setCollisionCategory(COLLCAT.MAP);
-		this.block2.setCollidesWith([COLLCAT.ALL]);
+		this.block2 = this.matter.add.image(
+			220,
+			200,
+			"worldWallSmall",
+			undefined,
+			blockConf
+		);
 
-		this.block3 = this.matter.add.image(400, 200);
-		this.block3.setRectangle(100, 100);
-		this.block3.setStatic(true);
-		this.block3.setCollisionCategory(COLLCAT.MAP);
-		this.block3.setCollidesWith([COLLCAT.PLAYER]);
+		this.block3 = this.matter.add.image(
+			370,
+			200,
+			"worldWallSmall",
+			undefined,
+			blockConf
+		);
 
+		//AYOOEST
 
-    //AYOOEST
+		//#endregion
+
+		//#region camera
+		/**
+		 * main cam
+		 * @type {Phaser.Cameras.Scene2D.Camera}
+		 */
+		this.mainCam = this.cameras.main;
+
+		this.mainCam.setBackgroundColor(this.camConfig.backCol);
+
+		this.mainCam.startFollow(
+			this.player,
+			false,
+			this.camConfig.lerpX,
+			this.camConfig.lerpY,
+			this.camConfig.lerpX,
+			this.camConfig.lerpY
+		);
 
 		//#endregion
 
@@ -115,10 +215,14 @@ export default class SceneMain extends Phaser.Scene {
 	//#region debug
 
 	/**
-	 * reset player position
+	 * create debug obj
+	 * @param {boolean} bool if active
+	 * @param {boolean} levelEditor if level editor should be created?
 	 */
-	debug_reset() {
-		this.scene.restart();
+	debug_setup(bool, levelEditor) {
+		this.debug = new DebugSceneObj(this, bool, levelEditor);
+
+		console.log("debug setup done");
 	}
 
 	//#endregion
@@ -135,7 +239,8 @@ export default class SceneMain extends Phaser.Scene {
 			config,
 			Player,
 			config.collCat,
-			config.collWith
+			config.collWith,
+			true
 		);
 	}
 
@@ -148,9 +253,10 @@ export default class SceneMain extends Phaser.Scene {
 	 * @param {Phaser.GameObjects.GameObject} GameObj
 	 * @param {number | undefined} collCat the collision Category of the object
 	 * @param {number | undefined} collWith the collision Category to collide with of the object
+	 * @param {boolean | undefined} autoUpdate the collision Category to collide with of the object
 	 * @returns {Phaser.GameObjects.GameObject} GameObj instance
 	 */
-	gameObjectCreateCustom(config, GameObj, collCat, collWith) {
+	gameObjectCreateCustom(config, GameObj, collCat, collWith, autoUpdate) {
 		let obj = this.add.existing(new GameObj(this, config));
 
 		if (collCat != undefined && collWith != undefined) {
@@ -163,7 +269,7 @@ export default class SceneMain extends Phaser.Scene {
 			}
 		}
 
-		this.gameObjectAddUpdate(obj);
+		if (autoUpdate == true) this.gameObjectAddUpdate(obj);
 
 		return obj;
 	}
@@ -175,6 +281,79 @@ export default class SceneMain extends Phaser.Scene {
 	 */
 	gameObjectAddUpdate(obj) {
 		this.aliveGroup.add(obj);
+	}
+
+	//#endregion
+	//#region create maap obj
+
+	/**
+	 *
+	 * @param {Phaser.Math.Vector2[]} vecArr
+	 */
+	mapObjVertCreate(vecArr) {
+		/**
+		 * block config
+		 * @type {Phaser.Types.Physics.Matter.MatterBodyConfig}
+		 */
+		let blockConf = {
+			label: "MapCollisionBlock",
+			vertices: vecArr,
+			isStatic: true,
+			collisionFilter: {
+				category: COLLCAT.MAP,
+				mask: COLLCAT.compile([COLLCAT.PLAYER, COLLCAT.MAP, COLLCAT.GAMEOBJ]),
+			},
+		};
+
+		let block = this.matter.add.image(
+			vecArr[0].x,
+			vecArr[0].y,
+			"worldWallSmall",
+			undefined,
+			blockConf
+		);
+
+		return block;
+	}
+
+	//#endregion
+	//#region loading
+
+	loadBarCreate() {
+		let h = 25;
+
+		let loadBarConfig = {
+			x1: 0,
+			y1: this.game.renderer.height - h,
+			w: this.game.renderer.width,
+			h: h,
+			color: 0x00ffff,
+			alpha: 1,
+		};
+
+		this.load_bar = this.add.graphics({
+			fillStyle: {
+				alpha: loadBarConfig.alpha,
+				color: loadBarConfig.color,
+			},
+		});
+
+		this.load.on("progress", (p) => {
+			//draw loaading bar
+			this.load_bar.fillRect(
+				loadBarConfig.x1,
+				loadBarConfig.y1,
+				loadBarConfig.w * p,
+				loadBarConfig.h
+			);
+
+			console.log("loading%: ", p);
+		});
+		this.load.on("complete", (percent) => {
+			//draw loaading bar
+			// this.scene.start()
+			this.load_bar.destroy(true);
+		});
 	}
 
 	//#endregion

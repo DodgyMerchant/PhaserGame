@@ -3,12 +3,16 @@ import SceneMain from "./scenes/SceneMain.js";
 
 var view_size = 700;
 
+/**
+ * the games config
+ * @type {Phaser.Types.Core.GameConfig}
+ */
 const config = {
 	type: Phaser.AUTO,
 	parent: "div-game",
 	width: view_size,
 	height: view_size,
-	backgroundColor: "#333333",
+	backgroundColor: "0xffffff",
 	scene: [SceneMain],
 	scale: {
 		zoom: 1,
@@ -16,11 +20,13 @@ const config = {
 	input: {
 		gamepad: true,
 	},
+  
 	physics: {
 		default: "matter",
+
 		matter: {
 			enableSleeping: true,
-			gravity: { y: 0 },
+			gravity: { y: 0, x: 0 },
 			debug: {
 				showAxes: false,
 				showAngleIndicator: true,
@@ -38,18 +44,18 @@ const config = {
 				showCollisions: true,
 				collisionColor: 0xf5950c,
 
-				showSeparations: false,
+				showSeparation: true,
 				separationColor: 0xffa500,
 
 				showBody: true,
 				showStaticBody: true,
 				showInternalEdges: true,
 
-				renderFill: false,
+				renderFill: true,
 				renderLine: true,
 
 				fillColor: 0x106909,
-				fillOpacity: 1,
+				fillOpacity: 0.2,
 				lineColor: 0x28de19,
 				lineOpacity: 1,
 				lineThickness: 1,
@@ -85,8 +91,9 @@ const config = {
 
 				showConvexHulls: true,
 				hullColor: 0xd703d0,
-			},
+      },
 		},
+
 	},
 };
 
