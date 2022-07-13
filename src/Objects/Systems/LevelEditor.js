@@ -1,9 +1,9 @@
-import UIObj from "./UI/UIObj";
+import UIManager from "./UI/UIManager";
 
 /**
  * level editor
  */
-export default class LevelEditor extends UIObj {
+export default class LevelEditor extends UIManager {
 	/**
 	 * create a level editor
 	 * @param {String} name a name
@@ -14,7 +14,7 @@ export default class LevelEditor extends UIObj {
 	 * @param {bool | undefined} bool if active. default true
 	 */
 	constructor(name, scene, debugGroup, x, y, bool) {
-		super(name, scene, x, y, undefined);
+		super(name, scene, 1000, x, y, undefined, true, true, undefined);
 
 		//#region this obj setup
 		/**
@@ -22,16 +22,32 @@ export default class LevelEditor extends UIObj {
 		 */
 		this.group = debugGroup;
 
+		this.scene.input.mouse.disableContextMenu();
+
 		//#endregion
 		//#region conf
 		/**
 		 * text config
 		 * @type {Phaser.Types.GameObjects.Text.TextStyle}
 		 */
-		this.txtConf = {
+		this.textConf = {
 			fontFamily: "Arial",
 			color: "#ffffff",
+			align: "left",
 		};
+
+		/**
+		 * text config
+		 * @type {Phaser.Types.GameObjects.Text.TextStyle}
+		 */
+		this.textButtonConf = {
+			align: "center",
+		};
+		//clone the basic text config and overwrite it with button specific changes
+		this.textButtonConf = this.UIConfigMergeOverwrite(
+			this.textConf,
+			this.textButtonConf
+		);
 
 		/**
 		 * graph config
@@ -99,6 +115,11 @@ export default class LevelEditor extends UIObj {
 				zoomReset: Phaser.Input.Keyboard.KeyCodes.BACKSPACE,
 
 				//#endregion
+				//#region world
+				/** @type {Phaser.Input.Keyboard.Key} */
+				worldVertClose: Phaser.Input.Keyboard.KeyCodes.CTRL,
+
+				//#endregion
 			},
 			true,
 			true
@@ -113,11 +134,6 @@ export default class LevelEditor extends UIObj {
 
 		//#region setup
 
-		/**
-		 * if the level editor obj will move with its camera
-		 * @type {boolean}
-		 */
-		this.moveCamWidth = true;
 		/**
 		 * the original main camera
 		 * @type {Phaser.Cameras.Scene2D.Camera}
@@ -219,27 +235,57 @@ export default class LevelEditor extends UIObj {
 		//#endregion
 
 		//#endregion
-		//#region UI
+		//#region world input
 
-		//heading
-		let txt = this.scene.add.text(x, y, "Level Editor - Active", this.txtConf);
-		this.add(txt);
+		/**
+		 * array of vec2 for object vertecie creation
+		 * @type {Phaser.Math.Vector2[]}
+		 */
+		this.world_objVertList = new Array();
 
-		this.Inspector = this.createWindow(
-			"Inspector",
-			this.graphConf,
-			100,
-			300,
-			70,
-			70,
-			true,
-			true
+		this.world_Graph = this.scene.add
+			.graphics({
+				x: 0,
+				y: 0,
+				lineStyle: {
+					alpha: 1,
+					color: "0x00ff00",
+					width: 3,
+				},
+			})
+			.save();
+
+		this.scene.input.on(
+			"pointerdown",
+			/**
+			 * @param {Phaser.Input.Pointer} pointer
+			 * @param {Phaser.GameObjects.GameObject[]} intObjects
+			 */
+			function (pointer, intObjects) {
+				if (intObjects.length == 0) {
+					if (pointer.leftButtonDown()) {
+						this.worldVertAdd(pointer.position);
+					}
+					if (pointer.rightButtonDown()) {
+						this.worldVertRemove();
+					}
+				}
+			},
+			this
 		);
 
-		// Phaser.Scene.
+		this.inputKeys.worldVertClose.on(
+			"down",
+			function () {
+				this.worldVertEnd(true);
+			},
+			this
+		);
+
 		//#endregion
 
-		//#region setup the rest
+		//#region post camera setup
+
 		//activate or not
 		if (bool != undefined) {
 			this.toggle(bool);
@@ -249,14 +295,94 @@ export default class LevelEditor extends UIObj {
 
 		//#endregion
 
+		//#region UI
+
+		let w = this.displayWidth / this.scaleX;
+		let h = this.displayHeight / this.scaleY;
+		let rp_w = 200;
+
+		this.uiconfig = {
+			//header
+			header_x: 0,
+			header_y: 0,
+			header_w: w - rp_w,
+			header_h: 20,
+
+			//right panel
+			rpanel_x: w - rp_w,
+			rpanel_y: 0,
+			rpanel_w: rp_w,
+			rpanel_h: h,
+		};
+
+		//heading
+		this.Label = this.UILabelCreate(
+			this,
+			"UILabelEditorActive",
+			this.depth,
+			this.uiconfig.header_x,
+			this.uiconfig.header_y,
+			this.uiconfig.header_w,
+			this.uiconfig.header_h,
+			true,
+			true,
+			"Level Editor Active",
+			this.graphConf,
+			this.textConf,
+			true,
+			true
+		);
+
+		this.RightPanel = this.UIPanelCreate(
+			this,
+			"Inspector",
+			this.depth,
+			this.uiconfig.rpanel_x,
+			this.uiconfig.rpanel_y,
+			this.uiconfig.rpanel_w,
+			this.uiconfig.rpanel_h,
+			this.graphConf,
+			true,
+			true
+		);
+
+		this.TestButton = this.UIButtonCreate(
+			this,
+			"TestButton",
+			this.depth,
+			200,
+			270,
+			100,
+			100,
+			true,
+			true,
+			"TEST",
+			this.graphConf,
+			this.textButtonConf,
+			"pointerdown",
+			"hello",
+			true,
+			true
+		);
+
+		this.TestButton.on(
+			"hello",
+			function (pointer, relX, relY, stopPropagation) {
+				console.log("hello", stopPropagation);
+			},
+			this
+		);
+
+		//#endregion
+
 		console.log("//////////// level editor created ////////////");
 	}
 
 	update(time, delta) {
 		//parent update
-		super.update();
-
 		this.camera_update();
+
+		super.update(time, delta);
 	}
 
 	/**
@@ -269,81 +395,102 @@ export default class LevelEditor extends UIObj {
 		this.enable(bool);
 
 		this.cameraActivate(this.active);
-
-		console.log("active: ", this.active);
 	}
 
-	//#region UI
+	//#region world interaction
+
+	//#region vertecies object
 
 	/**
-	 * creates a container aand in it a graaphiscs obj thats displaying a rectangle background
-	 * @param {string} name a name
-	 * @param {Phaser.Types.GameObjects.Graphics.Options} config graphic config for displaying
-	 * @param {number} x x
-	 * @param {number} y y
-	 * @param {number} w width
-	 * @param {number} h height
-	 * @param {boolean | undefined} cascadeEnable — The vertical position of this Game Object in the world. Default 0.
-	 * @param {boolean | undefined} cascadeDisable — The vertical position of this Game Object in the world. Default 0.
-	 * @return {object}
+	 *
+	 * @param {Phaser.Math.Vector2} vec2
 	 */
-	createWindow(name, config, x, y, w, h, cascadeEnable, cascadeDisable) {
-		let window = this.UiContainerCreate(
-			name,
-			x,
-			y,
-			cascadeEnable,
-			cascadeDisable
-		);
-
-		this.add(window);
-
-		//background
-		let winGraph = this.UiGraphCreate(0, 0, config);
-		window.add(winGraph);
-		let winBack = winGraph.fillRect(0, 0, w, h);
-
-		return {
-			/**
-			 * window
-			 * @type {UIObj}
-			 */
-			window: window,
-			/**
-			 * graphics
-			 * @type {Phaser.GameObjects.Graphics}
-			 */
-			graphic: winGraph,
-			/**
-			 * background
-			 * @type {Phaser.GameObjects.Graphics}
-			 */
-			background: winBack,
-		};
+	worldVertAdd(vec2) {
+		this.world_objVertList.push(vec2.clone());
+		console.log("add: ", vec2);
+		this.worldVertUpdate(false);
 	}
+
+	/**
+	 *
+	 *
+	 */
+	worldVertRemove() {
+		if (this.world_objVertList.length > 0) {
+			this.world_objVertList.pop();
+			this.worldVertUpdate(true);
+		}
+	}
+
+	/**
+	 *
+	 * @param {Phaser.Math.Vector2} vec2
+	 */
+	worldVertUpdate(redo) {
+		// this.world_Graph.restore();
+
+		if (this.world_objVertList.length > 1) {
+			if (redo) {
+				let x1, y1;
+
+				x1 = this.world_objVertList[0].x;
+				y1 = this.world_objVertList[0].y;
+
+				let element;
+
+				for (let index = 1; index < this.world_objVertList.length; index++) {
+					/** @type {Phaser.Math.Vector2} */
+					element = this.world_objVertList[index];
+
+					this.world_Graph.lineBetween(x1, y1, element.x, element.y);
+					console.log("update: ", x1, y1, element.x, element.y);
+
+					x1 = element.x;
+					y1 = element.y;
+				}
+			}
+
+			//do last element
+			let last1 = this.world_objVertList.at(this.world_objVertList.length - 1);
+			let last2 = this.world_objVertList.at(this.world_objVertList.length - 2);
+
+			this.world_Graph.lineBetween(last2.x, last2.y, last1.x, last1.y);
+			console.log("update: ", last2.x, last2.y, last1.x, last1.y);
+		} else {
+		}
+	}
+
+	/**
+	 *
+	 * @param {boolean | undefined} successful
+	 */
+	worldVertEnd(bool) {
+		if (bool) {
+			//create obj
+			this.scene.mapObjVertCreate(this.world_objVertList);
+			//reset
+			this.worldVertReset();
+		} else {
+			this.worldVertReset();
+		}
+	}
+
+	worldVertReset() {
+		this.world_objVertList = new Array();
+	}
+
+	//#endregion
 
 	//#endregion
 	//#region camera
 
-	camera_update() {
+	/**
+	 *
+	 * @param {number} delta delta
+	 */
+	camera_update(delta) {
 		//applying camera controls
-		this.camControls.update();
-
-		//moving
-		this.cameraMoveWith();
-	}
-
-	cameraMoveWith() {
-		if (this.moveCamWidth) {
-			this.setPosition(this.CamEditor.scrollX, this.CamEditor.scrollY);
-		}
-	}
-
-	cameraMoveBy(x, y) {
-		this.CamEditor.setScroll(
-			this.CamEditor.scrollX + x,
-			this.CamEditor.scrollY + y
-		);
+		this.camControls.update(delta);
 	}
 
 	/**
@@ -352,11 +499,8 @@ export default class LevelEditor extends UIObj {
 	 */
 	cameraActivate(active) {
 		if (active) {
-			this.setActive(true);
-
-			//set cam pos
-
 			this.CamEditor = this.cameraEditorCreateFrom(this.CamMain);
+			this.setFixCam(this.CamEditor);
 
 			this.scene.cameras.addExisting(this.CamEditor, false);
 			//activate cam controls
@@ -364,12 +508,11 @@ export default class LevelEditor extends UIObj {
 			this.camControls.camera = this.CamEditor;
 			//enable main cam outline
 			this.CamMainGraph.setVisible(true);
+			this.world_Graph.setVisible(true);
 
 			////main cam
 			this.CamMain.setPosition(0, this.CamMain.height);
 		} else {
-			this.setActive(false);
-
 			this.scene.cameras.remove(this.CamEditor, true);
 			//deactivate cam controls
 			this.camControls.active = false;
@@ -377,6 +520,7 @@ export default class LevelEditor extends UIObj {
 
 			//disable main cam outline
 			this.CamMainGraph.setVisible(false);
+			this.world_Graph.setVisible(false);
 
 			//main caam
 			this.CamMain.setPosition(0, 0);

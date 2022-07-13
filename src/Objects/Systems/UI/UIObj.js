@@ -6,27 +6,38 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	 * UI object extendended from Container
 	 * @param {String} name a name
 	 * @param {Phaser.Scene} scene The Scene to which this Game Object belongs. A Game Object can only belong to one Scene at a time.
+	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
 	 * @param {number} x The horizontal position of this Game Object in the world. Default 0.
 	 * @param {number} y The vertical position of this Game Object in the world. Default 0.
 	 * @param {boolean | undefined} cascadeEnable The vertical position of this Game Object in the world. Default 0.
 	 * @param {boolean | undefined} cascadeDisable The vertical position of this Game Object in the world. Default 0.
 	 * @param {Phaser.GameObjects.GameObject[] | undefined} children An optional array of Game Objects to add to this Container.
 	 */
-	constructor(name, scene, x, y, cascadeEnable, cascadeDisable, children) {
+	constructor(
+		name,
+		scene,
+		depth,
+		x,
+		y,
+		cascadeEnable,
+		cascadeDisable,
+		children
+	) {
 		super(scene, x, y, children);
 
 		//#region setup
+		this.setDepth(depth);
 		this.setName(name);
 		this.setVisible(true);
 		this.setAlpha(1);
 
 		/**
-		 * If enabling the UI Parent will enable this AND its childen. default true.
+		 * If enabling the UI Parent will enable this AND its childen. def true.
 		 * @type {boolean | undefined}
 		 */
 		this.CascadeEnable = cascadeEnable != undefined ? cascadeEnable : true;
 		/**
-		 * If disabling the UI Parent will disable this AND its childen. default true.
+		 * If disabling the UI Parent will disable this AND its childen. def true.
 		 * @type {boolean | undefined}
 		 */
 		this.CascadeDisable = cascadeDisable != undefined ? cascadeDisable : true;
@@ -63,44 +74,83 @@ export default class UIObj extends Phaser.GameObjects.Container {
 		this.__UI_ProcessChildren(bool);
 	}
 
-	//UI
+	//#region new UI
 
 	/**
-	 * actiually a new UIObj, basically the same as a container
-	 * @param {string} name a name
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {boolean | undefined} cascadeEnable — The vertical position of this Game Object in the world. Default 0.
-	 * @param {boolean | undefined} cascadeDisable — The vertical position of this Game Object in the world. Default 0.
-	 * @param {Phaser.GameObjects.GameObject[] | undefined} children
-	 * @returns {UIObj} new UI container
-	 */
-	UiContainerCreate(name, x, y, cascadeEnable, cascadeDisable, children) {
-		let object = new UIObj(
-			name,
-			this.scene,
-			x,
-			y,
-			cascadeEnable,
-			cascadeDisable,
-			children
-		);
-		return object;
-	}
-
-	/**
-	 * creates, returns
-	 * @param {number | undefined} x
-	 * @param {number | undefined} y
-	 * @param {Phaser.Types.GameObjects.Graphics.Options | undefined} config
+	 * creates, returns a graphics object, doesnt add it to anything except for the scene the caller is in
+	 * @param {number | undefined} x x position, will overwrite the x value in the object set by the config, not the config itself
+	 * @param {number | undefined} y y position, will overwrite the x value in the object set by the config, not the config itself
+	 * @param {Phaser.Types.GameObjects.Graphics.Options | undefined} config config used
 	 * @returns {Phaser.GameObjects.Graphics}
 	 */
-	UiGraphCreate(x, y, config) {
+	UIGraphCreate(x, y, config) {
 		let object = this.scene.add.graphics(config);
-		object.setX(x).setY(y);
+
+		if (x != undefined) object.setX(x);
+		if (y != undefined) object.setY(y);
 
 		return object;
 	}
+
+	/**
+	 * creates a text object
+	 * @param {number} x x posiiton
+	 * @param {number} y y posiiton
+	 * @param {string | string[]} text x posiiton
+	 * @param {Phaser.Types.GameObjects.Text.TextStyle | undefined} style text config obj, wont edit this
+	 * @param {number | undefined} centerW the width to center the text on
+	 * @param {number | undefined} centerH the heigth to center the text on
+	 * @returns {Phaser.GameObjects.Text} the text obj
+	 */
+	UITextCreate(x, y, text, style, centerW, centerH) {
+		//#region config
+		/**
+		 * temporary text conf
+		 * @type {Phaser.Types.GameObjects.Text.TextStyle}
+		 */
+		let textconf = {};
+
+		if (centerW != undefined) {
+			textconf.fixedWidth = centerW;
+			textconf.align = "center";
+		}
+
+		if (centerH != undefined) {
+			textconf.fixedHeight = centerH;
+		}
+
+		if (style != undefined) {
+			textconf = this.UIConfigMergeOverwrite(style, textconf);
+		} else {
+			textconf = style;
+		}
+
+		//#endregion
+
+		/**
+		 * Button text displayed
+		 * @type {Phaser.GameObjects.Text}
+		 */
+		let textObj = this.scene.add.text(y, x, text, textconf);
+
+		//center text
+		if (centerH != undefined) {
+			centerH - textconf;
+
+			let num = textObj.getWrappedText().length;
+
+			let textH =
+				num * textObj.getTextMetrics().ascent * textObj.scaleY +
+				(num - 1) * textObj.lineSpacing;
+
+			textObj.padding.top = (centerH - textH) / 2;
+		}
+
+		textObj.updateText();
+		return textObj;
+	}
+
+	//#endregion
 
 	//#region interactive
 
@@ -117,36 +167,36 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	 * If no arguments are provided it will try and create a rectangle hit area based on the texture frame the Game Object is using. If this isn't a texture-bound object, such as a Graphics or BitmapText object, this will fail, and you'll need to provide a specific shape for it to use.
 	 *
 	 * You can also provide an Input Configuration Object as the only argument to this method.
-	 * @param {Phaser.GameObjects.GameObject} object object to do this on
+	 * @param {Phaser.GameObjects.GameObject} obj object to do this on
 	 * @param {any | Phaser.Geom.Rectangle} hitArea  — Either an input configuration object, or a geometric shape that defines the hit area for the Game Object. If not given it will try to create a Rectangle based on the texture frame.
 	 * @param {Phaser.Types.Input.HitAreaCallback | undefined} callback — The callback that determines if the pointer is within the Hit Area shape or not. If you provide a shape you must also provide a callback.
 	 * @param {boolean | undefined} dropZone — Should this Game Object be treated as a drop zone target? Default false.
 	 * @returns {Phaser.GameObjects.GameObject} game object
 	 */
-	UiMakeInteractive(object, hitArea, callback, dropZone) {
-		object.setInteractive(hitArea, callback, dropZone);
+	UIMakeInteractive(obj, hitArea, callback, dropZone) {
+		obj.setInteractive(hitArea, callback, dropZone);
 
-		return object;
+		return obj;
 	}
 	/**
-	 * activate or deactivate interactive state in object that was already maade interactive with UiMakeInteractive()
+	 * activate or deactivate interactive state in a child object that was already made interactive with UIMakeInteractive(), call this with the parent on the child.
 	 * does some UI stuff so use this over setInteractive() or disableInteractive()
 	 *
 	 * @param {Phaser.GameObjects.GameObject} object object to do this on
 	 * @returns {Phaser.GameObjects.GameObject} game object
 	 */
-	UiSetInteractive(object, bool) {
+	UISetInteractive(object, bool) {
 		if (bool) return object.setInteractive();
 		else return object.disableInteractive();
 	}
 	/**
-	 * removes the interaactive component of the object
+	 * removes the interactive component of the child object, call this with the parent on the child.
 	 * does some UI stuff so use this over removeInteractive()
 	 *
 	 * @param {Phaser.GameObjects.GameObject} object object to do this on
 	 * @returns {Phaser.GameObjects.GameObject} game object
 	 */
-	UiRemoveInteractiveInteractive(object) {
+	UIRemoveInteractiveInteractive(object) {
 		object.removeInteractive();
 
 		return object;
@@ -161,6 +211,25 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	__UI_ProcessChildren(bool) {}
 
 	//#endregion
+
+	//#endregion
+	//#region config
+
+	/**
+	 * clone and overwrite a config
+	 * @param {object} confToClone clones aadn returns this
+	 * @param {object} confOverwritgt1 any number of configs
+	 * @returns {object} new cloned config
+	 */
+	UIConfigMergeOverwrite(confToClone, confOverwritgt1, more) {
+		let clone = Phaser.Utils.Objects.Clone(this.textConf);
+
+		for (let index = 1; index < arguments.length; index++) {
+			Phaser.Utils.Objects.Extend(clone, arguments[index]);
+		}
+
+		return clone;
+	}
 
 	//#endregion
 }

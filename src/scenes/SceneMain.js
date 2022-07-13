@@ -108,7 +108,6 @@ export default class SceneMain extends Phaser.Scene {
 	create() {
 		//#region debug setup
 		//disaable debug drawing
-		
 
 		//#region debug
 		// this.input.keyboard.once("keydown-J", this.debug_setup, this);
@@ -282,6 +281,39 @@ export default class SceneMain extends Phaser.Scene {
 	 */
 	gameObjectAddUpdate(obj) {
 		this.aliveGroup.add(obj);
+	}
+
+	//#endregion
+	//#region create maap obj
+
+	/**
+	 *
+	 * @param {Phaser.Math.Vector2[]} vecArr
+	 */
+	mapObjVertCreate(vecArr) {
+		/**
+		 * block config
+		 * @type {Phaser.Types.Physics.Matter.MatterBodyConfig}
+		 */
+		let blockConf = {
+			label: "MapCollisionBlock",
+			vertices: vecArr,
+			isStatic: true,
+			collisionFilter: {
+				category: COLLCAT.MAP,
+				mask: COLLCAT.compile([COLLCAT.PLAYER, COLLCAT.MAP, COLLCAT.GAMEOBJ]),
+			},
+		};
+
+		let block = this.matter.add.image(
+			vecArr[0].x,
+			vecArr[0].y,
+			"worldWallSmall",
+			undefined,
+			blockConf
+		);
+
+		return block;
 	}
 
 	//#endregion
