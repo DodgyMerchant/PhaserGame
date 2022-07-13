@@ -1,4 +1,4 @@
-import PhyObj from "./PhyObj";
+import PhyObj from "../WorldObjects/PhyObj";
 
 /**
  * physics movement configured object
@@ -16,23 +16,35 @@ export default class MovementObj extends PhyObj {
 	 * @param {STATES.element} state tstate the object is in
 	 * @param {number} collCat byte corresponding to the collision Category of the object
 	 * @param {method | undefined} moveMeth Method called to get input for movement, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set moveInputMethod
-	 * @param {method | undefined} jumpMeth Method called to get input for jumping, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set connJumpInputMethod
+	 * @param {method | boolean | undefined} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation. If it cant be supplied set moveInputMethod.
 	 */
-	constructor(scene, x, y, texture, state, collCat, collWith, moveMeth) {
+	constructor(
+		scene,
+		x,
+		y,
+		texture,
+		state,
+		collCat,
+		collWith,
+		moveMeth,
+		rotMeth
+	) {
 		super(scene, x, y, texture, collCat, collWith);
 
 		/*
-    to set:
+    to overwrite and set:
     super.moveInputMethod;
+    super.moveRotMethodSet(this.method);
 		super.connJumpInputMethod;
 
     super.setFriction(0.1);
 		super.setFrictionStatic(0.5);
 		super.setDensity(1);
 
-    super.moveConnAirFric = 0.05;
-		super.moveSpeed = 0.5;
+    super.move_ConnAirFric = 0.05;
+		super.move_Speed = 0.5;
 		super.connSpdJump = 5;
+		super.move_RotSpeed = 0.1;
     */
 
 		//#region state
@@ -50,19 +62,52 @@ export default class MovementObj extends PhyObj {
 		this.moveInputMethod;
 		if (moveMeth != undefined) this.moveInputMethod = moveMeth;
 
+		/**
+		 * Method called to get input for rotation, if undefined will user movement input
+		 * set by using moveRotMethodSet
+		 * @param {Phaser.Math.Vector2 | undefined} vec2 optional vector to overwrite
+		 * @returns {Phaser.Math.Vector2} vector with a limit of 1
+		 * @type {method | boolean}
+		 */
+		this.moveRotInputMethod;
+		/**
+		 * if movment input should be directly used for rotation.
+		 * 0 = method exists, 1 = movement to rotation, 2 = no rotation.
+		 * set by using moveRotMethodSet
+		 * @type {number}
+		 */
+		this.move_rotType = 2;
+
+		if (rotMeth != undefined) this.moveRotMethodSet(rotMeth);
+
 		//#endregion
 		//#region movement
 
 		/** if some input to movement is possible */
-		this.moveCanMove = true;
+		this.move_CanMove = true;
 		/** movement input and movement are disabled */
-		this.moveFrozen = false;
+		this.move_Frozen = false;
 		/** air friction of the object if connected */
-		this.moveConnAirFric = 1;
-		this.setFrictionAir(this.moveConnAirFric);
+		this.move_ConnAirFric = 1;
+		this.setFrictionAir(this.move_ConnAirFric);
+
 		///SPEED
 		/** movement speed*/
-		this.moveSpeed = 0;
+		this.move_Speed = 0;
+
+		//#endregion
+		//#region
+
+		/**
+		 * rotation target ange in radians
+		 * @type {number} in radians
+		 */
+		this.move_rotTarget = 0;
+
+		/** movement speed per frame in percent of one full rotation
+		 * @type {number} 0-1
+		 */
+		this.move_RotSpeed = 1;
 
 		//#endregion
 
@@ -83,7 +128,29 @@ export default class MovementObj extends PhyObj {
 		super.update(delta, time);
 
 		//moves mech
-		this.move_update();
+		this.moveRotUpdate();
+		this.moveUpdate();
+
+		//#region debug
+
+		// let input = this.moveInputMethod();
+		// if (this.body.speed != 0 || !this.moveRotationIsSettled())
+		// 	console.log(
+		// 		"trn spd: ",
+		// 		this.move_RotSpeed.toFixed(2),
+		// 		"input: ",
+		// 		input.x.toFixed(2),
+		// 		"/",
+		// 		input.y.toFixed(2),
+		// 		" | spd: ",
+		// 		this.body.speed.toFixed(4),
+		// 		" | vel: ",
+		// 		this.body.velocity.x.toFixed(2),
+		// 		"/",
+		// 		this.body.velocity.y.toFixed(2)
+		// 	);
+
+		//#endregion
 	}
 
 	//#region states
@@ -129,13 +196,61 @@ export default class MovementObj extends PhyObj {
 	}
 
 	//#endregion
+	//#region rotation
+
+	/**
+	 * sets the rotation method
+	 * @param {method | boolean} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation.
+	 */
+	moveRotMethodSet(rotMeth) {
+		if (typeof rotMeth == "function") {
+			this.moveRotInputMethod = rotMeth;
+			this.move_rotType = 0;
+		} else if (rotMeth) {
+			this.move_rotType = 1;
+		} else {
+			this.move_rotType = 2;
+		}
+	}
+
+	moveRotUpdate() {
+		//should rotate and can rotate
+		if (this.move_rotType == 0 && this.moveCanMoveGet()) {
+			this.workVec = this.moveRotInputMethod(this.workVec);
+
+			//if rotational movement is happening
+			if (this.workVec.x != 0 || this.workVec.y != 0) {
+				this.move_rotTarget = this.workVec.angle();
+			}
+
+			/** new angle in radians */
+			let newAng = Phaser.Math.Angle.RotateTo(
+				this.rotation,
+				this.move_rotTarget,
+				this.move_RotSpeed
+			);
+
+			//applay rotation
+			this.setRotation(newAng);
+		}
+	}
+
+	/**
+	 * if the rotation is stopped
+	 * @returns {boolean} boolean
+	 */
+	moveRotationIsSettled() {
+		return this.rotation == this.move_rotTarget;
+	}
+
+	//#endregion
 	//#region movement
 
 	/**
 	 * runs continuously
 	 * moves mech
 	 */
-	move_update() {
+	moveUpdate() {
 		if (this.moveCanMoveGet()) {
 			this.workVec = this.moveInputMethod(this.workVec);
 
@@ -145,26 +260,17 @@ export default class MovementObj extends PhyObj {
 				let _spd = this.moveGetSpeed();
 
 				//applying movement speed
-
 				this.workVec.scale(_spd);
-				//moving mech
+
+				//set rotation
+				//rotation is derived from movement
+				if (this.move_rotType == 1) {
+					this.setRotation(this.workVec.angle());
+				}
+
+				//apply movmeent
 				super.phyMoveAdd(this.workVec);
-
-				this.setRotation(this.workVec.angle());
-
-				//debug
-				console.log(
-					"input: ",
-					_x.toFixed(2),
-					"/",
-					_y.toFixed(2),
-					" | vel: ",
-					this.body.velocity.x.toFixed(2),
-					"/",
-					this.body.velocity.y.toFixed(2),
-					" | spd: ",
-					_spd
-				);
+				// this.thrust(this.workVec.length()); does the same thing
 			}
 		}
 	}
@@ -174,7 +280,7 @@ export default class MovementObj extends PhyObj {
 	 * @returns {boolean} if mech can move
 	 */
 	moveCanMoveGet() {
-		return this.moveCanMove;
+		return this.move_CanMove;
 	}
 
 	/**
@@ -183,7 +289,7 @@ export default class MovementObj extends PhyObj {
 	 * @param {boolean} bool
 	 */
 	moveCanMoveSet(bool) {
-		this.moveCanMove = bool;
+		this.move_CanMove = bool;
 	}
 
 	/**
@@ -192,17 +298,17 @@ export default class MovementObj extends PhyObj {
 	 * @returns {boolean} if the mech is frozen
 	 */
 	moveIsFrozen() {
-		return this.moveFrozen;
+		return this.move_Frozen;
 	}
 
 	/**
 	 * sets if the mech is frozen
 	 * movement input and movement disabled
-	 * WILL NOT REACTIVATE moveCanMove ON ITS OWN
+	 * WILL NOT REACTIVATE move_CanMove ON ITS OWN
 	 * @param {boolean} bool if mech is frozen
 	 */
 	moveFrozenSet(bool) {
-		this.moveFrozen = bool;
+		this.move_Frozen = bool;
 	}
 
 	/**
@@ -210,7 +316,7 @@ export default class MovementObj extends PhyObj {
 	 * @returns {number} movement speed
 	 */
 	moveGetSpeed() {
-		return this.moveSpeed;
+		return this.move_Speed;
 	}
 
 	//#endregion
