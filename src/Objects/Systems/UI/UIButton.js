@@ -17,7 +17,8 @@ export default class UIButton extends UILabel {
 	 * @param {boolean} centerV if the text should be Vertivally centered.
 	 * @param {string} text text displayed.
 	 * @param {Phaser.Types.GameObjects.Graphics.Options} graphConfig config, x,y,w,h have priority over this. will alter the object.
-	 * @param {Phaser.Types.GameObjects.Text.TextStyle} textConfig config for text displayed. will alter the object. args: pointer, relX, relY, stopPropagation
+	 * @param {Phaser.Types.GameObjects.Text.TextStyle} textConfig config for text displayed. will alter the object.
+	 * @param {Phaser.Types.Input.InputConfiguration | undefined} interConfig config for the interactive object
 	 * @param {string | undefined} eventTrigger will emit event the interactable zone will listen to. f.e. "pointerdown".
 	 * @param {string | undefined} eventEmitted event emitted by the zone in trigger event, on this Button Obj. NOT the zone.
 	 * @param {boolean | undefined} cascadeEnable The vertical position of this Game Object in the world. Default 0.
@@ -37,6 +38,7 @@ export default class UIButton extends UILabel {
 		text,
 		graphConfig,
 		textConfig,
+		interConfig,
 		eventTrigger,
 		eventEmitted,
 		cascadeEnable,
@@ -70,13 +72,24 @@ export default class UIButton extends UILabel {
 		this.UI_Button_zone = new Phaser.GameObjects.Zone(this.scene, 0, 0, w, h);
 		this.UI_Button_zone.setOrigin(0);
 		this.add(this.UI_Button_zone);
-		this.UIMakeInteractive(this.UI_Button_zone);
+
+		/** @type {Phaser.Types.Input.InputConfiguration} */
+		let config = {};
+
+		if (interConfig != undefined) {
+			this.UIMakeInteractive(
+				this.UI_Button_zone,
+				Phaser.Utils.Objects.Merge(interConfig, config)
+			);
+		} else {
+			this.UIMakeInteractive(this.UI_Button_zone);
+		}
 
 		if (eventTrigger != undefined && eventEmitted != undefined) {
 			this.UI_Button_zone.on(
 				eventTrigger,
 				function (pointer, relX, relY, stopPropagation) {
-          // this.scene.input.stopPropagation();
+					// this.scene.input.stopPropagation();
 					this.UI_Button_zone.parentContainer.emit(
 						eventEmitted,
 						pointer,

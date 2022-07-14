@@ -12,7 +12,7 @@ export default class UIManager extends UIObj {
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
 	 * @param {number} x The horizontal position of this Game Object in the world. Default 0.
 	 * @param {number} y The vertical position of this Game Object in the world. Default 0.
-	 * @param {boolean | undefined} fixToCam camera to move and scale with.
+	 * @param {Phaser.Cameras.Scene2D.Camera | undefined} fixToCam camera to move and scale with. the update of this parent must be run to move with the camera.
 	 * @param {boolean | undefined} cascadeEnable The vertical position of this Game Object in the world. Default 0.
 	 * @param {boolean | undefined} cascadeDisable The vertical position of this Game Object in the world. Default 0.
 	 * @param {Phaser.GameObjects.GameObject[] | undefined} children An optional array of Game Objects to add to this Container.
@@ -34,6 +34,7 @@ export default class UIManager extends UIObj {
 
 		/**
 		 * camera to move with
+		 * the update of this parent must be run to move with the camera
 		 * @type {Phaser.Cameras.Scene2D.Camera}
 		 */
 		this.fixToCam;
@@ -63,10 +64,11 @@ export default class UIManager extends UIObj {
 	 */
 	cameraFixUpdate() {
 		if (this.fixToCam != undefined) {
-			this.setDisplaySize(
-				this.fixToCam.displayWidth,
-				this.fixToCam.displayHeight
-			);
+			//display width and heigth
+			if (this.displayWidth != this.fixToCam.displayWidth)
+				this.displayWidth = this.fixToCam.displayWidth;
+			if (this.displayHeight != this.fixToCam.displayHeight)
+				this.displayHeight = this.fixToCam.displayHeight;
 
 			this.setPosition(
 				this.fixToCam.scrollX -
@@ -83,7 +85,7 @@ export default class UIManager extends UIObj {
 
 	/**
 	 * camera to move and scale with.
-	 * @param {boolean} bool if the object will move with the camera
+	 * the update of this parent must be run to move with the camera
 	 * @param {Phaser.Cameras.Scene2D.Camera} cam camera to move with
 	 */
 	setFixCam(cam) {
@@ -257,6 +259,7 @@ export default class UIManager extends UIObj {
 	 * @param {string} text text displayed.
 	 * @param {Phaser.Types.GameObjects.Graphics.Options} graphConfig config, x,y,w,h have priority over this. will alter the object.
 	 * @param {Phaser.Types.GameObjects.Text.TextStyle} textConfig config for text displayed. will alter the object. args: pointer, relX, relY, stopPropagation
+	 * @param {Phaser.Types.Input.InputConfiguration | undefined} interConfig config for the interactive object
 	 * @param {string | undefined} eventTrigger will emit event the interactable zone will listen to. f.e. "pointerdown".
 	 * @param {string | undefined} eventEmitted event emitted by the zone in trigger event, on this Button Obj. NOT the zone.
 	 * @param {boolean | undefined} cascadeEnable The vertical position of this Game Object in the world. Default 0.
@@ -277,6 +280,7 @@ export default class UIManager extends UIObj {
 		text,
 		graphConfig,
 		textConfig,
+		interConfig,
 		eventTrigger,
 		eventEmitted,
 		cascadeEnable,
@@ -296,6 +300,7 @@ export default class UIManager extends UIObj {
 			text,
 			graphConfig,
 			textConfig,
+			interConfig,
 			eventTrigger,
 			eventEmitted,
 			cascadeEnable,

@@ -50,6 +50,15 @@ export default class LevelEditor extends UIManager {
 		);
 
 		/**
+		 * config obj for interactive objects
+		 * @type {Phaser.Types.Input.InputConfiguration}
+		 */
+		this.interConf = {
+			pixelPerfect: false,
+			useHandCursor: true,
+		};
+
+		/**
 		 * graph config
 		 * with x and y missing
 		 * @type {Phaser.Types.GameObjects.Graphics.Options}
@@ -264,12 +273,31 @@ export default class LevelEditor extends UIManager {
 			function (pointer, intObjects) {
 				if (intObjects.length == 0) {
 					if (pointer.leftButtonDown()) {
-						this.worldVertAdd(pointer.position);
+						this.worldVertAdd(this.pointer.positionToCamera(this.CamEditor));
 					}
 					if (pointer.rightButtonDown()) {
 						this.worldVertRemove();
 					}
+				} else {
+					console.log(
+						"///////////////////OMFG SOMETHINGGGGGGGG///////////: ",
+						intObjects
+					);
 				}
+			},
+			this
+		);
+
+		//mouse move
+		this.scene.input.on(
+			"pointermove",
+			/**
+			 * @param {Phaser.Input.Pointer} pointer
+			 * @param {Phaser.GameObjects.GameObject[]} intObjects
+			 */
+			function (pointer, intObjects) {
+				// draw line from vert to pointer
+				if (this.world_objVertList.length > 0) this.worldVertUpdate(2);
 			},
 			this
 		);
@@ -277,7 +305,7 @@ export default class LevelEditor extends UIManager {
 		this.inputKeys.worldVertClose.on(
 			"down",
 			function () {
-				this.worldVertEnd(true);
+				this.worldVertEnd();
 			},
 			this
 		);
@@ -359,6 +387,7 @@ export default class LevelEditor extends UIManager {
 			"TEST",
 			this.graphConf,
 			this.textButtonConf,
+			this.interConf,
 			"pointerdown",
 			"hello",
 			true,
@@ -407,8 +436,7 @@ export default class LevelEditor extends UIManager {
 	 */
 	worldVertAdd(vec2) {
 		this.world_objVertList.push(vec2.clone());
-		console.log("add: ", vec2);
-		this.worldVertUpdate(false);
+		this.worldVertUpdate(1);
 	}
 
 	/**
@@ -418,45 +446,70 @@ export default class LevelEditor extends UIManager {
 	worldVertRemove() {
 		if (this.world_objVertList.length > 0) {
 			this.world_objVertList.pop();
-			this.worldVertUpdate(true);
+			if (this.world_objVertList.length == 0) {
+				this.worldVertEnd();
+			} else {
+				this.worldVertUpdate(0);
+			}
 		}
 	}
 
 	/**
 	 *
-	 * @param {Phaser.Math.Vector2} vec2
+	 * @param {boolean} value redo all?
 	 */
-	worldVertUpdate(redo) {
+	worldVertUpdate(value) {
 		// this.world_Graph.restore();
 
-		if (this.world_objVertList.length > 1) {
-			if (redo) {
-				let x1, y1;
+		let leng = this.world_objVertList.length;
 
-				x1 = this.world_objVertList[0].x;
-				y1 = this.world_objVertList[0].y;
+		switch (value) {
+			case 0:
+				this.world_Graph.clear();
+				if (leng < 3) value = 1;
+			case 1:
+				if (leng < 2) value = 2;
+		}
+
+		switch (value) {
+			case 0: {
+				//do all but last vertex
+
+				let x1 = this.world_objVertList[0].x;
+				let y1 = this.world_objVertList[0].y;
 
 				let element;
 
-				for (let index = 1; index < this.world_objVertList.length; index++) {
+				for (let index = 1; index < leng - 1; index++) {
 					/** @type {Phaser.Math.Vector2} */
 					element = this.world_objVertList[index];
 
 					this.world_Graph.lineBetween(x1, y1, element.x, element.y);
-					console.log("update: ", x1, y1, element.x, element.y);
 
 					x1 = element.x;
 					y1 = element.y;
 				}
 			}
+			case 1: {
+				//do last vertex
 
-			//do last element
-			let last1 = this.world_objVertList.at(this.world_objVertList.length - 1);
-			let last2 = this.world_objVertList.at(this.world_objVertList.length - 2);
+				let last1 = this.world_objVertList.at(leng - 1);
+				let last2 = this.world_objVertList.at(leng - 2);
+				this.world_Graph.lineBetween(last2.x, last2.y, last1.x, last1.y);
+			}
+			case 2: {
+				if (value == 2) this.world_Graph.commandBuffer.pop();
 
-			this.world_Graph.lineBetween(last2.x, last2.y, last1.x, last1.y);
-			console.log("update: ", last2.x, last2.y, last1.x, last1.y);
-		} else {
+				let mouseVec2 = this.pointer.positionToCamera(this.CamEditor);
+				let lastVec2 = this.world_objVertList[leng - 1];
+
+				this.world_Graph.lineBetween(
+					lastVec2.x,
+					lastVec2.y,
+					mouseVec2.x,
+					mouseVec2.y
+				);
+			}
 		}
 	}
 
@@ -464,10 +517,13 @@ export default class LevelEditor extends UIManager {
 	 *
 	 * @param {boolean | undefined} successful
 	 */
-	worldVertEnd(bool) {
-		if (bool) {
+	worldVertEnd() {
+		this.world_Graph.clear();
+
+		if (this.world_objVertList.length >= 3) {
 			//create obj
-			this.scene.mapObjVertCreate(this.world_objVertList);
+
+			this.scene.mapObjVertCreate(this.world_objVertList, true);
 			//reset
 			this.worldVertReset();
 		} else {
