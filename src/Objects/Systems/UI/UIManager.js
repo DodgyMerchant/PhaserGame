@@ -40,6 +40,8 @@ export default class UIManager extends UIObj {
 		this.fixToCam;
 		if (fixToCam != undefined) this.setFixCam(fixToCam);
 
+		// this.setScrollFactor(1, 1, true);
+
 		//#endregion
 	}
 
@@ -49,10 +51,7 @@ export default class UIManager extends UIObj {
 	update(time, delta) {
 		super.update(time, delta);
 
-		// console.log("UIO update: ", this.name);
-
-		//moving
-
+		//moving camera
 		this.cameraFixUpdate();
 	}
 

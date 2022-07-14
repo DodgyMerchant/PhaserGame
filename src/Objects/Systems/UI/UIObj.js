@@ -63,6 +63,8 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	enable(bool) {
 		this.setActive(bool);
 
+		this.setVisible(bool);
+
 		if (bool) {
 			this.addToDisplayList();
 			this.addToUpdateList();

@@ -2,6 +2,7 @@ import Player from "../Objects/WorldObjects/player/Player";
 import { STATES } from "../Objects/WorldObjects/MovementObj";
 import PhyObj, { COLLCAT } from "../Objects/WorldObjects/PhyObj";
 import DebugSceneObj from "../Objects/Systems/DebugSceneObj";
+import wallObjInter from "../Objects/WorldObjects/Walls/wallObjInter";
 
 export default class SceneMain extends Phaser.Scene {
 	constructor() {
@@ -128,10 +129,6 @@ export default class SceneMain extends Phaser.Scene {
 		this.player.setCollisionCategory(this.playerConfig.collCat);
 		this.player.setCollidesWith(this.playerConfig.collWith);
 
-		//creating physics shape from vertecies from string
-
-		//AYOOEST
-
 		//#endregion
 
 		//#region camera
@@ -245,7 +242,6 @@ export default class SceneMain extends Phaser.Scene {
 		 * @type {Phaser.Types.Physics.Matter.MatterBodyConfig}
 		 */
 		let bodyConfig = {
-			vertices: vecArr,
 			ignorePointer: false,
 			label: "MapCollisionBlock",
 			isStatic: true,
@@ -255,45 +251,60 @@ export default class SceneMain extends Phaser.Scene {
 			},
 		};
 
-		/**
-		 * @type {Phaser.Types.Input.InputConfiguration}
-		 */
-		let interactiveConfig = {
-			hitArea: new Phaser.Geom.Polygon(vecArr),
-			hitAreaCallback: Phaser.Geom.Polygon.Contains,
-			pixelPerfect: false,
-			draggable: false,
-			useHandCursor: true,
-		};
-
 		let center = this.matter.vertices.centre(vecArr);
-
-		let vertObj = this.matter.add.image(
-			center.x,
-			center.y,
-			undefined,
-			undefined,
-			bodyConfig
-		);
+		let vertObj;
 
 		if (interactive) {
-			let zeroArr = vecArr.slice();
+			//set vertecies
+			bodyConfig.vertices = vecArr;
 
-			this.matter.vertices.translate(zeroArr, vertObj.getTopLeft().negate(), 1);
+			/**
+			 * interactive config
+			 * @type {Phaser.Types.Input.InputConfiguration}
+			 */
+			let interactiveConfig = {
+				hitArea: new Phaser.Geom.Polygon(vecArr),
+				hitAreaCallback: Phaser.Geom.Polygon.Contains,
+				pixelPerfect: false,
+				draggable: true,
+				useHandCursor: true,
+			};
 
-			console.log("log - vertObj.getTopLeft(): ", vertObj.getTopLeft());
+			vertObj = new wallObjInter(
+				"wall",
+				this.matter.world,
+				center.x,
+				center.y,
+				undefined,
+				undefined,
+				bodyConfig,
+				interactiveConfig
+			);
 
-			interactiveConfig.hitArea.setTo(zeroArr);
+			// vertObj = this.matter.add.image(
+			// 	center.x,
+			// 	center.y,
+			// 	"worldWallSmall",
+			// 	undefined,
+			// 	bodyConfig
+			// );
+		} else {
+			// vertObj = this.matter.add.fromVertices(
+			// 	center.x,
+			// 	center.y,
+			// 	vecArr,
+			// 	bodyConfig
+			// );
 
-			//make interactive
-			vertObj.setInteractive(interactiveConfig);
-
-			this.input.enableDebug(
-				vertObj,
-				Phaser.Display.Color.GetColor(255, 0, 255)
+			vertObj = this.matter.add.fromVertices(
+				center.x,
+				center.y,
+				vecArr,
+				bodyConfig
 			);
 		}
 
+		// console.log("log - vertObj: ", vertObj);
 		return vertObj;
 	}
 
@@ -339,8 +350,3 @@ export default class SceneMain extends Phaser.Scene {
 
 	//#endregion
 }
-
-/**
- * enum-like for collision bit masks
- * maximum of 32-bit integer
- */

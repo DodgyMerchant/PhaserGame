@@ -146,7 +146,10 @@ export default class PhyObj extends Phaser.Physics.Matter.Sprite {
 	//#endregion
 }
 
+
 /**
+ * enum-like for collision bit masks
+ * maximum of 32-bit integer
  * object holding collision categories
  * and methods for them
  */
