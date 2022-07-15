@@ -123,34 +123,41 @@ export default class LevelEditor extends UIManager {
 		/**
 		 * input
 		 */
+		this.inputKeys = {
+			//#region cam
+			//cam movement
+			/** @type {Phaser.Input.Keyboard.Key} */
+			up: Phaser.Input.Keyboard.KeyCodes.UP,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			down: Phaser.Input.Keyboard.KeyCodes.DOWN,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			left: Phaser.Input.Keyboard.KeyCodes.LEFT,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+
+			//cam zoom
+			/** @type {Phaser.Input.Keyboard.Key} */
+			zoomIn: Phaser.Input.Keyboard.KeyCodes.MINUS,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			zoomOut: Phaser.Input.Keyboard.KeyCodes.PLUS,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			zoomReset: Phaser.Input.Keyboard.KeyCodes.BACKSPACE,
+
+			//#endregion
+			//#region world
+			/** @type {Phaser.Input.Keyboard.Key} */
+			worldVertClose: Phaser.Input.Keyboard.KeyCodes.CTRL,
+
+			//#endregion
+			//#region UI
+
+			/** @type {Phaser.Input.Keyboard.Key} */
+			UISwitchModes: Phaser.Input.Keyboard.KeyCodes.TAB,
+
+			//#endregion
+		};
 		this.inputKeys = this.scene.input.keyboard.addKeys(
-			{
-				//#region cam
-				//cam movement
-				/** @type {Phaser.Input.Keyboard.Key} */
-				up: Phaser.Input.Keyboard.KeyCodes.UP,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				down: Phaser.Input.Keyboard.KeyCodes.DOWN,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				left: Phaser.Input.Keyboard.KeyCodes.LEFT,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
-
-				//cam zoom
-				/** @type {Phaser.Input.Keyboard.Key} */
-				zoomIn: Phaser.Input.Keyboard.KeyCodes.MINUS,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				zoomOut: Phaser.Input.Keyboard.KeyCodes.PLUS,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				zoomReset: Phaser.Input.Keyboard.KeyCodes.BACKSPACE,
-
-				//#endregion
-				//#region world
-				/** @type {Phaser.Input.Keyboard.Key} */
-				worldVertClose: Phaser.Input.Keyboard.KeyCodes.CTRL,
-
-				//#endregion
-			},
+			this.inputKeys,
 			true,
 			true
 		);
@@ -309,16 +316,16 @@ export default class LevelEditor extends UIManager {
 		//#endregion
 		//#region UI
 
-		/** enum-like for modes/states the Level editor can be in */
-		class LEVELEDITORMODES {
-			/** mode to edit, selectm, manipulate objects */
-			static mode_edit = Symbol("modeEdit");
-			/** modes to create new objects in */
-			static mode_create = Symbol("modeCreate");
-		}
+		//#region modes
 
+		/**
+		 * the level editor state, UI state
+		 * @type {LEVELEDITORMODES.mode}
+		 */
 		this.state = LEVELEDITORMODES.mode_create;
 
+		//#endregion
+		//#region UI creation
 		let subElemPadd = 5;
 		let subElemPadd2 = subElemPadd * 2;
 
@@ -461,6 +468,8 @@ export default class LevelEditor extends UIManager {
 
 		//#endregion
 
+		//#endregion
+
 		console.log("//////////// level editor created ////////////");
 	}
 
@@ -487,10 +496,45 @@ export default class LevelEditor extends UIManager {
 		this.inputManageMyLIsteners(this.active);
 	}
 
+	//#region modes
+
+	/**
+	 *
+	 * @param {LEVELEDITORMODES.mode | undefined} mode mode to switch to, undefined will witch through the modes
+	 */
+	modeSwitch(mode) {
+		if (mode != undefined) {
+			this.state = mode;
+		} else {
+			this.state =
+				(LEVELEDITORMODES.modeArr.findIndex(this.state) + 1) %
+				LEVELEDITORMODES.modeArr.length;
+		}
+	}
+
+	worldSetupListeners(bool) {
+		if (bool) {
+			//tab awitch
+			this.inputKeys.UISwitchModes.on(
+				"down",
+				function () {
+					this.modeSwitch();
+				},
+				this
+			);
+		} else {
+			//tab awitch
+			this.inputKeys.UISwitchModes.removeListener("down", undefined, this);
+		}
+	}
+
+	//#endregion
 	//#region listeners general
 
 	inputManageMyLIsteners(bool) {
 		//world interaction
+
+		this.worldSetupListeners(bool);
 		this.worldSetupListeners(bool);
 
 		if (bool) {
@@ -830,4 +874,22 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+}
+
+/** enum-like for modes/states the Level editor can be in */
+class LEVELEDITORMODES {
+	//#region other
+	static modeArr = new Array();
+
+	static modeAdd(modeName) {
+		let mode = Symbol(modeName);
+		LEVELEDITORMODES.modeArr.push(mode);
+		return mode;
+	}
+
+	//#endregion
+	/** mode to edit, selectm, manipulate objects */
+	static mode_edit = LEVELEDITORMODES.modeAdd("modeEdit");
+	/** modes to create new objects in */
+	static mode_create = LEVELEDITORMODES.modeAdd("modeCreate");
 }
