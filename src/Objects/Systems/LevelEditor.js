@@ -309,6 +309,16 @@ export default class LevelEditor extends UIManager {
 		//#endregion
 		//#region UI
 
+		/** enum-like for modes/states the Level editor can be in */
+		class LEVELEDITORMODES {
+			/** mode to edit, selectm, manipulate objects */
+			static mode_edit = Symbol("modeEdit");
+			/** modes to create new objects in */
+			static mode_create = Symbol("modeCreate");
+		}
+
+		this.state = LEVELEDITORMODES.mode_create;
+
 		let subElemPadd = 5;
 		let subElemPadd2 = subElemPadd * 2;
 
