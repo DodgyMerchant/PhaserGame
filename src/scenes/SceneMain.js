@@ -2,6 +2,7 @@ import Player from "../Objects/WorldObjects/player/Player";
 import { STATES } from "../Objects/WorldObjects/MovementObj";
 import PhyObj, { COLLCAT } from "../Objects/WorldObjects/PhyObj";
 import DebugSceneObj from "../Objects/Systems/DebugSceneObj";
+import wallObjInter from "../Objects/WorldObjects/Walls/wallObjInter";
 
 export default class SceneMain extends Phaser.Scene {
 	constructor() {
@@ -128,63 +129,6 @@ export default class SceneMain extends Phaser.Scene {
 		this.player.setCollisionCategory(this.playerConfig.collCat);
 		this.player.setCollidesWith(this.playerConfig.collWith);
 
-		//creating physics shape from vertecies from string
-
-		let vert = "0 0,100 0,100 100,0 100";
-
-		let vecArr = new Array();
-
-		vert = vert.split(",");
-		vert = vert.forEach((string) => {
-			let arr = string.split(" ");
-			vecArr.push(
-				new Phaser.Math.Vector2(
-					Number.parseFloat(arr[0]),
-					Number.parseFloat(arr[1])
-				)
-			);
-		});
-
-		/**
-		 * block config
-		 * @type {Phaser.Types.Physics.Matter.MatterBodyConfig}
-		 */
-		let blockConf = {
-			label: "block",
-			vertices: vecArr,
-			isStatic: true,
-			collisionFilter: {
-				category: COLLCAT.MAP,
-				mask: COLLCAT.compile([COLLCAT.PLAYER, COLLCAT.MAP, COLLCAT.GAMEOBJ]),
-			},
-		};
-
-		this.block1 = this.matter.add.image(
-			100,
-			200,
-			"worldWallSmall",
-			undefined,
-			blockConf
-		);
-
-		this.block2 = this.matter.add.image(
-			220,
-			200,
-			"worldWallSmall",
-			undefined,
-			blockConf
-		);
-
-		this.block3 = this.matter.add.image(
-			370,
-			200,
-			"worldWallSmall",
-			undefined,
-			blockConf
-		);
-
-		//AYOOEST
-
 		//#endregion
 
 		//#region camera
@@ -284,20 +228,22 @@ export default class SceneMain extends Phaser.Scene {
 	}
 
 	//#endregion
-	//#region create maap obj
+	//#region create map obj
 
 	/**
 	 *
 	 * @param {Phaser.Math.Vector2[]} vecArr
+	 * @param {boolean} interactive if the obj should be interactive
+	 * @returns {MatterJS.BodyType}
 	 */
-	mapObjVertCreate(vecArr) {
+	mapObjVertCreate(vecArr, interactive) {
 		/**
 		 * block config
 		 * @type {Phaser.Types.Physics.Matter.MatterBodyConfig}
 		 */
-		let blockConf = {
+		let bodyConfig = {
+			ignorePointer: false,
 			label: "MapCollisionBlock",
-			vertices: vecArr,
 			isStatic: true,
 			collisionFilter: {
 				category: COLLCAT.MAP,
@@ -305,15 +251,61 @@ export default class SceneMain extends Phaser.Scene {
 			},
 		};
 
-		let block = this.matter.add.image(
-			vecArr[0].x,
-			vecArr[0].y,
-			"worldWallSmall",
-			undefined,
-			blockConf
-		);
+		let center = this.matter.vertices.centre(vecArr);
+		let vertObj;
 
-		return block;
+		if (interactive) {
+			//set vertecies
+			bodyConfig.vertices = vecArr;
+
+			/**
+			 * interactive config
+			 * @type {Phaser.Types.Input.InputConfiguration}
+			 */
+			let interactiveConfig = {
+				hitArea: new Phaser.Geom.Polygon(vecArr),
+				hitAreaCallback: Phaser.Geom.Polygon.Contains,
+				pixelPerfect: false,
+				draggable: true,
+				useHandCursor: true,
+			};
+
+			vertObj = new wallObjInter(
+				"wall",
+				this.matter.world,
+				center.x,
+				center.y,
+				undefined,
+				undefined,
+				bodyConfig,
+				interactiveConfig
+			);
+
+			// vertObj = this.matter.add.image(
+			// 	center.x,
+			// 	center.y,
+			// 	"worldWallSmall",
+			// 	undefined,
+			// 	bodyConfig
+			// );
+		} else {
+			// vertObj = this.matter.add.fromVertices(
+			// 	center.x,
+			// 	center.y,
+			// 	vecArr,
+			// 	bodyConfig
+			// );
+
+			vertObj = this.matter.add.fromVertices(
+				center.x,
+				center.y,
+				vecArr,
+				bodyConfig
+			);
+		}
+
+		// console.log("log - vertObj: ", vertObj);
+		return vertObj;
 	}
 
 	//#endregion
@@ -358,8 +350,3 @@ export default class SceneMain extends Phaser.Scene {
 
 	//#endregion
 }
-
-/**
- * enum-like for collision bit masks
- * maximum of 32-bit integer
- */

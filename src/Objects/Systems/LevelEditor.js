@@ -1,3 +1,4 @@
+import wallObjInter from "../WorldObjects/Walls/wallObjInter";
 import UIManager from "./UI/UIManager";
 
 /**
@@ -25,7 +26,9 @@ export default class LevelEditor extends UIManager {
 		this.scene.input.mouse.disableContextMenu();
 
 		//#endregion
-		//#region conf
+		//#region config obj
+
+		//#region text config
 		/**
 		 * text config
 		 * @type {Phaser.Types.GameObjects.Text.TextStyle}
@@ -40,21 +43,22 @@ export default class LevelEditor extends UIManager {
 		 * text config
 		 * @type {Phaser.Types.GameObjects.Text.TextStyle}
 		 */
-		this.textButtonConf = {
-			align: "center",
-		};
+		this.textButtonConf = {};
 		//clone the basic text config and overwrite it with button specific changes
 		this.textButtonConf = this.UIConfigMergeOverwrite(
 			this.textConf,
 			this.textButtonConf
 		);
 
+		//#endregion
+		//#region graphics config
+
 		/**
 		 * graph config
 		 * with x and y missing
 		 * @type {Phaser.Types.GameObjects.Graphics.Options}
 		 */
-		this.graphConf = {
+		this.UIgraphConf = {
 			x: 0,
 			y: 0,
 			fillStyle: {
@@ -70,6 +74,32 @@ export default class LevelEditor extends UIManager {
 
 		/**
 		 * cam config
+		 * @type {Phaser.Types.GameObjects.Graphics.Options}
+		 */
+		this.worldGraphConf = {
+			x: 0,
+			y: 0,
+			lineStyle: {
+				alpha: 1,
+				color: "0xffff00",
+				width: 3,
+			},
+		};
+
+		//#endregion
+		//other config
+
+		/**
+		 * config obj for interactive objects
+		 * @type {Phaser.Types.Input.InputConfiguration}
+		 */
+		this.interConf = {
+			pixelPerfect: false,
+			useHandCursor: true,
+		};
+
+		/**
+		 * custoom cam config
 		 */
 		this.camConfig = {
 			/** background color
@@ -93,41 +123,47 @@ export default class LevelEditor extends UIManager {
 		/**
 		 * input
 		 */
+		this.inputKeys = {
+			//#region cam
+			//cam movement
+			/** @type {Phaser.Input.Keyboard.Key} */
+			up: Phaser.Input.Keyboard.KeyCodes.UP,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			down: Phaser.Input.Keyboard.KeyCodes.DOWN,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			left: Phaser.Input.Keyboard.KeyCodes.LEFT,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+
+			//cam zoom
+			/** @type {Phaser.Input.Keyboard.Key} */
+			zoomIn: Phaser.Input.Keyboard.KeyCodes.MINUS,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			zoomOut: Phaser.Input.Keyboard.KeyCodes.PLUS,
+			/** @type {Phaser.Input.Keyboard.Key} */
+			zoomReset: Phaser.Input.Keyboard.KeyCodes.BACKSPACE,
+
+			//#endregion
+			//#region world
+			/** @type {Phaser.Input.Keyboard.Key} */
+			worldVertClose: Phaser.Input.Keyboard.KeyCodes.CTRL,
+
+			//#endregion
+			//#region UI
+
+			/** @type {Phaser.Input.Keyboard.Key} */
+			UISwitchModes: Phaser.Input.Keyboard.KeyCodes.TAB,
+
+			//#endregion
+		};
 		this.inputKeys = this.scene.input.keyboard.addKeys(
-			{
-				//#region cam
-				//cam movement
-				/** @type {Phaser.Input.Keyboard.Key} */
-				up: Phaser.Input.Keyboard.KeyCodes.UP,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				down: Phaser.Input.Keyboard.KeyCodes.DOWN,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				left: Phaser.Input.Keyboard.KeyCodes.LEFT,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
-
-				//cam zoom
-				/** @type {Phaser.Input.Keyboard.Key} */
-				zoomIn: Phaser.Input.Keyboard.KeyCodes.MINUS,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				zoomOut: Phaser.Input.Keyboard.KeyCodes.PLUS,
-				/** @type {Phaser.Input.Keyboard.Key} */
-				zoomReset: Phaser.Input.Keyboard.KeyCodes.BACKSPACE,
-
-				//#endregion
-				//#region world
-				/** @type {Phaser.Input.Keyboard.Key} */
-				worldVertClose: Phaser.Input.Keyboard.KeyCodes.CTRL,
-
-				//#endregion
-			},
+			this.inputKeys,
 			true,
 			true
 		);
 
 		//mouse
 		this.pointer = this.scene.input.activePointer;
-		// this.scene.input.on()
 
 		//#endregion
 		//#region camera
@@ -140,6 +176,7 @@ export default class LevelEditor extends UIManager {
 		 */
 		this.CamMain = this.scene.cameras.main;
 
+		//move main cam outline with camera, step 1 emit move event
 		this.CamMain.on(
 			"followupdate",
 			/**
@@ -179,6 +216,7 @@ export default class LevelEditor extends UIManager {
 		this.CamMainGraph.strokeRectShape(this.CamMain.worldView);
 		this.bringToTop(this.CamMainGraph);
 
+		//move main cam outline with camera, step 2 listent to move event aand move outline
 		this.CamMain.on(
 			this.camConfig.moveEventName,
 			/**
@@ -209,6 +247,7 @@ export default class LevelEditor extends UIManager {
 			minZoom: this.camConfig.minZoom,
 		});
 
+		//resets zoom
 		this.inputKeys.zoomReset.on(
 			"down",
 			function () {
@@ -217,6 +256,7 @@ export default class LevelEditor extends UIManager {
 			this
 		);
 
+		//change zoom with mouse wheel
 		this.scene.input.on(
 			"wheel",
 			function (pointer, obj, x, y, z) {
@@ -235,56 +275,36 @@ export default class LevelEditor extends UIManager {
 		//#endregion
 
 		//#endregion
-		//#region world input
+		//#region world interaction
 
 		/**
 		 * array of vec2 for object vertecie creation
 		 * @type {Phaser.Math.Vector2[]}
 		 */
-		this.world_objVertList = new Array();
+		this.worldVertList = new Array();
 
-		this.world_Graph = this.scene.add
-			.graphics({
-				x: 0,
-				y: 0,
-				lineStyle: {
-					alpha: 1,
-					color: "0x00ff00",
-					width: 3,
-				},
-			})
-			.save();
+		this.worldGraph = this.scene.add.graphics(this.worldGraphConf);
 
-		this.scene.input.on(
-			"pointerdown",
-			/**
-			 * @param {Phaser.Input.Pointer} pointer
-			 * @param {Phaser.GameObjects.GameObject[]} intObjects
-			 */
-			function (pointer, intObjects) {
-				if (intObjects.length == 0) {
-					if (pointer.leftButtonDown()) {
-						this.worldVertAdd(pointer.position);
-					}
-					if (pointer.rightButtonDown()) {
-						this.worldVertRemove();
-					}
-				}
-			},
-			this
-		);
+		//manipulating objects in world
 
-		this.inputKeys.worldVertClose.on(
-			"down",
-			function () {
-				this.worldVertEnd(true);
-			},
-			this
-		);
+		/**
+		 * the selected world Object
+		 * @type {Phaser.GameObjects.GameObject}
+		 */
+		this.worldObjSelected;
+
+		/**
+		 * @type {MatterJS.ConstraintType}
+		 */
+		this.PointerConstraint = this.scene.matter.add.pointerConstraint({
+			label: "LevelEditorPointerConstraint",
+			length: 0,
+			stiffness: 1,
+			render: true,
+		});
 
 		//#endregion
-
-		//#region post camera setup
+		//#region toggle
 
 		//activate or not
 		if (bool != undefined) {
@@ -294,12 +314,37 @@ export default class LevelEditor extends UIManager {
 		}
 
 		//#endregion
-
 		//#region UI
+
+		//#region modes
+
+		/**
+		 * the level editor state, UI state
+		 * @type {LEVELEDITORMODES.mode}
+		 */
+		this.state = LEVELEDITORMODES.mode_create;
+
+		//#endregion
+		//#region UI creation
+		let subElemPadd = 5;
+		let subElemPadd2 = subElemPadd * 2;
 
 		let w = this.displayWidth / this.scaleX;
 		let h = this.displayHeight / this.scaleY;
 		let rp_w = 200;
+		let rp_h = h;
+		let rp_x = w - rp_w;
+		let rp_y = 0;
+		//inspector
+		let i_w = rp_w - subElemPadd2;
+		let i_h = rp_h - subElemPadd2;
+		let i_x = rp_x + subElemPadd;
+		let i_y = rp_y + subElemPadd;
+		//inspector label
+		let il_w = i_w - subElemPadd2;
+		let il_h = 30;
+		let il_x = i_x + subElemPadd;
+		let il_y = i_y + subElemPadd;
 
 		this.uiconfig = {
 			//header
@@ -307,12 +352,21 @@ export default class LevelEditor extends UIManager {
 			header_y: 0,
 			header_w: w - rp_w,
 			header_h: 20,
-
 			//right panel
-			rpanel_x: w - rp_w,
-			rpanel_y: 0,
+			rpanel_x: rp_x,
+			rpanel_y: rp_y,
 			rpanel_w: rp_w,
-			rpanel_h: h,
+			rpanel_h: rp_h,
+			//inspector
+			inspector_x: i_x,
+			inspector_y: i_y,
+			inspector_w: i_w,
+			inspector_h: i_h,
+			//inspector laabel
+			inspLeb_x: il_x,
+			inspLeb_y: il_y,
+			inspLeb_w: il_w,
+			inspLeb_h: il_h,
 		};
 
 		//heading
@@ -327,51 +381,92 @@ export default class LevelEditor extends UIManager {
 			true,
 			true,
 			"Level Editor Active",
-			this.graphConf,
+			this.UIgraphConf,
 			this.textConf,
 			true,
 			true
 		);
 
+		//#region right panel
+
 		this.RightPanel = this.UIPanelCreate(
 			this,
-			"Inspector",
+			"RightPanel",
 			this.depth,
 			this.uiconfig.rpanel_x,
 			this.uiconfig.rpanel_y,
 			this.uiconfig.rpanel_w,
 			this.uiconfig.rpanel_h,
-			this.graphConf,
+			this.UIgraphConf,
 			true,
 			true
 		);
 
-		this.TestButton = this.UIButtonCreate(
+		//#region inspector
+
+		this.Inspector = this.UIPanelCreate(
 			this,
-			"TestButton",
+			"Inspector",
 			this.depth,
-			200,
-			270,
-			100,
-			100,
-			true,
-			true,
-			"TEST",
-			this.graphConf,
-			this.textButtonConf,
-			"pointerdown",
-			"hello",
+			this.uiconfig.inspector_x,
+			this.uiconfig.inspector_y,
+			this.uiconfig.inspector_w,
+			this.uiconfig.inspector_h,
+			this.UIgraphConf,
 			true,
 			true
 		);
 
-		this.TestButton.on(
-			"hello",
-			function (pointer, relX, relY, stopPropagation) {
-				console.log("hello", stopPropagation);
-			},
-			this
+		this.Label = this.UILabelCreate(
+			this,
+			"UILabelEditorActive",
+			this.depth,
+			this.uiconfig.inspLeb_x,
+			this.uiconfig.inspLeb_y,
+			this.uiconfig.inspLeb_w,
+			this.uiconfig.inspLeb_h,
+			true,
+			true,
+			"Inspector",
+			this.UIgraphConf,
+			this.textConf,
+			true,
+			true
 		);
+
+		// this.TestButton = this.UIButtonCreate(
+		// 	this,
+		// 	"TestButton",
+		// 	this.depth,
+		// 	200,
+		// 	270,
+		// 	100,
+		// 	100,
+		// 	true,
+		// 	true,
+		// 	"TEST",
+		// 	this.UIgraphConf,
+		// 	this.textButtonConf,
+		// 	this.interConf,
+		// 	"pointerdown",
+		// 	"hello",
+		// 	true,
+		// 	true
+		// );
+
+		// this.TestButton.on(
+		// 	"hello",
+		// 	function (pointer, relX, relY, stopPropagation) {
+		// 		console.log("hello", stopPropagation);
+		// 	},
+		// 	this
+		// );
+
+		//#endregion
+
+		//#endregion
+
+		//#endregion
 
 		//#endregion
 
@@ -392,13 +487,143 @@ export default class LevelEditor extends UIManager {
 	toggle(bool) {
 		if (bool == undefined) bool = !this.active;
 
+		// this.PointerConstraint.
+
 		this.enable(bool);
 
 		this.cameraActivate(this.active);
+
+		this.inputManageMyLIsteners(this.active);
 	}
 
+	//#region modes
+
+	/**
+	 *
+	 * @param {LEVELEDITORMODES.mode | undefined} mode mode to switch to, undefined will witch through the modes
+	 */
+	modeSwitch(mode) {
+		if (mode != undefined) {
+			this.state = mode;
+		} else {
+			this.state =
+				(LEVELEDITORMODES.modeArr.findIndex(this.state) + 1) %
+				LEVELEDITORMODES.modeArr.length;
+		}
+	}
+
+	worldSetupListeners(bool) {
+		if (bool) {
+			//tab awitch
+			this.inputKeys.UISwitchModes.on(
+				"down",
+				function () {
+					this.modeSwitch();
+				},
+				this
+			);
+		} else {
+			//tab awitch
+			this.inputKeys.UISwitchModes.removeListener("down", undefined, this);
+		}
+	}
+
+	//#endregion
+	//#region listeners general
+
+	inputManageMyLIsteners(bool) {
+		//world interaction
+
+		this.worldSetupListeners(bool);
+		this.worldSetupListeners(bool);
+
+		if (bool) {
+		} else {
+		}
+	}
+
+	//#endregion
 	//#region world interaction
 
+	//#region listeners
+
+	worldSetupListeners(bool) {
+		if (bool) {
+			/////pointer
+			//#region clicking, drawing poly walls and selecting them
+			this.scene.input.on(
+				"pointerdown",
+				/**
+				 * @param {Phaser.Input.Pointer} pointer
+				 * @param {Phaser.GameObjects.GameObject[]} intObjects
+				 */
+				function (pointer, intObjects) {
+					// console.log("Level Editor World Input pointerdown");
+					if (intObjects.length == 0) {
+						this.worldObjUnselect();
+
+						if (pointer.leftButtonDown()) {
+							this.worldVertAdd(this.pointer.positionToCamera(this.CamEditor));
+						}
+						if (pointer.rightButtonDown()) {
+							this.worldVertRemove();
+						}
+					} else {
+						this.worldVertReset();
+						this.worldObjSelect(intObjects);
+					}
+				},
+				this
+			);
+			//#endregion
+			//#region mouse move, updating line to mouse
+			this.scene.input.on(
+				"pointermove",
+				/**
+				 * @param {Phaser.Input.Pointer} pointer
+				 * @param {Phaser.GameObjects.GameObject[]} intObjects
+				 */
+				function (pointer, intObjects) {
+					// draw line from vert to pointer
+					// console.log("Level Editor World Input pointermove");
+					if (this.worldVertList.length > 0) {
+						this.worldVertUpdate(2);
+					} else {
+						//obj selected
+						if (this.worldObjSelected != undefined) {
+							if (this.worldObjSelected.input.dragState == 2)
+								this.worldObjHighlight();
+						}
+					}
+				},
+				this
+			);
+			//#endregion
+
+			/////keyboard
+			//#region closing poly
+			this.inputKeys.worldVertClose.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldVertEnd(false);
+				},
+				this
+			);
+			//#endregion
+		} else {
+			//clicking
+			this.scene.input.removeListener("pointerdown", undefined, this);
+
+			// mouse move, updating line to mouse
+			this.scene.input.removeListener("pointermove", undefined, this);
+
+			//closing poly
+			this.inputKeys.worldVertClose.removeListener("down", undefined, this);
+		}
+	}
+
+	//#endregion
 	//#region vertecies object
 
 	/**
@@ -406,9 +631,8 @@ export default class LevelEditor extends UIManager {
 	 * @param {Phaser.Math.Vector2} vec2
 	 */
 	worldVertAdd(vec2) {
-		this.world_objVertList.push(vec2.clone());
-		console.log("add: ", vec2);
-		this.worldVertUpdate(false);
+		this.worldVertList.push(vec2.clone());
+		this.worldVertUpdate(1);
 	}
 
 	/**
@@ -416,58 +640,83 @@ export default class LevelEditor extends UIManager {
 	 *
 	 */
 	worldVertRemove() {
-		if (this.world_objVertList.length > 0) {
-			this.world_objVertList.pop();
-			this.worldVertUpdate(true);
+		if (this.worldVertList.length > 0) {
+			this.worldVertList.pop();
+			if (this.worldVertList.length == 0) {
+				this.worldVertReset();
+			} else {
+				this.worldVertUpdate(0);
+			}
 		}
 	}
 
 	/**
 	 *
-	 * @param {Phaser.Math.Vector2} vec2
+	 * @param {boolean} value 0 == redo all, 1 == newest and mouse, 2 == mouse
 	 */
-	worldVertUpdate(redo) {
-		// this.world_Graph.restore();
+	worldVertUpdate(value) {
+		// this.worldGraph.restore();
 
-		if (this.world_objVertList.length > 1) {
-			if (redo) {
-				let x1, y1;
+		let leng = this.worldVertList.length;
 
-				x1 = this.world_objVertList[0].x;
-				y1 = this.world_objVertList[0].y;
+		switch (value) {
+			case 0:
+				this.worldGraph.clear();
+				if (leng < 3) value = 1;
+			case 1:
+				if (leng < 2) value = 2;
+		}
+
+		switch (value) {
+			case 0: {
+				//do all but last vertex
+
+				let x1 = this.worldVertList[0].x;
+				let y1 = this.worldVertList[0].y;
 
 				let element;
 
-				for (let index = 1; index < this.world_objVertList.length; index++) {
+				for (let index = 1; index < leng - 1; index++) {
 					/** @type {Phaser.Math.Vector2} */
-					element = this.world_objVertList[index];
+					element = this.worldVertList[index];
 
-					this.world_Graph.lineBetween(x1, y1, element.x, element.y);
-					console.log("update: ", x1, y1, element.x, element.y);
+					this.worldGraph.lineBetween(x1, y1, element.x, element.y);
 
 					x1 = element.x;
 					y1 = element.y;
 				}
 			}
+			case 1: {
+				//do last vertex
 
-			//do last element
-			let last1 = this.world_objVertList.at(this.world_objVertList.length - 1);
-			let last2 = this.world_objVertList.at(this.world_objVertList.length - 2);
+				let last1 = this.worldVertList.at(leng - 1);
+				let last2 = this.worldVertList.at(leng - 2);
+				this.worldGraph.lineBetween(last2.x, last2.y, last1.x, last1.y);
+			}
+			case 2: {
+				if (value == 2) this.worldGraph.commandBuffer.pop();
 
-			this.world_Graph.lineBetween(last2.x, last2.y, last1.x, last1.y);
-			console.log("update: ", last2.x, last2.y, last1.x, last1.y);
-		} else {
+				let mouseVec2 = this.pointer.positionToCamera(this.CamEditor);
+				let lastVec2 = this.worldVertList[leng - 1];
+
+				this.worldGraph.lineBetween(
+					lastVec2.x,
+					lastVec2.y,
+					mouseVec2.x,
+					mouseVec2.y
+				);
+			}
 		}
 	}
 
 	/**
-	 *
-	 * @param {boolean | undefined} successful
+	 * @param {boolean} forceSucc force obj creation
 	 */
-	worldVertEnd(bool) {
-		if (bool) {
+	worldVertEnd(forceSucc) {
+		if (forceSucc || this.worldVertList.length >= 3) {
 			//create obj
-			this.scene.mapObjVertCreate(this.world_objVertList);
+
+			this.scene.mapObjVertCreate(this.worldVertList, true);
 			//reset
 			this.worldVertReset();
 		} else {
@@ -476,7 +725,81 @@ export default class LevelEditor extends UIManager {
 	}
 
 	worldVertReset() {
-		this.world_objVertList = new Array();
+		this.worldGraph.clear();
+		this.worldVertList = new Array();
+	}
+
+	//#endregion
+	//#region selecting a obj
+
+	/**
+	 * selecting an object
+	 * @param {Phaser.GameObjects.GameObject | Phaser.GameObjects.GameObject[]} objs
+	 */
+	worldObjSelect(objs) {
+		//#region set worldObjSelected
+		if (Array.isArray(objs)) {
+			if (objs.length > 1)
+				console.log("Level editor worldObjSelect: more than one obj got", objs);
+			this.worldObjSelected = objs[0];
+		} else this.worldObjSelected = objs;
+
+		//#endregion
+
+		if (this.worldObjSelected instanceof wallObjInter) {
+			/** @type {wallObjInter} */
+			this.worldObjSelected;
+		} else {
+			console.log(
+				"Oh nooooo, unknown object type selected, the system doesnt support this"
+			);
+		}
+
+		this.worldObjHighlight();
+	}
+
+	/**
+	 * selecting an object
+	 * @param {Phaser.GameObjects.GameObject[]} objs
+	 */
+	worldObjUnselect() {
+		if (this.worldObjSelected != undefined) {
+			this.worldGraph.clear();
+			this.worldObjSelected = undefined;
+		}
+	}
+
+	/**
+	 * draw border around the obj
+	 */
+	worldObjHighlight() {
+		if (this.worldObjSelected instanceof wallObjInter) {
+			/** @type {wallObjInter} */
+			this.worldObjSelected;
+		} else {
+			console.log(
+				"Oh nooooo, unknown object type selected, the system doesnt support this"
+			);
+		}
+
+		this.worldGraph.clear();
+
+		/**
+		 * @type {Phaser.Math.Vector2[]}
+		 */
+		let vertArray = this.worldObjSelected.body.vertices;
+
+		for (let index = 0; index < vertArray.length; index++) {
+			const element2 = vertArray[index];
+			const element1 = vertArray.at(index - 1);
+
+			this.worldGraph.lineBetween(
+				element1.x,
+				element1.y,
+				element2.x,
+				element2.y
+			);
+		}
 	}
 
 	//#endregion
@@ -508,7 +831,7 @@ export default class LevelEditor extends UIManager {
 			this.camControls.camera = this.CamEditor;
 			//enable main cam outline
 			this.CamMainGraph.setVisible(true);
-			this.world_Graph.setVisible(true);
+			this.worldGraph.setVisible(true);
 
 			////main cam
 			this.CamMain.setPosition(0, this.CamMain.height);
@@ -520,7 +843,7 @@ export default class LevelEditor extends UIManager {
 
 			//disable main cam outline
 			this.CamMainGraph.setVisible(false);
-			this.world_Graph.setVisible(false);
+			this.worldGraph.setVisible(false);
 
 			//main caam
 			this.CamMain.setPosition(0, 0);
@@ -551,4 +874,22 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+}
+
+/** enum-like for modes/states the Level editor can be in */
+class LEVELEDITORMODES {
+	//#region other
+	static modeArr = new Array();
+
+	static modeAdd(modeName) {
+		let mode = Symbol(modeName);
+		LEVELEDITORMODES.modeArr.push(mode);
+		return mode;
+	}
+
+	//#endregion
+	/** mode to edit, selectm, manipulate objects */
+	static mode_edit = LEVELEDITORMODES.modeAdd("modeEdit");
+	/** modes to create new objects in */
+	static mode_create = LEVELEDITORMODES.modeAdd("modeCreate");
 }

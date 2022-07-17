@@ -20,7 +20,7 @@ const config = {
 	input: {
 		gamepad: true,
 	},
-  
+
 	physics: {
 		default: "matter",
 
@@ -91,9 +91,8 @@ const config = {
 
 				showConvexHulls: true,
 				hullColor: 0xd703d0,
-      },
+			},
 		},
-
 	},
 };
 

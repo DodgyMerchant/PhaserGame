@@ -1,7 +1,8 @@
 import LevelEditor from "./LevelEditor";
+import UIManager from "./UI/UIManager";
 
 /** debugging class */
-export default class DebugSceneObj extends Phaser.GameObjects.GameObject {
+export default class DebugSceneObj extends UIManager {
 	/**
 	 * created a debugging object
 	 * @param {Phaser.Scene} scene scene this is created in
@@ -9,8 +10,38 @@ export default class DebugSceneObj extends Phaser.GameObjects.GameObject {
 	 * @param {boolean | undefined} levelEditor if level editor should be created?
 	 */
 	constructor(scene, bool, levelEditor) {
-		super(scene, "DebugSceneObj");
+		super("DebugSceneObj", scene, 10000, 0, 0, scene.cameras.main, true, true);
 
+		//#region config
+
+		/**
+		 * @type {Phaser.Types.GameObjects.Graphics.Options}
+		 */
+		this.debugGraphConf = {
+			x: 0,
+			y: 0,
+			fillStyle: {
+				alpha: 1,
+				color: Phaser.Display.Color.GetColor(0, 0, 0),
+			},
+			lineStyle: {
+				alpha: 0.9,
+				color: Phaser.Display.Color.GetColor(0, 255, 0),
+				width: 5,
+			},
+		};
+
+		/**
+		 * @type {Phaser.Types.GameObjects.Text.TextStyle}
+		 */
+		this.debugTextConf = {
+			color: "#00ff00",
+			font: "Courier",
+		};
+
+    
+
+		//#endregion
 		//#region setup
 
 		/** debug group
@@ -72,10 +103,33 @@ export default class DebugSceneObj extends Phaser.GameObjects.GameObject {
 
 		//#endregion
 
+		//#region ui
+
+		this.UILabelCreate(
+			this,
+			"DebugNoticeLabel",
+			this.depth,
+			0,
+			0,
+			150,
+			20,
+			true,
+			true,
+			"Debug Enabled",
+			this.debugGraphConf,
+			this.debugTextConf,
+			true,
+			true
+		);
+
+		//#endregion
+
 		console.log("//////////// Debug Obj Created ////////////");
 	}
 
-	update() {}
+	update(time, delta) {
+		super.update(time, delta);
+	}
 
 	/**
 	 * toggles or set debug
@@ -84,9 +138,9 @@ export default class DebugSceneObj extends Phaser.GameObjects.GameObject {
 	 */
 	toggle(bool) {
 		if (bool == undefined) {
-			this.setActive(!this.active);
+			this.enable(!this.active);
 		} else {
-			this.setActive(bool);
+			this.enable(bool);
 		}
 
 		//#region level editor
