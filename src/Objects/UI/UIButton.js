@@ -77,14 +77,8 @@ export default class UIButton extends UILabel {
 		this.UI_Button_zone.setOrigin(0);
 		this.add(this.UI_Button_zone);
 
-		/** @type {Phaser.Types.Input.InputConfiguration} */
-		let config = {};
-
 		if (interConfig != undefined) {
-			this.UIMakeInteractive(
-				this.UI_Button_zone,
-				Phaser.Utils.Objects.Merge(interConfig, config)
-			);
+			this.UIMakeInteractive(this.UI_Button_zone, interConfig);
 		} else {
 			this.UIMakeInteractive(this.UI_Button_zone);
 		}
@@ -111,10 +105,10 @@ export default class UIButton extends UILabel {
 		super.refresh();
 
 		if (this.parentContainer instanceof UIElement) {
-			console.log("resize button: ", this.width, this.height);
+			// console.log("resize button: ", this.width, this.height);
 			this.UI_Button_zone.setSize(this.width, this.height, true);
 		}
 
-		// console.log("refresh - UIButton: ", this.name);
+		console.log("refresh - UIButton: ", this.name);
 	}
 }

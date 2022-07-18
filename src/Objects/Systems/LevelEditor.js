@@ -422,6 +422,7 @@ export default class LevelEditor extends UIManager {
 			undefined,
 			{
 				height: StateButton_h,
+				// width: 100,
 			},
 			0.5,
 			0.5,
@@ -439,10 +440,11 @@ export default class LevelEditor extends UIManager {
 			this.RightPanel,
 			"StateCreateButton",
 			this.depth,
-			undefined,
+			this.StateEditButton,
 			undefined,
 			{
 				height: StateButton_h,
+				// width: 100,
 			},
 			0.5,
 			0.5,
@@ -456,8 +458,11 @@ export default class LevelEditor extends UIManager {
 			true
 		);
 
-		this.EditStateButton.on("TEST", function () {
-			console.log("TEST button input got");
+		this.StateEditButton.on("switch", function () {
+			console.log("StateEditButton button input got");
+		});
+		this.StateCreateButton.on("switch", function () {
+			console.log("StateCreateButton button input got");
 		});
 
 		//content

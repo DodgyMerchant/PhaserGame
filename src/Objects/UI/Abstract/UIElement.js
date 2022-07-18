@@ -209,7 +209,7 @@ export default class UIElement extends UIObj {
 		this.height = wantedHeight - this.marginTop;
 
 		//#endregion
-		// console.log("refresh - UIElement: ", this.name);
+		console.log("refresh - UIElement: ", this.name);
 
 		//#endregion
 

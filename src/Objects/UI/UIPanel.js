@@ -61,7 +61,7 @@ export default class UIPanel extends UIElement {
 			this.UIPanel_Draw();
 		}
 
-		console.log("refresh - UIPanel: ", this.name);
+		// console.log("refresh - UIPanel: ", this.name);
 	}
 
 	UIPanel_Draw() {
