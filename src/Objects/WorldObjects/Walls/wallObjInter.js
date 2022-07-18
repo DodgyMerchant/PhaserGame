@@ -1,4 +1,6 @@
-export default class wallObjInter extends Phaser.Physics.Matter.Image {
+import worldObjImage from "../abstract/worldObjImage";
+
+export default class wallObjInter extends worldObjImage {
 	/**
 	 *
 	 * @param {string} name a name

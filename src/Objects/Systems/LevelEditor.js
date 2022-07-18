@@ -1,5 +1,8 @@
 import wallObjInter from "../WorldObjects/Walls/wallObjInter";
-import UIManager from "./UI/UIManager";
+import UIManager from "../UI/Abstract/UIManager";
+import { UIConfig } from "../UI/Abstract/UIObj";
+import worldObjImage from "../WorldObjects/abstract/worldObjImage";
+import worldObjSprite from "../WorldObjects/abstract/worldObjSprite";
 
 /**
  * level editor
@@ -294,6 +297,12 @@ export default class LevelEditor extends UIManager {
 		this.worldObjSelected;
 
 		/**
+		 * selectable types of objects
+		 * @type {Phaser.Physics.Matter.Image[] | Phaser.Physics.Matter.Sprite[]}
+		 */
+		this.worldSelectableList = [worldObjImage, worldObjSprite];
+
+		/**
 		 * @type {MatterJS.ConstraintType}
 		 */
 		this.PointerConstraint = this.scene.matter.add.pointerConstraint({
@@ -320,14 +329,30 @@ export default class LevelEditor extends UIManager {
 
 		/**
 		 * the level editor state, UI state
-		 * @type {LEVELEDITORMODES.mode}
+		 * @type {Symbol}
 		 */
-		this.state = LEVELEDITORMODES.mode_create;
+		this.state = this.modeSwitch(LEVELEDITORMODES.mode_create);
 
 		//#endregion
 		//#region UI creation
-		let subElemPadd = 5;
-		let subElemPadd2 = subElemPadd * 2;
+
+		/**
+		 * @type {UIConfig}
+		 */
+		let UIconfig = {
+			margin: {
+				marginTop: 0,
+				marginBottom: 0,
+				marginLeft: 0,
+				marginRight: 0,
+			},
+			padding: {
+				paddingTop: 5,
+				paddingBottom: 5,
+				paddingLeft: 5,
+				paddingRight: 5,
+			},
+		};
 
 		let w = this.displayWidth / this.scaleX;
 		let h = this.displayHeight / this.scaleY;
@@ -335,51 +360,34 @@ export default class LevelEditor extends UIManager {
 		let rp_h = h;
 		let rp_x = w - rp_w;
 		let rp_y = 0;
-		//inspector
-		let i_w = rp_w - subElemPadd2;
-		let i_h = rp_h - subElemPadd2;
-		let i_x = rp_x + subElemPadd;
-		let i_y = rp_y + subElemPadd;
-		//inspector label
-		let il_w = i_w - subElemPadd2;
-		let il_h = 30;
-		let il_x = i_x + subElemPadd;
-		let il_y = i_y + subElemPadd;
 
-		this.uiconfig = {
-			//header
-			header_x: 0,
-			header_y: 0,
-			header_w: w - rp_w,
-			header_h: 20,
-			//right panel
-			rpanel_x: rp_x,
-			rpanel_y: rp_y,
-			rpanel_w: rp_w,
-			rpanel_h: rp_h,
-			//inspector
-			inspector_x: i_x,
-			inspector_y: i_y,
-			inspector_w: i_w,
-			inspector_h: i_h,
-			//inspector laabel
-			inspLeb_x: il_x,
-			inspLeb_y: il_y,
-			inspLeb_w: il_w,
-			inspLeb_h: il_h,
-		};
+		//header
+		let header_x = 0;
+		let header_y = 0;
+		let header_w = w - rp_w;
+		let header_h = 20;
+
+		//inspector
+
+		//inspector label
+
+		let inspectorl_h = 30;
+
+		let StateButton_h = 20;
 
 		//heading
 		this.Label = this.UILabelCreate(
 			this,
 			"UILabelEditorActive",
 			this.depth,
-			this.uiconfig.header_x,
-			this.uiconfig.header_y,
-			this.uiconfig.header_w,
-			this.uiconfig.header_h,
-			true,
-			true,
+			header_x,
+			header_y,
+			this.UIConfigMergeOverwrite(UIconfig, {
+				width: header_w,
+				height: header_h,
+			}),
+			0.5,
+			0.5,
 			"Level Editor Active",
 			this.UIgraphConf,
 			this.textConf,
@@ -393,73 +401,80 @@ export default class LevelEditor extends UIManager {
 			this,
 			"RightPanel",
 			this.depth,
-			this.uiconfig.rpanel_x,
-			this.uiconfig.rpanel_y,
-			this.uiconfig.rpanel_w,
-			this.uiconfig.rpanel_h,
+			rp_x,
+			rp_y,
+			this.UIConfigMergeOverwrite(UIconfig, {
+				width: rp_w,
+				height: rp_h,
+			}),
 			this.UIgraphConf,
 			true,
 			true
 		);
 
-		//#region inspector
+		//#region edit
 
-		this.Inspector = this.UIPanelCreate(
-			this,
-			"Inspector",
+		this.StateEditButton = this.UIButtonCreate(
+			this.RightPanel,
+			"StateEditButton",
 			this.depth,
-			this.uiconfig.inspector_x,
-			this.uiconfig.inspector_y,
-			this.uiconfig.inspector_w,
-			this.uiconfig.inspector_h,
-			this.UIgraphConf,
-			true,
-			true
-		);
-
-		this.Label = this.UILabelCreate(
-			this,
-			"UILabelEditorActive",
-			this.depth,
-			this.uiconfig.inspLeb_x,
-			this.uiconfig.inspLeb_y,
-			this.uiconfig.inspLeb_w,
-			this.uiconfig.inspLeb_h,
-			true,
-			true,
-			"Inspector",
+			undefined,
+			undefined,
+			{
+				height: StateButton_h,
+			},
+			0.5,
+			0.5,
+			"Edit",
 			this.UIgraphConf,
 			this.textConf,
+			this.interConf,
+			"pointerdown",
+			"switch",
 			true,
 			true
 		);
 
-		// this.TestButton = this.UIButtonCreate(
-		// 	this,
-		// 	"TestButton",
+		this.StateCreateButton = this.UIButtonCreate(
+			this.RightPanel,
+			"StateCreateButton",
+			this.depth,
+			undefined,
+			undefined,
+			{
+				height: StateButton_h,
+			},
+			0.5,
+			0.5,
+			"Create",
+			this.UIgraphConf,
+			this.textConf,
+			this.interConf,
+			"pointerdown",
+			"switch",
+			true,
+			true
+		);
+
+		this.EditStateButton.on("TEST", function () {
+			console.log("TEST button input got");
+		});
+
+		//content
+		// this.InspectorContent = this.UILabelCreate(
+		// 	this.Inspector,
+		// 	"InspectorContent",
 		// 	this.depth,
-		// 	200,
-		// 	270,
-		// 	100,
-		// 	100,
-		// 	true,
-		// 	true,
-		// 	"TEST",
+		// 	undefined,
+		// 	this.InspectorLabel,
+		// 	UIconfig,
+		// 	0.5,
+		// 	0.5,
+		// 	"CONTENT",
 		// 	this.UIgraphConf,
-		// 	this.textButtonConf,
-		// 	this.interConf,
-		// 	"pointerdown",
-		// 	"hello",
+		// 	this.textConf,
 		// 	true,
 		// 	true
-		// );
-
-		// this.TestButton.on(
-		// 	"hello",
-		// 	function (pointer, relX, relY, stopPropagation) {
-		// 		console.log("hello", stopPropagation);
-		// 	},
-		// 	this
 		// );
 
 		//#endregion
@@ -507,12 +522,27 @@ export default class LevelEditor extends UIManager {
 			this.state = mode;
 		} else {
 			this.state =
-				(LEVELEDITORMODES.modeArr.findIndex(this.state) + 1) %
-				LEVELEDITORMODES.modeArr.length;
+				LEVELEDITORMODES.modeArr[
+					(LEVELEDITORMODES.modeArr.findIndex((mode) => mode === this.state) +
+						1) %
+						LEVELEDITORMODES.modeArr.length
+				];
+		}
+
+		console.log("mode: ", this.state);
+
+		switch (this.state) {
+			case LEVELEDITORMODES.mode_create:
+				break;
+			case LEVELEDITORMODES.mode_edit:
+				break;
+
+			default:
+				break;
 		}
 	}
 
-	worldSetupListeners(bool) {
+	modeSetupListeners(bool) {
 		if (bool) {
 			//tab awitch
 			this.inputKeys.UISwitchModes.on(
@@ -535,7 +565,7 @@ export default class LevelEditor extends UIManager {
 		//world interaction
 
 		this.worldSetupListeners(bool);
-		this.worldSetupListeners(bool);
+		this.modeSetupListeners(bool);
 
 		if (bool) {
 		} else {
@@ -738,20 +768,33 @@ export default class LevelEditor extends UIManager {
 	 */
 	worldObjSelect(objs) {
 		//#region set worldObjSelected
+		let select;
+
 		if (Array.isArray(objs)) {
-			if (objs.length > 1)
-				console.log("Level editor worldObjSelect: more than one obj got", objs);
-			this.worldObjSelected = objs[0];
-		} else this.worldObjSelected = objs;
+			console.log("Level editor worldObjSelect: more than one obj got", objs);
+
+			let obj;
+			for (let index = 0; index < objs.length; index++) {
+				obj = objs[index];
+
+				if (this.worldObjCheckCanBeSelceted(obj)) {
+					select = obj;
+					break;
+				}
+			}
+		} else if (this.worldObjCheckCanBeSelceted(objs)) select = objs;
+
+		//nothing could be selected
+		if (select == undefined) return;
+
+		//selected obj saved
+		this.worldObjSelected = select;
 
 		//#endregion
 
-		if (this.worldObjSelected instanceof wallObjInter) {
-			/** @type {wallObjInter} */
-			this.worldObjSelected;
-		} else {
+		if (!(this.worldObjSelected instanceof wallObjInter)) {
 			console.log(
-				"Oh nooooo, unknown object type selected, the system doesnt support this"
+				"Oh nooooo, semi implemented object type selected, the system doesnt support this"
 			);
 		}
 
@@ -773,15 +816,6 @@ export default class LevelEditor extends UIManager {
 	 * draw border around the obj
 	 */
 	worldObjHighlight() {
-		if (this.worldObjSelected instanceof wallObjInter) {
-			/** @type {wallObjInter} */
-			this.worldObjSelected;
-		} else {
-			console.log(
-				"Oh nooooo, unknown object type selected, the system doesnt support this"
-			);
-		}
-
 		this.worldGraph.clear();
 
 		/**
@@ -800,6 +834,21 @@ export default class LevelEditor extends UIManager {
 				element2.y
 			);
 		}
+	}
+
+	worldObjCheckCanBeSelceted(obj) {
+		let worldObjType;
+		for (let index = 0; index < this.worldSelectableList.length; index++) {
+			worldObjType = this.worldSelectableList[index];
+
+			if (obj instanceof worldObjType) {
+				console.log("obj selectable: ", obj, worldObjType);
+				return true;
+			}
+		}
+
+		console.log("no objs selectaable :(");
+		return false;
 	}
 
 	//#endregion

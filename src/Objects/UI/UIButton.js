@@ -1,4 +1,5 @@
 import UILabel from "./UILabel";
+import UIElement, { UIConfig } from "./Abstract/UIElement";
 
 /**
  * UI button, UIObj container + background + clickable zone
@@ -9,12 +10,11 @@ export default class UIButton extends UILabel {
 	 * @param {String} name a name
 	 * @param {Phaser.Scene} scene The Scene to which this Game Object belongs. A Game Object can only belong to one Scene at a time.
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
-	 * @param {number} x The horizontal position of this Game Object in the world. Default 0. This has the highest priority.
-	 * @param {number} y The vertical position of this Game Object in the world. Default 0. This has the highest priority.
-	 * @param {number} w width. This has the highest priority.
-	 * @param {number} h heigth. This has the highest priority.
-	 * @param {boolean} centerH if the text should be horizontally centered.
-	 * @param {boolean} centerV if the text should be Vertivally centered.
+	 * @param {number | UIElement | undefined} x The top position of the object. Gets offset by the margin. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} y The vertical position of this Game Object in the world. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {UIConfig} UiConfig Config object for UI classes
+	 * @param {number} posH position of the text in the space, 0-1 | examples: 0 = left, 0.5 = center, 1 = right.
+	 * @param {number} posV position of the text in the space, 0-1 | examples: 0 = top, 0.5 = center, 1 = bottom.
 	 * @param {string} text text displayed.
 	 * @param {Phaser.Types.GameObjects.Graphics.Options} graphConfig config, x,y,w,h have priority over this. will alter the object.
 	 * @param {Phaser.Types.GameObjects.Text.TextStyle} textConfig config for text displayed. will alter the object.
@@ -31,10 +31,9 @@ export default class UIButton extends UILabel {
 		depth,
 		x,
 		y,
-		w,
-		h,
-		centerH,
-		centerV,
+		UiConfig,
+		posH,
+		posV,
 		text,
 		graphConfig,
 		textConfig,
@@ -51,10 +50,9 @@ export default class UIButton extends UILabel {
 			depth,
 			x,
 			y,
-			w,
-			h,
-			centerH,
-			centerV,
+			UiConfig,
+			posH,
+			posV,
 			text,
 			graphConfig,
 			textConfig,
@@ -69,7 +67,13 @@ export default class UIButton extends UILabel {
 		 * Clickable zone of the button
 		 * @type {Phaser.GameObjects.Zone}
 		 */
-		this.UI_Button_zone = new Phaser.GameObjects.Zone(this.scene, 0, 0, w, h);
+		this.UI_Button_zone = new Phaser.GameObjects.Zone(
+			this.scene,
+			0,
+			0,
+			this.width,
+			this.height
+		);
 		this.UI_Button_zone.setOrigin(0);
 		this.add(this.UI_Button_zone);
 
@@ -101,5 +105,16 @@ export default class UIButton extends UILabel {
 				this
 			);
 		}
+	}
+
+	refresh() {
+		super.refresh();
+
+		if (this.parentContainer instanceof UIElement) {
+			console.log("resize button: ", this.width, this.height);
+			this.UI_Button_zone.setSize(this.width, this.height, true);
+		}
+
+		// console.log("refresh - UIButton: ", this.name);
 	}
 }

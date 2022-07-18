@@ -1,5 +1,5 @@
 import LevelEditor from "./LevelEditor";
-import UIManager from "./UI/UIManager";
+import UIManager from "../UI/Abstract/UIManager";
 
 /** debugging class */
 export default class DebugSceneObj extends UIManager {
@@ -37,9 +37,8 @@ export default class DebugSceneObj extends UIManager {
 		this.debugTextConf = {
 			color: "#00ff00",
 			font: "Courier",
+			fontSize: 5,
 		};
-
-    
 
 		//#endregion
 		//#region setup
@@ -111,10 +110,12 @@ export default class DebugSceneObj extends UIManager {
 			this.depth,
 			0,
 			0,
-			150,
-			20,
-			true,
-			true,
+			{
+				width: 150,
+				height: 20,
+			},
+			0.5,
+			0.5,
 			"Debug Enabled",
 			this.debugGraphConf,
 			this.debugTextConf,

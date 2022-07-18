@@ -1,7 +1,9 @@
+import worldObjSprite from "./abstract/worldObjSprite";
+
 /**
  * phy object with premade methods
  */
-export default class PhyObj extends Phaser.Physics.Matter.Sprite {
+export default class PhyObj extends worldObjSprite {
 	/**
 	 * physics activated object
 	 *
@@ -145,7 +147,6 @@ export default class PhyObj extends Phaser.Physics.Matter.Sprite {
 
 	//#endregion
 }
-
 
 /**
  * enum-like for collision bit masks

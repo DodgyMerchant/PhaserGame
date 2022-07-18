@@ -1,7 +1,8 @@
-import UIButton from "./UIButton";
-import UILabel from "./UILabel";
+import UIButton from "../UIButton";
+import UILabel from "../UILabel";
 import UIObj from "./UIObj";
-import UIPanel from "./UIPanel";
+import UIPanel from "../UIPanel";
+import UIElement, { UIConfig } from "./UIElement";
 
 /** mager for ui stuff */
 export default class UIManager extends UIObj {
@@ -144,10 +145,9 @@ export default class UIManager extends UIObj {
 	 * @param {UIObj} parent a name
 	 * @param {String} name a name
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
-	 * @param {number} x The horizontal position of this Game Object in the world. Default 0. This has the highest priority.
-	 * @param {number} y The vertical position of this Game Object in the world. Default 0. This has the highest priority.
-	 * @param {number} w width. This has the highest priority.
-	 * @param {number} h heigth. This has the highest priority.
+	 * @param {number | UIElement | undefined} x The top position of the object. Gets offset by the margin. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} y The vertical position of this Game Object in the world. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {UIConfig} UiConfig Config object for UI classes
 	 * @param {Phaser.Types.GameObjects.Graphics.Options} graphConfig config, x,y,w,h have priority over this. will alter the object.
 	 * @param {boolean | undefined} cascadeEnable The vertical position of this Game Object in the world. Default 0.
 	 * @param {boolean | undefined} cascadeDisable The vertical position of this Game Object in the world. Default 0.
@@ -160,8 +160,7 @@ export default class UIManager extends UIObj {
 		depth,
 		x,
 		y,
-		w,
-		h,
+		UiConfig,
 		graphConfig,
 		cascadeEnable,
 		cascadeDisable,
@@ -173,8 +172,7 @@ export default class UIManager extends UIObj {
 			depth,
 			x,
 			y,
-			w,
-			h,
+			UiConfig,
 			graphConfig,
 			cascadeEnable,
 			cascadeDisable,
@@ -191,12 +189,11 @@ export default class UIManager extends UIObj {
 	 * @param {UIObj} parent a name
 	 * @param {String} name a name
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
-	 * @param {number} x The horizontal position of this Game Object in the world. Default 0. This has the highest priority.
-	 * @param {number} y The vertical position of this Game Object in the world. Default 0. This has the highest priority.
-	 * @param {number} w width. This has the highest priority.
-	 * @param {number} h heigth. This has the highest priority.
-	 * @param {boolean} centerH if the text should be horizontally centered.
-	 * @param {boolean} centerV if the text should be Vertivally centered.
+	 * @param {number | UIElement | undefined} x The top position of the object. Gets offset by the margin. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} y The vertical position of this Game Object in the world. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {UIConfig} UiConfig Config object for UI classes
+	 * @param {number} posH position of the text in the space, 0-1 | examples: 0 = left, 0.5 = center, 1 = right.
+	 * @param {number} posV position of the text in the space, 0-1 | examples: 0 = top, 0.5 = center, 1 = bottom.
 	 * @param {string} text text displayed.
 	 * @param {Phaser.Types.GameObjects.Graphics.Options} graphConfig config, x,y,w,h have priority over this. will alter the object.
 	 * @param {Phaser.Types.GameObjects.Text.TextStyle} textConfig config for text displayed. will alter the object. args: pointer, relX, relY, stopPropagation
@@ -210,10 +207,9 @@ export default class UIManager extends UIObj {
 		depth,
 		x,
 		y,
-		w,
-		h,
-		centerH,
-		centerV,
+		UiConfig,
+		posH,
+		posV,
 		text,
 		graphConfig,
 		textConfig,
@@ -227,10 +223,9 @@ export default class UIManager extends UIObj {
 			depth,
 			x,
 			y,
-			w,
-			h,
-			centerH,
-			centerV,
+			UiConfig,
+			posH,
+			posV,
 			text,
 			graphConfig,
 			textConfig,
@@ -249,12 +244,11 @@ export default class UIManager extends UIObj {
 	 * @param {UIObj} parent a name
 	 * @param {String} name a name
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
-	 * @param {number} x The horizontal position of this Game Object in the world. Default 0. This has the highest priority.
-	 * @param {number} y The vertical position of this Game Object in the world. Default 0. This has the highest priority.
-	 * @param {number} w width. This has the highest priority.
-	 * @param {number} h heigth. This has the highest priority.
-	 * @param {boolean} centerH if the text should be horizontally centered.
-	 * @param {boolean} centerV if the text should be Vertivally centered.
+	 * @param {number | UIElement | undefined} x The top position of the object. Gets offset by the margin. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} y The vertical position of this Game Object in the world. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {UIConfig} UiConfig Config object for UI classes
+	 * @param {number} posH position of the text in the space, 0-1 | examples: 0 = left, 0.5 = center, 1 = right.
+	 * @param {number} posV position of the text in the space, 0-1 | examples: 0 = top, 0.5 = center, 1 = bottom.
 	 * @param {string} text text displayed.
 	 * @param {Phaser.Types.GameObjects.Graphics.Options} graphConfig config, x,y,w,h have priority over this. will alter the object.
 	 * @param {Phaser.Types.GameObjects.Text.TextStyle} textConfig config for text displayed. will alter the object. args: pointer, relX, relY, stopPropagation
@@ -272,10 +266,9 @@ export default class UIManager extends UIObj {
 		depth,
 		x,
 		y,
-		w,
-		h,
-		centerH,
-		centerV,
+		UiConfig,
+		posH,
+		posV,
 		text,
 		graphConfig,
 		textConfig,
@@ -292,10 +285,9 @@ export default class UIManager extends UIObj {
 			depth,
 			x,
 			y,
-			w,
-			h,
-			centerH,
-			centerV,
+			UiConfig,
+			posH,
+			posV,
 			text,
 			graphConfig,
 			textConfig,
