@@ -1,5 +1,8 @@
+import UIManager from "../UI/Abstract/UIManager";
+import { UIConfig } from "../UI/Abstract/UIElement";
+import worldObjImage from "../WorldObjects/abstract/worldObjImage";
+import worldObjSprite from "../WorldObjects/abstract/worldObjSprite";
 import wallObjInter from "../WorldObjects/Walls/wallObjInter";
-import UIManager from "./UI/UIManager";
 
 /**
  * level editor
@@ -58,19 +61,92 @@ export default class LevelEditor extends UIManager {
 		 * with x and y missing
 		 * @type {Phaser.Types.GameObjects.Graphics.Options}
 		 */
-		this.UIgraphConf = {
-			x: 0,
-			y: 0,
+		this.UILabelgraphConf = {
 			fillStyle: {
-				alpha: 0.3,
-				color: "#000000",
+				alpha: 1,
+				color: "0x282828",
 			},
 			lineStyle: {
-				alpha: 0.3,
-				color: "#000000",
+				alpha: 1,
+				color: "0x282828",
 				width: 5,
 			},
 		};
+
+		/**
+		 * graph config
+		 * with x and y missing
+		 * @type {Phaser.Types.GameObjects.Graphics.Options}
+		 */
+		this.UIBackGraphConf = {
+			fillStyle: {
+				alpha: 1,
+				color: "0x282828",
+			},
+			lineStyle: {
+				alpha: 1,
+				color: "0x282828",
+				width: 5,
+			},
+		};
+
+		/**
+		 * graph config
+		 * with x and y missing
+		 * @type {Phaser.Types.GameObjects.Graphics.Options}
+		 */
+		let modeUIGraphConf = {
+			fillStyle: {
+				alpha: 0.05,
+			},
+			lineStyle: {
+				alpha: 0.3,
+				width: 5,
+			},
+		};
+
+		let modeLabelGraphConf = {
+			fillStyle: {
+				alpha: 0.2,
+			},
+			lineStyle: {
+				alpha: 0.3,
+				width: 5,
+			},
+		};
+
+		let createCol = "0x00ff00";
+		let editCol = "0x0000ff";
+		let saveCol = "0xC81010";
+		let saveA = 1;
+
+		//create
+		this.UICreateGraphConf = Phaser.Utils.Objects.DeepCopy(modeUIGraphConf);
+		this.UICreateLabelGraphConf =
+			Phaser.Utils.Objects.DeepCopy(modeLabelGraphConf);
+		//edit
+		this.UICreateGraphConf.fillStyle.color = createCol;
+		this.UICreateGraphConf.lineStyle.color = createCol;
+		this.UICreateLabelGraphConf.fillStyle.color = createCol;
+		this.UICreateLabelGraphConf.lineStyle.color = createCol;
+
+		//create
+		this.UIEditGraphConf = Phaser.Utils.Objects.DeepCopy(modeUIGraphConf);
+		this.UIEditLabelGraphConf =
+			Phaser.Utils.Objects.DeepCopy(modeLabelGraphConf);
+		//edit
+		this.UIEditGraphConf.fillStyle.color = editCol;
+		this.UIEditGraphConf.lineStyle.color = editCol;
+		this.UIEditLabelGraphConf.fillStyle.color = editCol;
+		this.UIEditLabelGraphConf.lineStyle.color = editCol;
+
+		//create
+		this.UISaveGraphConf = Phaser.Utils.Objects.DeepCopy(modeLabelGraphConf);
+		//edit
+		this.UISaveGraphConf.fillStyle.color = saveCol;
+		this.UISaveGraphConf.fillStyle.alpha = saveA;
+		this.UISaveGraphConf.lineStyle.color = saveCol;
+		this.UISaveGraphConf.lineStyle.alpha = saveA;
 
 		/**
 		 * cam config
@@ -80,7 +156,7 @@ export default class LevelEditor extends UIManager {
 			x: 0,
 			y: 0,
 			lineStyle: {
-				alpha: 1,
+				alpha: 0.7,
 				color: "0xffff00",
 				width: 3,
 			},
@@ -105,7 +181,7 @@ export default class LevelEditor extends UIManager {
 			/** background color
 			 * @type {number}
 			 */
-			backCol: "#828282",
+			backCol: "0x828282",
 			moveEventName: "LevelEditorCamMainMove",
 			speed: 5,
 
@@ -145,8 +221,15 @@ export default class LevelEditor extends UIManager {
 
 			//#endregion
 			//#region world
+
+			//create
 			/** @type {Phaser.Input.Keyboard.Key} */
 			worldVertClose: Phaser.Input.Keyboard.KeyCodes.CTRL,
+
+			//edit
+
+			worldEditUnselect: Phaser.Input.Keyboard.KeyCodes.ESC,
+			worldEditDelete: Phaser.Input.Keyboard.KeyCodes.DELETE,
 
 			//#endregion
 			//#region UI
@@ -294,6 +377,12 @@ export default class LevelEditor extends UIManager {
 		this.worldObjSelected;
 
 		/**
+		 * selectable types of objects
+		 * @type {Phaser.Physics.Matter.Image[] | Phaser.Physics.Matter.Sprite[]}
+		 */
+		this.worldSelectableList = [worldObjImage, worldObjSprite];
+
+		/**
 		 * @type {MatterJS.ConstraintType}
 		 */
 		this.PointerConstraint = this.scene.matter.add.pointerConstraint({
@@ -304,30 +393,23 @@ export default class LevelEditor extends UIManager {
 		});
 
 		//#endregion
-		//#region toggle
 
-		//activate or not
 		if (bool != undefined) {
 			this.toggle(bool);
 		} else {
 			this.toggle(true);
 		}
 
-		//#endregion
-		//#region UI
-
-		//#region modes
+		//#region UI creation
 
 		/**
-		 * the level editor state, UI state
-		 * @type {LEVELEDITORMODES.mode}
+		 * @type {UIConfig}
 		 */
-		this.state = LEVELEDITORMODES.mode_create;
-
-		//#endregion
-		//#region UI creation
-		let subElemPadd = 5;
-		let subElemPadd2 = subElemPadd * 2;
+		let UIconfig = {
+			marginApplyNoParent: false,
+			margin: 2,
+			padding: 2,
+		};
 
 		let w = this.displayWidth / this.scaleX;
 		let h = this.displayHeight / this.scaleY;
@@ -335,53 +417,35 @@ export default class LevelEditor extends UIManager {
 		let rp_h = h;
 		let rp_x = w - rp_w;
 		let rp_y = 0;
-		//inspector
-		let i_w = rp_w - subElemPadd2;
-		let i_h = rp_h - subElemPadd2;
-		let i_x = rp_x + subElemPadd;
-		let i_y = rp_y + subElemPadd;
-		//inspector label
-		let il_w = i_w - subElemPadd2;
-		let il_h = 30;
-		let il_x = i_x + subElemPadd;
-		let il_y = i_y + subElemPadd;
 
-		this.uiconfig = {
-			//header
-			header_x: 0,
-			header_y: 0,
-			header_w: w - rp_w,
-			header_h: 20,
-			//right panel
-			rpanel_x: rp_x,
-			rpanel_y: rp_y,
-			rpanel_w: rp_w,
-			rpanel_h: rp_h,
-			//inspector
-			inspector_x: i_x,
-			inspector_y: i_y,
-			inspector_w: i_w,
-			inspector_h: i_h,
-			//inspector laabel
-			inspLeb_x: il_x,
-			inspLeb_y: il_y,
-			inspLeb_w: il_w,
-			inspLeb_h: il_h,
-		};
+		//header
+		let header_x = 0;
+		let header_y = 0;
+		let header_w = w - rp_w;
+		let header_h = 20;
+
+		//inspector
+
+		let StateButton_h = 30;
+		let StateButton_w = 0.5;
+		let StateModeLabel_h = 30;
+		let StateModeLabel_textPosH = 0.1;
+		let StateModeLabel_textPosV = 0.5;
 
 		//heading
 		this.Label = this.UILabelCreate(
 			this,
 			"UILabelEditorActive",
 			this.depth,
-			this.uiconfig.header_x,
-			this.uiconfig.header_y,
-			this.uiconfig.header_w,
-			this.uiconfig.header_h,
-			true,
-			true,
+			header_x,
+			header_y,
+			header_w,
+			header_h,
+			UIconfig,
+			0.5,
+			0.5,
 			"Level Editor Active",
-			this.UIgraphConf,
+			this.UILabelgraphConf,
 			this.textConf,
 			true,
 			true
@@ -393,80 +457,194 @@ export default class LevelEditor extends UIManager {
 			this,
 			"RightPanel",
 			this.depth,
-			this.uiconfig.rpanel_x,
-			this.uiconfig.rpanel_y,
-			this.uiconfig.rpanel_w,
-			this.uiconfig.rpanel_h,
-			this.UIgraphConf,
+			rp_x,
+			rp_y,
+			rp_w,
+			rp_h,
+			UIconfig,
+			this.UIBackGraphConf,
 			true,
 			true
 		);
 
-		//#region inspector
-
-		this.Inspector = this.UIPanelCreate(
-			this,
-			"Inspector",
+		//#region create
+		this.CreateButton = this.UIButtonCreate(
+			this.RightPanel,
+			"CreateButton",
 			this.depth,
-			this.uiconfig.inspector_x,
-			this.uiconfig.inspector_y,
-			this.uiconfig.inspector_w,
-			this.uiconfig.inspector_h,
-			this.UIgraphConf,
+			undefined,
+			undefined,
+			StateButton_w,
+			StateButton_h,
+			UIconfig,
+			0.5,
+			0.5,
+			"Create",
+			this.UICreateLabelGraphConf,
+			this.textConf,
+			this.interConf,
+			"pointerdown",
+			"switch",
 			true,
 			true
 		);
 
-		this.Label = this.UILabelCreate(
-			this,
-			"UILabelEditorActive",
+		this.CreateButton.on(
+			"switch",
+			function () {
+				this.modeSwitch(LEVELEDITORMODES.mode_create);
+			},
+			this
+		);
+
+		this.CreatePanel = this.UIPanelCreate(
+			this.RightPanel,
+			"CreatePanel",
 			this.depth,
-			this.uiconfig.inspLeb_x,
-			this.uiconfig.inspLeb_y,
-			this.uiconfig.inspLeb_w,
-			this.uiconfig.inspLeb_h,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			UIconfig,
+			this.UICreateGraphConf,
 			true,
-			true,
-			"Inspector",
-			this.UIgraphConf,
+			true
+		);
+
+		this.CreateHeader = this.UILabelCreate(
+			this.CreatePanel,
+			"Heading one",
+			this.depth,
+			undefined,
+			this.CreateButton,
+			undefined,
+			StateModeLabel_h,
+			UIconfig,
+			StateModeLabel_textPosH,
+			StateModeLabel_textPosV,
+			"Create Objects",
+			this.UICreateLabelGraphConf,
 			this.textConf,
 			true,
 			true
 		);
 
-		// this.TestButton = this.UIButtonCreate(
-		// 	this,
-		// 	"TestButton",
-		// 	this.depth,
-		// 	200,
-		// 	270,
-		// 	100,
-		// 	100,
-		// 	true,
-		// 	true,
-		// 	"TEST",
-		// 	this.UIgraphConf,
-		// 	this.textButtonConf,
-		// 	this.interConf,
-		// 	"pointerdown",
-		// 	"hello",
-		// 	true,
-		// 	true
-		// );
+		//#endregion
+		//#region edit
 
-		// this.TestButton.on(
-		// 	"hello",
-		// 	function (pointer, relX, relY, stopPropagation) {
-		// 		console.log("hello", stopPropagation);
-		// 	},
-		// 	this
-		// );
+		this.EditButton = this.UIButtonCreate(
+			this.RightPanel,
+			"EditButton",
+			this.depth,
+			this.CreateButton,
+			undefined,
+			StateButton_w,
+			StateButton_h,
+			UIconfig,
+			0.5,
+			0.5,
+			"Edit",
+			this.UIEditLabelGraphConf,
+			this.textConf,
+			this.interConf, //this.interConf  undefined
+			"pointerdown",
+			"switch",
+			true,
+			true
+		);
+
+		this.EditButton.on(
+			"switch",
+			function () {
+				this.modeSwitch(LEVELEDITORMODES.mode_edit);
+			},
+			this
+		);
+
+		this.EditPanel = this.UIPanelCreate(
+			this.RightPanel,
+			"EditPanel",
+			this.depth,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			UIconfig,
+			this.UIEditGraphConf,
+			true,
+			true
+		);
+
+		this.EditHeader = this.UILabelCreate(
+			this.EditPanel,
+			"EditLabel",
+			this.depth,
+			undefined,
+			this.EditButton,
+			undefined,
+			StateModeLabel_h,
+			UIconfig,
+			StateModeLabel_textPosH,
+			StateModeLabel_textPosV,
+			"Edit Objects",
+			this.UIEditLabelGraphConf,
+			this.textConf,
+			true,
+			true
+		);
 
 		//#endregion
+		//#region save
 
-		//#endregion
+		let saveh = 30;
 
-		//#endregion
+		this.SaveButton = this.UIButtonCreate(
+			this.RightPanel,
+			"EditButton",
+			this.depth,
+			undefined,
+			this.RightPanel.UIE_getReliveInnerY2() -
+				saveh -
+				(typeof UIconfig.margin === "object"
+					? UIconfig.margin.Top
+					: UIconfig.margin),
+			undefined,
+			saveh,
+			UIconfig,
+			0.5,
+			0.5,
+			"Save",
+			this.UISaveGraphConf,
+			this.textConf,
+			this.interConf, //this.interConf  undefined
+			"pointerdown",
+			"SaveButtonPress",
+			true,
+			true
+		);
+
+		this.SaveButton.on(
+			"SaveButtonPress",
+			function () {
+        this.UISaveInteraction();
+			},
+			this
+		);
+
+		//#endregion save
+
+		//#endregion right panel
+
+		//#endregion UI creation
+		//#region modes
+
+		/**
+		 * the level editor state, UI state
+		 * @type {mode}
+		 */
+		this.state;
+		this.modeLeaveAll(LEVELEDITORMODES.mode_create, false);
+		this.modeSetupModeListener(this.modeCheck(), true);
 
 		//#endregion
 
@@ -485,34 +663,194 @@ export default class LevelEditor extends UIManager {
 	 * @param {boolean | undefined} bool boolean to set or undefined
 	 */
 	toggle(bool) {
-		if (bool == undefined) bool = !this.active;
+		if (bool == undefined) {
+			bool = !this.active;
+		} else {
+			if (this.active == bool) {
+				console.log(
+					"TOGGLE - Object ",
+					this.name,
+					" already in this state: ",
+					this.active,
+					"!"
+				);
+				return;
+			}
+		}
 
 		// this.PointerConstraint.
 
 		this.enable(bool);
 
 		this.cameraActivate(this.active);
-
 		this.inputManageMyLIsteners(this.active);
 	}
 
 	//#region modes
 
+	//#region general
 	/**
-	 *
-	 * @param {LEVELEDITORMODES.mode | undefined} mode mode to switch to, undefined will witch through the modes
+	 * @param {mode | undefined} mode mode to switch to, undefined will witch through the modes
 	 */
 	modeSwitch(mode) {
+		//old mode and leaving it
+		let oldMode = this.state;
+		this.modeLeave(oldMode, true);
+
+		//new mode
 		if (mode != undefined) {
-			this.state = mode;
+			this.modeSetTo(mode, true);
 		} else {
-			this.state =
-				(LEVELEDITORMODES.modeArr.findIndex(this.state) + 1) %
-				LEVELEDITORMODES.modeArr.length;
+			this.modeSetTo(
+				LEVELEDITORMODES.modeArr[
+					(LEVELEDITORMODES.modeArr.findIndex((mode) => mode === this.state) +
+						1) %
+						LEVELEDITORMODES.modeArr.length
+				],
+				true
+			);
+		}
+
+		console.log(
+			"MODE - from: ",
+			oldMode.description,
+			" to ",
+			this.state.description
+		);
+	}
+
+	/**
+	 * check if the mode provided is the current mode.
+	 * if undefined returns the current mode
+	 * @param {LEVELEDITORMODES.mode | undefined} modeToCheck
+	 */
+	modeCheck(modeToCheck) {
+		if (modeToCheck != undefined) {
+			return modeToCheck == this.state;
+		} else {
+			return this.state;
 		}
 	}
 
-	worldSetupListeners(bool) {
+	/**
+	 *
+	 * @param {mode} mode
+	 * @param {boolean} bool
+	 */
+	modeSetupModeListener(mode, bool) {
+		console.log("MODE - listeners for: ", mode.description, " set to: ", bool);
+
+		switch (mode) {
+			case LEVELEDITORMODES.mode_create:
+				this.modeCreateSetupListeners(bool);
+				break;
+			case LEVELEDITORMODES.mode_edit:
+				this.modeEditSetupListeners(bool);
+				break;
+
+			default:
+				break;
+		}
+	}
+	//#endregion
+	//#region internal
+
+	/**
+	 *
+	 * @param {mode} mode
+	 * @param {boolean} listeners should listeners be updated
+	 */
+	modeSetTo(mode, listeners) {
+		console.log("MODE - set to: ", mode.description);
+
+		this.state = mode;
+		this.modeEnter(mode, listeners);
+	}
+
+	/**
+	 * use modeSwitch if you can,
+	 * this is mostly for interal use.
+	 * @param {mode} mode mode to perform enter actions for
+	 * @param {boolean} listeners should listeners be updated
+	 */
+	modeEnter(mode, listeners) {
+		console.log("MODE - entering mode: ", mode.description);
+
+		switch (mode) {
+			case LEVELEDITORMODES.mode_create:
+				//UI
+				this.CreatePanel.enable(true);
+
+				break;
+			case LEVELEDITORMODES.mode_edit:
+				//UI
+				this.EditPanel.enable(true);
+
+				break;
+
+			default:
+				break;
+		}
+
+		if (listeners) this.modeSetupModeListener(mode, true);
+	}
+
+	/**
+	 * use modeSwitch if you can,
+	 * this is mostly for interal use.
+	 * @param {mode} mode mode to perform exit actions for
+	 * @param {boolean} listeners should listeners be updated
+	 */
+	modeLeave(mode, listeners) {
+		console.log("MODE - leaving mode: ", mode.description);
+
+		switch (mode) {
+			case LEVELEDITORMODES.mode_create:
+				//UI
+				this.CreatePanel.enable(false);
+				this.worldVertReset();
+
+				break;
+			case LEVELEDITORMODES.mode_edit:
+				//UI
+
+				this.EditPanel.enable(false);
+				this.worldUnselect();
+
+				//world interaction
+
+				break;
+
+			default:
+				break;
+		}
+
+		if (listeners) this.modeSetupModeListener(mode, false);
+	}
+
+	/**
+	 * leave all modes.
+	 * Optionally stay or enter one mode
+	 * @param {mode | undefined} but leave aall but this mode
+	 * @param {boolean} listeners should listeners be updated
+	 */
+	modeLeaveAll(but, listeners) {
+		let mode;
+		let arr = LEVELEDITORMODES.modeArr;
+		for (let index = 0; index < arr.length; index++) {
+			mode = arr[index];
+
+			if (mode != but) {
+				this.modeLeave(mode, listeners);
+			}
+		}
+
+		if (!this.modeCheck(but)) {
+			this.modeSetTo(but, listeners);
+		}
+	}
+
+	modeSetupListeners(bool) {
 		if (bool) {
 			//tab awitch
 			this.inputKeys.UISwitchModes.on(
@@ -529,28 +867,12 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
-	//#region listeners general
 
-	inputManageMyLIsteners(bool) {
-		//world interaction
-
-		this.worldSetupListeners(bool);
-		this.worldSetupListeners(bool);
-
+	//#region create
+	modeCreateSetupListeners(bool) {
 		if (bool) {
-		} else {
-		}
-	}
-
-	//#endregion
-	//#region world interaction
-
-	//#region listeners
-
-	worldSetupListeners(bool) {
-		if (bool) {
-			/////pointer
-			//#region clicking, drawing poly walls and selecting them
+			//////pointer//////
+			//clicking, drawing poly walls and selecting them
 			this.scene.input.on(
 				"pointerdown",
 				/**
@@ -559,24 +881,18 @@ export default class LevelEditor extends UIManager {
 				 */
 				function (pointer, intObjects) {
 					// console.log("Level Editor World Input pointerdown");
-					if (intObjects.length == 0) {
-						this.worldObjUnselect();
 
-						if (pointer.leftButtonDown()) {
-							this.worldVertAdd(this.pointer.positionToCamera(this.CamEditor));
-						}
-						if (pointer.rightButtonDown()) {
-							this.worldVertRemove();
-						}
-					} else {
-						this.worldVertReset();
-						this.worldObjSelect(intObjects);
+					if (pointer.leftButtonDown()) {
+						this.worldVertAdd(this.pointer.positionToCamera(this.CamEditor));
+					}
+					if (pointer.rightButtonDown()) {
+						this.worldVertRemove();
 					}
 				},
 				this
 			);
-			//#endregion
-			//#region mouse move, updating line to mouse
+
+			//mouse move, updating line to mouse
 			this.scene.input.on(
 				"pointermove",
 				/**
@@ -586,22 +902,16 @@ export default class LevelEditor extends UIManager {
 				function (pointer, intObjects) {
 					// draw line from vert to pointer
 					// console.log("Level Editor World Input pointermove");
+
 					if (this.worldVertList.length > 0) {
 						this.worldVertUpdate(2);
-					} else {
-						//obj selected
-						if (this.worldObjSelected != undefined) {
-							if (this.worldObjSelected.input.dragState == 2)
-								this.worldObjHighlight();
-						}
 					}
 				},
 				this
 			);
-			//#endregion
 
-			/////keyboard
-			//#region closing poly
+			//////keyboard//////
+			//closing poly
 			this.inputKeys.worldVertClose.on(
 				"down",
 				function () {
@@ -610,7 +920,6 @@ export default class LevelEditor extends UIManager {
 				},
 				this
 			);
-			//#endregion
 		} else {
 			//clicking
 			this.scene.input.removeListener("pointerdown", undefined, this);
@@ -623,7 +932,113 @@ export default class LevelEditor extends UIManager {
 		}
 	}
 
+	//#endregion create
+	//#region edit
+
+	modeEditSetupListeners(bool) {
+		if (bool) {
+			//////pointer//////
+
+			// clicking, drawing poly walls and selecting them
+			this.scene.input.on(
+				"pointerdown",
+				/**
+				 * @param {Phaser.Input.Pointer} pointer
+				 * @param {Phaser.GameObjects.GameObject[]} intObjects
+				 */
+				function (pointer, intObjects) {
+					// console.log("mode edit mouse objs: ", intObjects);
+
+					if (intObjects.length >= 1) {
+						this.worldSelect(intObjects);
+					} else {
+						this.worldUnselect(false);
+					}
+				},
+				this
+			);
+
+			// mouse move, updating line to mouse
+			this.scene.input.on(
+				"pointermove",
+				/**
+				 * @param {Phaser.Input.Pointer} pointer
+				 * @param {Phaser.GameObjects.GameObject[]} intObjects
+				 */
+				function (pointer, intObjects) {
+					// draw line from vert to pointer
+					// console.log("Level Editor World Input pointermove");
+
+					if (this.worldObjSelected != undefined) {
+						if (this.worldObjSelected.input.dragState == 2)
+							this.worldObjHighlight();
+					}
+				},
+				this
+			);
+
+			//////keyboard//////
+			// unselecting
+			this.inputKeys.worldEditUnselect.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldUnselect();
+				},
+				this
+			);
+			//deleting objs
+			this.inputKeys.worldEditDelete.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.modeEditDelete();
+				},
+				this
+			);
+		} else {
+			//////pointer//////
+			//clicking
+			this.scene.input.removeListener("pointerdown", undefined, this);
+
+			// mouse move, updating line to mouse
+			this.scene.input.removeListener("pointermove", undefined, this);
+
+			//////keyboard//////
+			// unselecting
+			this.inputKeys.worldEditDelete.removeListener("down", undefined, this);
+			// deleting objs
+			this.inputKeys.worldEditUnselect.removeListener("down", undefined, this);
+		}
+	}
+
+	/**
+	 * deletes the selectedd object
+	 * @param {Phaser.GameObjects.GameObject} obj
+	 */
+	modeEditDelete() {
+		this.worldUnselect(true);
+	}
+
+	//#endregion edit
+	//#endregion modes
+	//#region listeners general
+
+	inputManageMyLIsteners(bool) {
+		//world interaction
+
+		this.modeSetupListeners(bool);
+		//configure listeners for current mode
+		this.modeSetupModeListener(this.modeCheck(), bool);
+
+		if (bool) {
+		} else {
+		}
+	}
+
 	//#endregion
+	//#region world interaction
+
 	//#region vertecies object
 
 	/**
@@ -662,9 +1077,9 @@ export default class LevelEditor extends UIManager {
 		switch (value) {
 			case 0:
 				this.worldGraph.clear();
-				if (leng < 3) value = 1;
+				if (leng <= 2) value = 1;
 			case 1:
-				if (leng < 2) value = 2;
+				if (leng <= 1) value = 2;
 		}
 
 		switch (value) {
@@ -676,7 +1091,7 @@ export default class LevelEditor extends UIManager {
 
 				let element;
 
-				for (let index = 1; index < leng - 1; index++) {
+				for (let index = 1; index <= leng - 2; index++) {
 					/** @type {Phaser.Math.Vector2} */
 					element = this.worldVertList[index];
 
@@ -694,6 +1109,7 @@ export default class LevelEditor extends UIManager {
 				this.worldGraph.lineBetween(last2.x, last2.y, last1.x, last1.y);
 			}
 			case 2: {
+				//to mouse
 				if (value == 2) this.worldGraph.commandBuffer.pop();
 
 				let mouseVec2 = this.pointer.positionToCamera(this.CamEditor);
@@ -736,36 +1152,115 @@ export default class LevelEditor extends UIManager {
 	 * selecting an object
 	 * @param {Phaser.GameObjects.GameObject | Phaser.GameObjects.GameObject[]} objs
 	 */
-	worldObjSelect(objs) {
-		//#region set worldObjSelected
+	worldSelect(objs) {
+		let select;
+
+		//#region check for new
+
 		if (Array.isArray(objs)) {
-			if (objs.length > 1)
-				console.log("Level editor worldObjSelect: more than one obj got", objs);
-			this.worldObjSelected = objs[0];
-		} else this.worldObjSelected = objs;
+			if (objs.length == 1) {
+				if (
+					objs[0] != this.worldObjSelected &&
+					this.worldObjCheckCanBeSelceted(objs[0])
+				) {
+					select = objs[0];
+				}
+			} else {
+				let obj;
+				for (let index = 0; index < objs.length; index++) {
+					obj = objs[index];
+
+					if (this.worldObjCheckCanBeSelceted(obj)) {
+						select = obj;
+						break;
+					}
+				}
+			}
+		} else {
+			if (
+				objs != this.worldObjSelected &&
+				this.worldObjCheckCanBeSelceted(objs)
+			) {
+				select = objs;
+			}
+		}
 
 		//#endregion
 
-		if (this.worldObjSelected instanceof wallObjInter) {
-			/** @type {wallObjInter} */
-			this.worldObjSelected;
-		} else {
-			console.log(
-				"Oh nooooo, unknown object type selected, the system doesnt support this"
-			);
+		//nothing could be selected
+		if (select == undefined) return;
+
+		//unselecting old
+		if (this.worldObjSelected != undefined) {
+			this.worldUnselect();
 		}
+
+		//selected obj saved
+		this.worldObjSelected = select;
+		console.log("New Obj selected: ", this.worldObjSelected.name);
+
+		//check for non implementation
+
+		//select obj
+		this.worldObjSelectAll(this.worldObjSelected, true, false);
 
 		this.worldObjHighlight();
 	}
-
 	/**
-	 * selecting an object
-	 * @param {Phaser.GameObjects.GameObject[]} objs
+	 * unselecting the object(s) in this.worldObjSelected.
+	 * @param {boolean | undefined} deleteObj should delete? default false.
 	 */
-	worldObjUnselect() {
+	worldUnselect(deleteObj) {
+		if (deleteObj == undefined) deleteObj = false;
+
 		if (this.worldObjSelected != undefined) {
+			//unselect all
+			this.worldObjSelectAll(this.worldObjSelected, false, deleteObj);
+
 			this.worldGraph.clear();
 			this.worldObjSelected = undefined;
+		}
+	}
+
+	/**
+	 * internally used by worldUnselect
+	 * goes through an array and unselects ALL
+	 * @param {Phaser.GameObjects.GameObject[] | Phaser.GameObjects.GameObject} objs
+	 * @param {boolean} bool select or unselect
+	 * @param {boolean} deleteObj should delete?
+	 */
+	worldObjSelectAll(objs, bool, deleteObj) {
+		if (Array.isArray(objs)) {
+			for (let index = 0; index < objs.length; index++) {
+				worldObjSelectAll(objs[index], bool, deleteObj);
+			}
+		} else {
+			this.worldObjSelectOne(objs, bool, deleteObj);
+		}
+	}
+	/**
+	 * internally usedd by worldUnselect
+	 * what needs to be done on one obj to unselect it
+	 * @param {Phaser.GameObjects.GameObject} obj
+	 * @param {boolean} bool
+	 * @param {boolean} deleteObj should delete?
+	 */
+	worldObjSelectOne(obj, bool, deleteObj) {
+		if (bool) {
+			if (!(obj instanceof wallObjInter)) {
+				console.log(
+					"Oh nooooo, semi implemented object type selected, the system doesnt support this"
+				);
+			}
+
+			this.scene.input.setDraggable(obj, true);
+		} else {
+			this.scene.input.setDraggable(obj, false);
+
+			if (deleteObj) {
+				console.log("del????????");
+				obj.destroy(false);
+			}
 		}
 	}
 
@@ -773,15 +1268,6 @@ export default class LevelEditor extends UIManager {
 	 * draw border around the obj
 	 */
 	worldObjHighlight() {
-		if (this.worldObjSelected instanceof wallObjInter) {
-			/** @type {wallObjInter} */
-			this.worldObjSelected;
-		} else {
-			console.log(
-				"Oh nooooo, unknown object type selected, the system doesnt support this"
-			);
-		}
-
 		this.worldGraph.clear();
 
 		/**
@@ -800,6 +1286,21 @@ export default class LevelEditor extends UIManager {
 				element2.y
 			);
 		}
+	}
+
+	worldObjCheckCanBeSelceted(obj) {
+		let worldObjType;
+		for (let index = 0; index < this.worldSelectableList.length; index++) {
+			worldObjType = this.worldSelectableList[index];
+
+			if (obj instanceof worldObjType) {
+				// console.log("obj selectable: ", obj, worldObjType);
+				return true;
+			}
+		}
+
+		// console.log("no objs selectaable :(");
+		return false;
 	}
 
 	//#endregion
@@ -874,10 +1375,28 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+  //#region saving loading
+
+
+  UISaveInteraction(){
+    console.log("SAVE BUTTON PRESS");
+
+    
+
+
+  }
+
+
+
+  //#endregion saving loading
 }
 
 /** enum-like for modes/states the Level editor can be in */
 class LEVELEDITORMODES {
+	/**
+	 * @typedef {symbol} mode a mode
+	 */
+
 	//#region other
 	static modeArr = new Array();
 
@@ -888,8 +1407,13 @@ class LEVELEDITORMODES {
 	}
 
 	//#endregion
-	/** mode to edit, selectm, manipulate objects */
+	/**
+	 * mode to edit, selectm, manipulate objects
+	 * @type {mode}
+	 */
 	static mode_edit = LEVELEDITORMODES.modeAdd("modeEdit");
-	/** modes to create new objects in */
+	/** modes to create new objects in
+	 * @type {mode}
+	 */
 	static mode_create = LEVELEDITORMODES.modeAdd("modeCreate");
 }

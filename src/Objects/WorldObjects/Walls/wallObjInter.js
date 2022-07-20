@@ -1,4 +1,6 @@
-export default class wallObjInter extends Phaser.Physics.Matter.Image {
+import worldObjImage from "../abstract/worldObjImage";
+
+export default class wallObjInter extends worldObjImage {
 	/**
 	 *
 	 * @param {string} name a name
@@ -63,6 +65,7 @@ export default class wallObjInter extends Phaser.Physics.Matter.Image {
 			function (pointer, dragX, dragY) {
 				// this.setPosition(dragX, dragY);
 				this.setPosition(dragX, dragY);
+
 				// this.scene.matter.body.translate(this.body, new Phaser.Math.Vector2(dragX, dragY));
 
 				// console.log("drag: ", this.body.position);
@@ -84,6 +87,8 @@ export default class wallObjInter extends Phaser.Physics.Matter.Image {
 			},
 			this
 		);
+
+		// console.log("new wall", this);
 
 		//#endregion
 	}
