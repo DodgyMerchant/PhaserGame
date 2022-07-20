@@ -594,8 +594,7 @@ export default class LevelEditor extends UIManager {
 		);
 
 		//#endregion
-
-		//#region
+		//#region save
 
 		let saveh = 30;
 
@@ -627,16 +626,16 @@ export default class LevelEditor extends UIManager {
 		this.SaveButton.on(
 			"SaveButtonPress",
 			function () {
-				console.log("SAVE BUTTON PRESS");
+        this.UISaveInteraction();
 			},
 			this
 		);
 
-		//#endregion
+		//#endregion save
 
-		//#endregion
+		//#endregion right panel
 
-		//#endregion
+		//#endregion UI creation
 		//#region modes
 
 		/**
@@ -1376,6 +1375,20 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+  //#region saving loading
+
+
+  UISaveInteraction(){
+    console.log("SAVE BUTTON PRESS");
+
+    
+
+
+  }
+
+
+
+  //#endregion saving loading
 }
 
 /** enum-like for modes/states the Level editor can be in */

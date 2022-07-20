@@ -1,4 +1,4 @@
-import Player from "../Objects/WorldObjects/player/Player";
+import Player, { PlayerConfig } from "../Objects/WorldObjects/player/Player";
 import { STATES } from "../Objects/WorldObjects/MovementObj";
 import PhyObj, { COLLCAT } from "../Objects/WorldObjects/PhyObj";
 import DebugSceneObj from "../Objects/Systems/DebugSceneObj";
@@ -15,17 +15,45 @@ export default class SceneMain extends Phaser.Scene {
 		//#region setup
 		/**
 		 * information on the player
-		 * @type {object} config object
+		 * @type {PlayerConfig} config object
 		 */
 		this.playerConfig = {
+			name: "PlayerObject",
 			x: 50,
 			y: 50,
 			state: STATES.FREE,
 			/** sprite key:  */
 			textureBody_Key: "playerImageBody",
 			/** determines the players collision caategory */
-			collCat: COLLCAT.PLAYER,
-			collWith: [COLLCAT.MAP, COLLCAT.PLAYER, COLLCAT.GAMEOBJ],
+
+			connCat: COLLCAT.CONNECTER,
+			connWith: COLLCAT.CONNECTABLE,
+			phyConfig: {
+				label: "PlayerObjectBody",
+				collisionFilter: {
+					category: COLLCAT.crunch([COLLCAT.PLAYER]),
+					mask: COLLCAT.crunch([COLLCAT.MAP, COLLCAT.PLAYER, COLLCAT.GAMEOBJ]),
+				},
+			},
+		};
+
+		/**
+		 * block config
+		 * @type {Phaser.Types.Physics.Matter.MatterBodyConfig}
+		 */
+		this.mapCollisionConfig = {
+			ignorePointer: false,
+			label: "MapCollisionInstance",
+			isStatic: true,
+			collisionFilter: {
+				category: COLLCAT.crunch([COLLCAT.MAP, COLLCAT.CONNECTABLE]),
+				mask: COLLCAT.crunch([
+					COLLCAT.PLAYER,
+					COLLCAT.MAP,
+					COLLCAT.GAMEOBJ,
+					COLLCAT.CONNECTER,
+				]),
+			},
 		};
 
 		/**
@@ -126,9 +154,6 @@ export default class SceneMain extends Phaser.Scene {
 		this.aliveGroup = this.add.group({ runChildUpdate: true });
 		this.player = this.gameObjectCreatePlayer(this.playerConfig);
 
-		this.player.setCollisionCategory(this.playerConfig.collCat);
-		this.player.setCollidesWith(this.playerConfig.collWith);
-
 		//#endregion
 
 		//#region camera
@@ -179,13 +204,9 @@ export default class SceneMain extends Phaser.Scene {
 	 * @returns {Player} player object instance
 	 */
 	gameObjectCreatePlayer(config) {
-		return this.gameObjectCreateCustom(
-			config,
-			Player,
-			config.collCat,
-			config.collWith,
-			true
-		);
+		let player = this.gameObjectCreateCustom(config, Player, true);
+
+		return player;
 	}
 
 	/**
@@ -200,18 +221,8 @@ export default class SceneMain extends Phaser.Scene {
 	 * @param {boolean | undefined} autoUpdate the collision Category to collide with of the object
 	 * @returns {Phaser.GameObjects.GameObject} GameObj instance
 	 */
-	gameObjectCreateCustom(config, GameObj, collCat, collWith, autoUpdate) {
+	gameObjectCreateCustom(config, GameObj, autoUpdate) {
 		let obj = this.add.existing(new GameObj(this, config));
-
-		if (collCat != undefined && collWith != undefined) {
-			if (obj instanceof PhyObj) {
-				obj.phyCollSetCat(collCat);
-				obj.phyCollSetWith(collWith);
-			} else {
-				obj.setCollisionCategory(collCat);
-				obj.setCollidesWith(collWith);
-			}
-		}
 
 		if (autoUpdate == true) this.gameObjectAddUpdate(obj);
 
@@ -237,26 +248,19 @@ export default class SceneMain extends Phaser.Scene {
 	 * @returns {MatterJS.BodyType}
 	 */
 	mapObjVertCreate(vecArr, interactive) {
-		/**
-		 * block config
-		 * @type {Phaser.Types.Physics.Matter.MatterBodyConfig}
-		 */
-		let bodyConfig = {
-			ignorePointer: false,
-			label: "MapCollisionBlock",
-			isStatic: true,
-			collisionFilter: {
-				category: COLLCAT.MAP,
-				mask: COLLCAT.compile([COLLCAT.PLAYER, COLLCAT.MAP, COLLCAT.GAMEOBJ]),
-			},
-		};
-
 		let center = this.matter.vertices.centre(vecArr);
 		let vertObj;
 
 		if (interactive) {
 			//set vertecies
-			bodyConfig.vertices = vecArr;
+
+			//create copy of config and add vertecies
+			// this.mapCollisionConfig.vertices = vecArr;
+
+			/** @type {Phaser.Types.Physics.Matter.MatterBodyConfig} */
+			let collconf = Phaser.Utils.Objects.DeepCopy(this.mapCollisionConfig);
+
+			collconf.vertices = vecArr;
 
 			/**
 			 * interactive config
@@ -277,7 +281,8 @@ export default class SceneMain extends Phaser.Scene {
 				center.y,
 				undefined,
 				undefined,
-				bodyConfig,
+				collconf,
+				// this.mapCollisionConfig,
 				interactiveConfig
 			);
 
@@ -286,21 +291,21 @@ export default class SceneMain extends Phaser.Scene {
 			// 	center.y,
 			// 	"worldWallSmall",
 			// 	undefined,
-			// 	bodyConfig
+			// 	this.mapCollisionConfig
 			// );
 		} else {
 			// vertObj = this.matter.add.fromVertices(
 			// 	center.x,
 			// 	center.y,
 			// 	vecArr,
-			// 	bodyConfig
+			// 	this.mapCollisionConfig
 			// );
 
 			vertObj = this.matter.add.fromVertices(
 				center.x,
 				center.y,
 				vecArr,
-				bodyConfig
+				this.mapCollisionConfig
 			);
 		}
 

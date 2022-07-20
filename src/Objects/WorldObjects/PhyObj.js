@@ -1,3 +1,4 @@
+import { Tilemaps } from "phaser";
 import worldObjSprite from "./abstract/worldObjSprite";
 
 /**
@@ -11,11 +12,10 @@ export default class PhyObj extends worldObjSprite {
 	 * @param {number} x position
 	 * @param {number} y position
 	 * @param {string | Phaser.Textures.Texture} texture texture to display as the object texture
-	 * @param {number} collCat byte corresponding to the collision Category of the object
-	 * @param {number | number[]} collWith byte or list of bytes corresponding to collision Categoryies to be collided with
+	 * @param {Phaser.Types.Physics.Matter.MatterBodyConfig | undefined} phyConfig config obj
 	 */
-	constructor(scene, x, y, texture, collCat, collWith) {
-		super(scene.matter.world, x, y, texture);
+	constructor(scene, x, y, texture, phyConfig) {
+		super(scene.matter.world, x, y, texture, undefined, phyConfig);
 
 		this.setActive(true);
 		this.setVisible(true);
@@ -23,28 +23,29 @@ export default class PhyObj extends worldObjSprite {
 		this.scene.add.existing(this);
 
 		//#region collision
-		/**
-		 * byte corresponding to the collision Category of the object
-		 * the value on creation
-		 * @type {number} 32bit int number
-		 */
-		this.phyCollCatCreate = collCat;
-		/**
-		 * byte corresponding to collision Categoryies to be collided with
-		 * the value on creation
-		 * @type {number} 32bit int number
-		 */
-		this.phyCollWithCreate = collWith;
-		/**
-		 * byte corresponding to the collision Category of the object
-		 * @type {number} 32bit int number
-		 */
-		this.phyCollCat = collCat;
-		/**
-		 * byte corresponding to collision Categoryies to be collided with
-		 * @type {number} 32bit int number
-		 */
-		this.phyCollWith = collWith;
+
+		// /**
+		//  * byte corresponding to the collision Category of the object
+		//  * the value on creation
+		//  * @type {CollisionCategory} 32bit int number
+		//  */
+		// this.phyCollCatCreate = collCat;
+		// /**
+		//  * byte corresponding to collision Categoryies to be collided with
+		//  * the value on creation
+		//  * @type {CollisionCategory} 32bit int number
+		//  */
+		// this.phyCollWithCreate = collWith;
+		// /**
+		//  * byte corresponding to the collision Category of the object
+		//  * @type {CollisionCategory} 32bit int number
+		//  */
+		// this.phyCollCat = collCat;
+		// /**
+		//  * byte corresponding to collision Categoryies to be collided with
+		//  * @type {CollisionCategory} 32bit int number
+		//  */
+		// this.phyCollWith = collWith;
 
 		//for some fucking reason setting this now does nothing
 		// this.phySetCollCat(collCat);
@@ -57,7 +58,9 @@ export default class PhyObj extends worldObjSprite {
 		super.preUpdate(delta, time);
 	}
 
-	update(delta, time) {}
+	update(delta, time) {
+		super.update(delta, time);
+	}
 
 	//#region phys
 
@@ -92,14 +95,21 @@ export default class PhyObj extends worldObjSprite {
 	//#endregion
 	//#region collision
 
+	//#region cat
+
+	phyCollGetCat() {
+		// return this.phyCollCat;
+		return this.body.collisionFilter.category;
+	}
+
 	/**
 	 * sets the collision Category mask
-	 * @param {number} collCat byte corresponding to the collision Category of the object
+	 * @param {number | number[]} collCat byte corresponding to the collision Category of the object
 	 */
 	phyCollSetCat(collCat) {
 		this.setCollisionCategory(collCat);
 
-		this.phyCollCat = collCat;
+		// this.phyCollCat = COLLCAT.crunch(collCat);
 	}
 
 	/**
@@ -107,7 +117,7 @@ export default class PhyObj extends worldObjSprite {
 	 * @param {number} collToRemove one or more collision categories to remove | 32bit number
 	 */
 	phyCollRemoveCat(collToRemove) {
-		this.phyCollSetCat(COLLCAT.RemoveFrom(this.phyCollCat, collToRemove));
+		this.phyCollSetCat(COLLCAT.RemoveFrom(this.phyCollGetCat(), collToRemove));
 	}
 
 	/**
@@ -115,7 +125,15 @@ export default class PhyObj extends worldObjSprite {
 	 * @param {number} collToAdd one or more collision categories to remove | 32bit number
 	 */
 	phyCollAddCat(collToAdd) {
-		this.phyCollSetCat(COLLCAT.AddTo(this.phyCollCat, collToAdd));
+		this.phyCollSetCat(COLLCAT.AddTo(this.phyCollGetCat(), collToAdd));
+	}
+
+	//#endregion
+	//#region with
+
+	phyCollGetWith() {
+		// return this.phyCollWith;
+		return this.body.collisionFilter.mask;
 	}
 
 	/**
@@ -125,8 +143,8 @@ export default class PhyObj extends worldObjSprite {
 	phyCollSetWith(collWith) {
 		this.setCollidesWith(collWith);
 
-		//if array compile
-		this.phyCollWith = COLLCAT.compile(collWith);
+		//if array crunch
+		// this.phyCollWith = COLLCAT.crunch(collWith);
 	}
 
 	/**
@@ -134,7 +152,9 @@ export default class PhyObj extends worldObjSprite {
 	 * @param {number} collToRemove one or more collision categories to remove | 32bit number
 	 */
 	phyCollRemoveWith(collToRemove) {
-		this.phyCollSetWith(COLLCAT.RemoveFrom(this.phyCollWith, collToRemove));
+		this.phyCollSetWith(
+			COLLCAT.RemoveFrom(this.phyCollGetWith(), collToRemove)
+		);
 	}
 
 	/**
@@ -142,17 +162,27 @@ export default class PhyObj extends worldObjSprite {
 	 * @param {number} collToAdd one or more collision categories to remove | 32bit number
 	 */
 	phyCollAddWith(collToAdd) {
-		this.phyCollSetWith(COLLCAT.AddTo(this.phyCollWith, collToAdd));
+		this.phyCollSetWith(COLLCAT.AddTo(this.phyCollGetWith(), collToAdd));
 	}
 
 	//#endregion
+
+	//#endregion
 }
+
+/**
+ * collision bit masks.
+ * maximum of 32-bit integer.
+ * @typedef {number} CollisionCategory
+ */
 
 /**
  * enum-like for collision bit masks
  * maximum of 32-bit integer
  * object holding collision categories
  * and methods for them
+ *
+ * @type {object}
  */
 export class COLLCAT {
 	/* 
@@ -165,38 +195,77 @@ export class COLLCAT {
   but this could go out of controll eaasily
   */
 
-	static MAP = 0b000001;
-	static PLAYER = 0b000010;
-	static GAMEOBJ = 0b000100;
-	static NOTHING = 0b00000000000000000000000000000000;
-	static ALL = 0b11111111111111111111111111111111;
+	// prettier-ignore
+	/**
+	 * map
+	 * @type {CollisionCategory}
+	 * */
+	static MAP =          0b000001;
+	// prettier-ignore
+	/**
+	 * player
+	 * @type {CollisionCategory}
+	 * */
+	static PLAYER =       0b000010;
+	// prettier-ignore
+	/**
+	 * gameobj
+	 * @type {CollisionCategory}
+	 * */
+	static GAMEOBJ =      0b000100;
+	// prettier-ignore
+	/**
+	 * connector for footholds
+	 * @type {CollisionCategory}
+	 * */
+	static CONNECTER =    0b001000;
+	// prettier-ignore
+	/**
+	 * connectable, a foothold
+	 * @type {CollisionCategory}
+	 * */
+	static CONNECTABLE =  0b010000;
+	// prettier-ignore
+	/**
+	 * nothing collides
+	 * @type {CollisionCategory}
+	 * */
+	static NOTHING =      0b00000000000000000000000000000000;
+	// prettier-ignore
+	/**
+	 * all collides
+	 * @type {CollisionCategory}
+	 * */
+	static ALL =          0b11111111111111111111111111111111;
 
 	/**
 	 * compiles array with collision 32bit categories into one 32bit number
 	 * mostly used if an array with categories isnt usable
-	 * @param {number | number[]} collArr byte or list of bytes corresponding to collision Categoryies to be collided with
-	 * @returns {number} 32bit number
+	 * @param {CollisionCategory | CollisionCategory[]} collArr byte or list of bytes corresponding to collision Categoryies to be collided with
+	 * @returns {CollisionCategory} 32bit number
 	 */
-	static compile(collArr) {
+	static crunch(collArr) {
 		/** 32bit int */
 		let coll = 0b00000000000000000000000000000000;
 
-		if (Array.isArray(collArr)) {
+		if (!Array.isArray(collArr)) {
+			return collArr;
+		} else if (collArr.length == 1) {
+			return collArr[0];
+		} else {
 			//go through all the coll maks bytes and perform pitwise OR on all of them
 			collArr.forEach((element) => {
 				coll |= element;
 			});
 			return coll;
-		} else {
-			return collArr;
 		}
 	}
 
 	/**
 	 * removes collision categorie(s) from given collision categorie(s) to edit
-	 * @param {number} collToEdit collision category to edit | 32bit number
-	 * @param {number} collToRemove one or more collision categories to remove | 32bit number
-	 * @returns {number} the edited collision categorie | 32bit number
+	 * @param {CollisionCategory} collToEdit collision category to edit | 32bit number
+	 * @param {CollisionCategory} collToRemove one or more collision categories to remove | 32bit number
+	 * @returns {CollisionCategory} the edited collision categorie | 32bit number
 	 */
 	static RemoveFrom(collToEdit, collToRemove) {
 		return collToEdit ^ collToRemove;
@@ -204,9 +273,9 @@ export class COLLCAT {
 
 	/**
 	 * adds collision categorie(s) to given collision categorie(s) to edit
-	 * @param {number} collToEdit collision category to edit | 32bit number
-	 * @param {number} collToAdd one or more collision categories to add | 32bit number
-	 * @returns {number} the edited collision categorie | 32bit number
+	 * @param {CollisionCategory} collToEdit collision category to edit | 32bit number
+	 * @param {CollisionCategory} collToAdd one or more collision categories to add | 32bit number
+	 * @returns {CollisionCategory} the edited collision categorie | 32bit number
 	 */
 	static AddTo(collToEdit, collToAdd) {
 		return collToEdit | collToAdd;

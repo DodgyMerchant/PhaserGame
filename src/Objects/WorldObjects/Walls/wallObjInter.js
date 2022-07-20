@@ -65,6 +65,7 @@ export default class wallObjInter extends worldObjImage {
 			function (pointer, dragX, dragY) {
 				// this.setPosition(dragX, dragY);
 				this.setPosition(dragX, dragY);
+
 				// this.scene.matter.body.translate(this.body, new Phaser.Math.Vector2(dragX, dragY));
 
 				// console.log("drag: ", this.body.position);

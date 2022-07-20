@@ -245,18 +245,18 @@ export default class UIElement extends UIObj {
 
 		// console.log("refresh - UIElement: ", this.name);
 
-		console.log(
-			"me: ",
-			this.name,
-			this.x,
-			this.y,
-			this.width,
-			this.height,
-			" | parent container: ",
-			this.parentContainer.name,
-			this.parentContainer.width,
-			this.parentContainer.height
-		);
+		// console.log(
+		// 	"me: ",
+		// 	this.name,
+		// 	this.x,
+		// 	this.y,
+		// 	this.width,
+		// 	this.height,
+		// 	" | parent container: ",
+		// 	this.parentContainer.name,
+		// 	this.parentContainer.width,
+		// 	this.parentContainer.height
+		// );
 
 		//refresh my children
 		super.refresh();
@@ -293,7 +293,7 @@ export default class UIElement extends UIObj {
 			// prettier-ignore
 			let totalW = this.parentContainer.UIE_getInnerWidth();
 
-			console.log("me: ", this.name, " totalW: ", totalW);
+			// console.log("me: ", this.name, " totalW: ", totalW);
 
 			//if width is special propertie apply it
 			if (this.originalW == undefined || this.originalW <= 1) {
