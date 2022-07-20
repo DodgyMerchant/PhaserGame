@@ -1,5 +1,5 @@
 import LevelEditor from "./LevelEditor";
-import UIManager from "./UI/UIManager";
+import UIManager from "../UI/Abstract/UIManager";
 
 /** debugging class */
 export default class DebugSceneObj extends UIManager {
@@ -37,9 +37,8 @@ export default class DebugSceneObj extends UIManager {
 		this.debugTextConf = {
 			color: "#00ff00",
 			font: "Courier",
+			fontSize: 5,
 		};
-
-    
 
 		//#endregion
 		//#region setup
@@ -113,8 +112,9 @@ export default class DebugSceneObj extends UIManager {
 			0,
 			150,
 			20,
-			true,
-			true,
+			undefined,
+			0.5,
+			0.5,
 			"Debug Enabled",
 			this.debugGraphConf,
 			this.debugTextConf,
@@ -138,10 +138,23 @@ export default class DebugSceneObj extends UIManager {
 	 */
 	toggle(bool) {
 		if (bool == undefined) {
-			this.enable(!this.active);
+			bool = !this.active;
 		} else {
-			this.enable(bool);
+			if (this.active == bool) {
+				console.log(
+					"TOGGLE - Object ",
+					this.name,
+					" already in this state: ",
+					this.active,
+					"!"
+				);
+				return;
+			}
 		}
+
+		// this.PointerConstraint.
+
+		this.enable(bool);
 
 		//#region level editor
 

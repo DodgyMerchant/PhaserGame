@@ -1,5 +1,6 @@
 import ConnectObj from "../ConnectObj";
-import PhyObj from "../PhyObj";
+import { State } from "../MovementObj";
+import { CollisionCategory } from "../PhyObj";
 
 /**
  * player object
@@ -7,7 +8,7 @@ import PhyObj from "../PhyObj";
 export default class Player extends ConnectObj {
 	/**
 	 * @param {Phaser.Scene} scene physics world to place the player in
-	 * @param {number} config config object
+	 * @param {PlayerConfig} config config object
 	 */
 	constructor(scene, config) {
 		super(
@@ -16,12 +17,16 @@ export default class Player extends ConnectObj {
 			config.y,
 			config.textureBody_Key,
 			config.state,
-			config.collCat,
-			config.collWith
+			config.connCat,
+			config.connWith,
+			undefined,
+			undefined,
+			undefined,
+			config.phyConfig
 		);
 
 		//general
-		this.setName("PlayerObject");
+		this.setName(config.name);
 
 		this.setBody({
 			type: "circle",
@@ -60,6 +65,8 @@ export default class Player extends ConnectObj {
 		super.move_Speed = 0.5;
 		super.connSpdJump = 5;
 		super.move_RotSpeed = 0;
+
+		super.connRange = 100;
 
 		//#endregion
 		//#region rotation
@@ -214,3 +221,17 @@ export default class Player extends ConnectObj {
 
 	//#endregion
 }
+
+/**
+ * @typedef {{
+ * name: (string),
+ * x: (number),
+ * y: (number),
+ * state: (State),
+ * textureBody_Key: (string | Phaser.Textures.Texture),
+ * connCat: (CollisionCategory | CollisionCategory[]),
+ * connWith: (CollisionCategory | CollisionCategory[]),
+ * phyConfig: (Phaser.Types.Physics.Matter.MatterBodyConfig | undefined),
+ * }} PlayerConfig Config for a player object
+ *
+ */

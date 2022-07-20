@@ -1,7 +1,16 @@
+import UIElement, { UIConfig } from "./UIElement";
+
 /**
  * UI object
  */
 export default class UIObj extends Phaser.GameObjects.Container {
+	/**
+	 * name of UI system events
+	 */
+	static EventNames = {
+		UIAdded: "UISystemAddedToContainer",
+	};
+
 	/**
 	 * UI object extendended from Container
 	 * @param {String} name a name
@@ -25,6 +34,9 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	) {
 		super(scene, x, y, children);
 
+		this.targetX = x;
+		this.targetY = y;
+
 		//#region setup
 		this.setDepth(depth);
 		this.setName(name);
@@ -45,6 +57,8 @@ export default class UIObj extends Phaser.GameObjects.Container {
 		//#endregion
 
 		this.enable(true);
+
+		this.on(UIObj.EventNames.UIAdded, this.refresh, this);
 	}
 
 	/**
@@ -65,15 +79,37 @@ export default class UIObj extends Phaser.GameObjects.Container {
 
 		this.setVisible(bool);
 
-		if (bool) {
-			this.addToDisplayList();
-			this.addToUpdateList();
-		} else {
-			this.removeFromDisplayList();
-			this.removeFromUpdateList();
-		}
+		if (!(this instanceof UIElement))
+			if (bool) {
+				this.addToDisplayList();
+				this.addToUpdateList();
+			} else {
+				this.removeFromDisplayList();
+				this.removeFromUpdateList();
+			}
 
-		this.__UI_ProcessChildren(bool);
+		// this.__UI_ProcessChildren(bool);
+	}
+
+	/**
+	 *
+	 * @param {Phaser.GameObjects.GameObject} obj
+	 */
+	add(obj) {
+		super.add(obj);
+		obj.emit(UIObj.EventNames.UIAdded);
+	}
+
+	/**
+	 * update variables
+	 */
+	refresh() {
+		this.list.forEach((child) => {
+			if (child instanceof UIObj) {
+				// console.log("refresh child: ", child.name);
+				element.refresh();
+			}
+		});
 	}
 
 	//#region new UI
@@ -100,52 +136,32 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	 * @param {number} y y posiiton
 	 * @param {string | string[]} text x posiiton
 	 * @param {Phaser.Types.GameObjects.Text.TextStyle | undefined} style text config obj, wont edit this
-	 * @param {number | undefined} centerW the width to center the text on
-	 * @param {number | undefined} centerH the heigth to center the text on
+	 * @param {number} posH position of the text in the space, 0-1 | examples: 0 = left, 0.5 = center, 1 = right.
+	 * @param {number} posV position of the text in the space, 0-1 | examples: 0 = top, 0.5 = center, 1 = bottom.
+	 * @param {number} width
+	 * @param {number} height
 	 * @returns {Phaser.GameObjects.Text} the text obj
 	 */
-	UITextCreate(x, y, text, style, centerW, centerH) {
-		//#region config
-		/**
-		 * temporary text conf
-		 * @type {Phaser.Types.GameObjects.Text.TextStyle}
-		 */
-		let textconf = {};
-
-		if (centerW != undefined) {
-			textconf.fixedWidth = centerW;
-			textconf.align = "center";
-		}
-
-		if (centerH != undefined) {
-			textconf.fixedHeight = centerH;
-		}
-
-		if (style != undefined) {
-			textconf = this.UIConfigMergeOverwrite(style, textconf);
-		} else {
-			textconf = style;
-		}
-
-		//#endregion
-
+	UITextCreate(x, y, text, style, posH, posV, width, height) {
 		/**
 		 * Button text displayed
 		 * @type {Phaser.GameObjects.Text}
 		 */
-		let textObj = this.scene.add.text(y, x, text, textconf);
+		let textObj = this.scene.add.text(y, x, text, style);
 
-		//center text
-		if (centerH != undefined) {
-			centerH - textconf;
+		//center text vertically
+		if (posH > 0) {
+			// textObj.setX((width - textObj.width) * posH);
+			textObj.setX((width - textObj.width) * posH);
+		}
+		if (posV > 0) {
+			textObj.setY((height - textObj.height) * posV);
 
-			let num = textObj.getWrappedText().length;
-
-			let textH =
-				num * textObj.getTextMetrics().ascent * textObj.scaleY +
-				(num - 1) * textObj.lineSpacing;
-
-			textObj.padding.top = (centerH - textH) / 2;
+			// let num = textObj.getWrappedText().length;
+			// let textH =
+			// 	num * textObj.getTextMetrics().ascent * textObj.scaleY +
+			// 	(num - 1) * textObj.lineSpacing;
+			// textObj.padding.top = (posH - textH) / 2;
 		}
 
 		textObj.updateText();
@@ -177,6 +193,8 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	 */
 	UIMakeInteractive(obj, hitArea, callback, dropZone) {
 		obj.setInteractive(hitArea, callback, dropZone);
+
+		// this.scene.input.enableDebug(obj);
 
 		return obj;
 	}
@@ -224,11 +242,16 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	 * @returns {object} new cloned config
 	 */
 	UIConfigMergeOverwrite(confToClone, confOverwritgt1, more) {
-		let clone = Phaser.Utils.Objects.Clone(this.textConf);
+		let clone = Phaser.Utils.Objects.DeepCopy(confToClone);
+
+		// console.log("clone ini: ", clone);
 
 		for (let index = 1; index < arguments.length; index++) {
 			Phaser.Utils.Objects.Extend(clone, arguments[index]);
+			// console.log("clone: ", index, arguments[index]);
 		}
+
+		// console.log("clone fin: ", clone);
 
 		return clone;
 	}

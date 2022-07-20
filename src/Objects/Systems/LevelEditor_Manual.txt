@@ -27,23 +27,31 @@ Debug Maanager can create a Level Editor automatically.
     [BAACKSPACE]:         resets the zoom to default.
   }
 
-  In scene Objects - {
-    //editing and creating object in the scene
 
-    creating collision objects - [In the scene]:{
+  // modes
+  [Create mode active]:{
+    //creating new object in the scene
+
+    [In the scene]:{
       //create a collision object in the scene, from a set of points
-
 
       [Mouse Button Down Left]:   set a point to create a object from.
       [Mouse Button Down right]:  remove the last point.
       [CTRL]:                     create a object from the points set. Number of points must be >= 3.
     }
+  }
 
-    manipulating - [On n object that set as interactable]:{
-      //selecting moveing and manipulating objects
+  [Edit mode active]:{
+    //selecting and diting created objects
 
-      [Mouse Button Down Left]:                 select a object.
+    [In the scene]:{
+      [Mouse Button Down Left]:   select a object. unselecting the current selected object one.
+    }
+
+    [Object is selected]:{
       [Mouse Button Down Left]+[Mouse Move]:    drag the object with the mouse to another position.
+      [DEL]:                                    delete selected object
+      [ESC]:                                    deselect all objects
     }
   }
 }

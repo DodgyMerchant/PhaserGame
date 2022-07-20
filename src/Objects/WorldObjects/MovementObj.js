@@ -13,10 +13,10 @@ export default class MovementObj extends PhyObj {
 	 * @param {number} x position
 	 * @param {number} y position
 	 * @param {string | Phaser.Textures.Texture} texture texture to display as the object texture
-	 * @param {STATES.element} state tstate the object is in
-	 * @param {number} collCat byte corresponding to the collision Category of the object
+	 * @param {State} state tstate the object is in
 	 * @param {method | undefined} moveMeth Method called to get input for movement, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set moveInputMethod
 	 * @param {method | boolean | undefined} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation. If it cant be supplied set moveInputMethod.
+	 * @param {Phaser.Types.Physics.Matter.MatterBodyConfig | undefined} phyConfig config obj.
 	 */
 	constructor(
 		scene,
@@ -24,12 +24,11 @@ export default class MovementObj extends PhyObj {
 		y,
 		texture,
 		state,
-		collCat,
-		collWith,
 		moveMeth,
-		rotMeth
+		rotMeth,
+		phyConfig
 	) {
-		super(scene, x, y, texture, collCat, collWith);
+		super(scene, x, y, texture, phyConfig);
 
 		/*
     to overwrite and set:
@@ -50,7 +49,7 @@ export default class MovementObj extends PhyObj {
 		//#region state
 		this.stateSwitch(state);
 
-		//#endregion
+		//#endregion state
 		//#region input
 
 		/**
@@ -80,7 +79,7 @@ export default class MovementObj extends PhyObj {
 
 		if (rotMeth != undefined) this.moveRotMethodSet(rotMeth);
 
-		//#endregion
+		//#endregion input
 		//#region movement
 
 		/** if some input to movement is possible */
@@ -95,8 +94,8 @@ export default class MovementObj extends PhyObj {
 		/** movement speed*/
 		this.move_Speed = 0;
 
-		//#endregion
-		//#region
+		//#endregion movement
+		//#region rotation
 
 		/**
 		 * rotation target ange in radians
@@ -109,7 +108,7 @@ export default class MovementObj extends PhyObj {
 		 */
 		this.move_RotSpeed = 1;
 
-		//#endregion
+		//#endregion rotation
 
 		/**
 		 * vector to be used and thrown away for calculations
@@ -323,16 +322,32 @@ export default class MovementObj extends PhyObj {
 }
 
 /**
+ * @typedef {symbol} State a sttate to be in for a MovementObj
+ */
+/**
  * enum-like for player states
  * only change states with: this.stateSwitch(STATES.statename);
+ * @type {object}
  */
 export class STATES {
-	/** mech is free to move */
+	/**
+	 * mech is free to move
+	 * @type {State}
+	 */
 	static FREE = Symbol("free");
-	/** mech action is disabled */
+	/**
+	 * mech action is disabled
+	 * @type {State}
+	 */
 	static STUNNED = Symbol("stunned");
-	/** mech obj is controlled by scene */
+	/**
+	 * mech obj is controlled by scene
+	 * @type {State}
+	 */
 	static CONTROLLED = Symbol("controlled");
-	/** mech is frozen */
+	/**
+	 * mech is frozen
+	 * @type {State}
+	 */
 	static FROZEN = Symbol("frozen");
 }
