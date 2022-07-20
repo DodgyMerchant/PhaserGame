@@ -87,6 +87,8 @@ export default class wallObjInter extends worldObjImage {
 			this
 		);
 
+		// console.log("new wall", this);
+
 		//#endregion
 	}
 

@@ -266,7 +266,7 @@ export default class SceneMain extends Phaser.Scene {
 				hitArea: new Phaser.Geom.Polygon(vecArr),
 				hitAreaCallback: Phaser.Geom.Polygon.Contains,
 				pixelPerfect: false,
-				draggable: true,
+				draggable: false,
 				useHandCursor: true,
 			};
 

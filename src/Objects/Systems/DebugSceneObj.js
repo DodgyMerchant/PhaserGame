@@ -110,10 +110,9 @@ export default class DebugSceneObj extends UIManager {
 			this.depth,
 			0,
 			0,
-			{
-				width: 150,
-				height: 20,
-			},
+			150,
+			20,
+			undefined,
 			0.5,
 			0.5,
 			"Debug Enabled",
@@ -139,10 +138,23 @@ export default class DebugSceneObj extends UIManager {
 	 */
 	toggle(bool) {
 		if (bool == undefined) {
-			this.enable(!this.active);
+			bool = !this.active;
 		} else {
-			this.enable(bool);
+			if (this.active == bool) {
+				console.log(
+					"TOGGLE - Object ",
+					this.name,
+					" already in this state: ",
+					this.active,
+					"!"
+				);
+				return;
+			}
 		}
+
+		// this.PointerConstraint.
+
+		this.enable(bool);
 
 		//#region level editor
 

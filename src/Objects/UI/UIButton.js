@@ -10,8 +10,10 @@ export default class UIButton extends UILabel {
 	 * @param {String} name a name
 	 * @param {Phaser.Scene} scene The Scene to which this Game Object belongs. A Game Object can only belong to one Scene at a time.
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
-	 * @param {number | UIElement | undefined} x The top position of the object. Gets offset by the margin. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
-	 * @param {number | UIElement | undefined} y The vertical position of this Game Object in the world. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} x The top position of the object. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} y The top position of the object. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {number | undefined} w width of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. w<=1 will be handled as a percentage of all possible space.
+	 * @param {number | undefined} h heigth of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. h<=1 will be handled as a percentage of all possible space.
 	 * @param {UIConfig} UiConfig Config object for UI classes
 	 * @param {number} posH position of the text in the space, 0-1 | examples: 0 = left, 0.5 = center, 1 = right.
 	 * @param {number} posV position of the text in the space, 0-1 | examples: 0 = top, 0.5 = center, 1 = bottom.
@@ -31,6 +33,8 @@ export default class UIButton extends UILabel {
 		depth,
 		x,
 		y,
+		w,
+		h,
 		UiConfig,
 		posH,
 		posV,
@@ -50,6 +54,8 @@ export default class UIButton extends UILabel {
 			depth,
 			x,
 			y,
+			w,
+			h,
 			UiConfig,
 			posH,
 			posV,
@@ -78,16 +84,69 @@ export default class UIButton extends UILabel {
 		this.add(this.UI_Button_zone);
 
 		if (interConfig != undefined) {
+			//config given
+
+			//no interactive area given
+			if (interConfig.hitArea == undefined) {
+				interConfig.hitArea = new Phaser.Geom.Rectangle(
+					0, //this.x,
+					0, //this.y,
+					this.width,
+					this.height
+				);
+
+				// console.log(
+				// 	"button create no area set, created: ",
+				// 	interConfig.hitArea
+				// );
+			}
+
+			//no interactive area callback function given
+			if (interConfig.hitAreaCallback == undefined) {
+				let cb;
+
+				//get callback method
+				switch (interConfig.hitArea.type) {
+					case Phaser.Geom.RECTANGLE:
+						cb = Phaser.Geom.Rectangle.Contains;
+						break;
+					case Phaser.Geom.POLYGON:
+						cb = Phaser.Geom.Polygon.Contains;
+						break;
+					case Phaser.Geom.CIRCLE:
+						cb = Phaser.Geom.Circle.Contains;
+						break;
+					case Phaser.Geom.ELLIPSE:
+						cb = Phaser.Geom.Ellipse.Contains;
+						break;
+
+					default:
+						console.log(
+							"UI BUtton create type auto determination could not find a suiting callback function!!! Please provide : hitArea or/and hitAreaCallback in creation!"
+						);
+						break;
+				}
+
+				interConfig.hitAreaCallback = cb;
+
+				// console.log(
+				// 	"button create no area callback set, set: ",
+				// 	interConfig.hitAreaCallback
+				// );
+			}
+
 			this.UIMakeInteractive(this.UI_Button_zone, interConfig);
 		} else {
 			this.UIMakeInteractive(this.UI_Button_zone);
 		}
 
+		// emitting event
 		if (eventTrigger != undefined && eventEmitted != undefined) {
 			this.UI_Button_zone.on(
 				eventTrigger,
 				function (pointer, relX, relY, stopPropagation) {
 					// this.scene.input.stopPropagation();
+          
 					this.UI_Button_zone.parentContainer.emit(
 						eventEmitted,
 						pointer,
@@ -105,10 +164,18 @@ export default class UIButton extends UILabel {
 		super.refresh();
 
 		if (this.parentContainer instanceof UIElement) {
-			// console.log("resize button: ", this.width, this.height);
-			this.UI_Button_zone.setSize(this.width, this.height, true);
+			this.UI_Button_zone.setSize(this.width, this.height);
+			this.UI_Button_zone.input.hitArea.width = this.width;
+			this.UI_Button_zone.input.hitArea.height = this.height;
+
+			// console.log(
+			// 	"resize button: ",
+			// 	this.width,
+			// 	this.height,
+			// 	this.UI_Button_zone.input.hitArea
+			// );
 		}
 
-		console.log("refresh - UIButton: ", this.name);
+		// console.log("refresh - UIButton: ", this.name);
 	}
 }

@@ -145,8 +145,10 @@ export default class UIManager extends UIObj {
 	 * @param {UIObj} parent a name
 	 * @param {String} name a name
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
-	 * @param {number | UIElement | undefined} x The top position of the object. Gets offset by the margin. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
-	 * @param {number | UIElement | undefined} y The vertical position of this Game Object in the world. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} x The top position of the object. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} y The top position of the object. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {number | undefined} w width of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. w<=1 will be handled as a percentage of all possible space.
+	 * @param {number | undefined} h heigth of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. h<=1 will be handled as a percentage of all possible space.
 	 * @param {UIConfig} UiConfig Config object for UI classes
 	 * @param {Phaser.Types.GameObjects.Graphics.Options} graphConfig config, x,y,w,h have priority over this. will alter the object.
 	 * @param {boolean | undefined} cascadeEnable The vertical position of this Game Object in the world. Default 0.
@@ -160,6 +162,8 @@ export default class UIManager extends UIObj {
 		depth,
 		x,
 		y,
+		w,
+		h,
 		UiConfig,
 		graphConfig,
 		cascadeEnable,
@@ -172,6 +176,8 @@ export default class UIManager extends UIObj {
 			depth,
 			x,
 			y,
+			w,
+			h,
 			UiConfig,
 			graphConfig,
 			cascadeEnable,
@@ -189,8 +195,10 @@ export default class UIManager extends UIObj {
 	 * @param {UIObj} parent a name
 	 * @param {String} name a name
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
-	 * @param {number | UIElement | undefined} x The top position of the object. Gets offset by the margin. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
-	 * @param {number | UIElement | undefined} y The vertical position of this Game Object in the world. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} x The top position of the object. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} y The top position of the object. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {number | undefined} w width of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. w<=1 will be handled as a percentage of all possible space.
+	 * @param {number | undefined} h heigth of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. h<=1 will be handled as a percentage of all possible space.
 	 * @param {UIConfig} UiConfig Config object for UI classes
 	 * @param {number} posH position of the text in the space, 0-1 | examples: 0 = left, 0.5 = center, 1 = right.
 	 * @param {number} posV position of the text in the space, 0-1 | examples: 0 = top, 0.5 = center, 1 = bottom.
@@ -207,6 +215,8 @@ export default class UIManager extends UIObj {
 		depth,
 		x,
 		y,
+		w,
+		h,
 		UiConfig,
 		posH,
 		posV,
@@ -223,6 +233,8 @@ export default class UIManager extends UIObj {
 			depth,
 			x,
 			y,
+			w,
+			h,
 			UiConfig,
 			posH,
 			posV,
@@ -244,8 +256,10 @@ export default class UIManager extends UIObj {
 	 * @param {UIObj} parent a name
 	 * @param {String} name a name
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
-	 * @param {number | UIElement | undefined} x The top position of the object. Gets offset by the margin. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
-	 * @param {number | UIElement | undefined} y The vertical position of this Game Object in the world. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} x The top position of the object. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
+	 * @param {number | UIElement | undefined} y The top position of the object. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
+	 * @param {number | undefined} w width of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. w<=1 will be handled as a percentage of all possible space.
+	 * @param {number | undefined} h heigth of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. h<=1 will be handled as a percentage of all possible space.
 	 * @param {UIConfig} UiConfig Config object for UI classes
 	 * @param {number} posH position of the text in the space, 0-1 | examples: 0 = left, 0.5 = center, 1 = right.
 	 * @param {number} posV position of the text in the space, 0-1 | examples: 0 = top, 0.5 = center, 1 = bottom.
@@ -266,6 +280,8 @@ export default class UIManager extends UIObj {
 		depth,
 		x,
 		y,
+		w,
+		h,
 		UiConfig,
 		posH,
 		posV,
@@ -285,6 +301,8 @@ export default class UIManager extends UIObj {
 			depth,
 			x,
 			y,
+			w,
+			h,
 			UiConfig,
 			posH,
 			posV,

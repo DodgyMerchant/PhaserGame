@@ -1,4 +1,4 @@
-import { UIConfig } from "./UIElement";
+import UIElement, { UIConfig } from "./UIElement";
 
 /**
  * UI object
@@ -34,8 +34,8 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	) {
 		super(scene, x, y, children);
 
-		this.originalX = x;
-		this.originalY = y;
+		this.targetX = x;
+		this.targetY = y;
 
 		//#region setup
 		this.setDepth(depth);
@@ -79,15 +79,16 @@ export default class UIObj extends Phaser.GameObjects.Container {
 
 		this.setVisible(bool);
 
-		if (bool) {
-			this.addToDisplayList();
-			this.addToUpdateList();
-		} else {
-			this.removeFromDisplayList();
-			this.removeFromUpdateList();
-		}
+		if (!(this instanceof UIElement))
+			if (bool) {
+				this.addToDisplayList();
+				this.addToUpdateList();
+			} else {
+				this.removeFromDisplayList();
+				this.removeFromUpdateList();
+			}
 
-		this.__UI_ProcessChildren(bool);
+		// this.__UI_ProcessChildren(bool);
 	}
 
 	/**
@@ -192,6 +193,8 @@ export default class UIObj extends Phaser.GameObjects.Container {
 	 */
 	UIMakeInteractive(obj, hitArea, callback, dropZone) {
 		obj.setInteractive(hitArea, callback, dropZone);
+
+		// this.scene.input.enableDebug(obj);
 
 		return obj;
 	}
