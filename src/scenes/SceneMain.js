@@ -115,6 +115,29 @@ export default class SceneMain extends Phaser.Scene {
 		 */
 		this.load_bar;
 
+		/**
+		 * @type {Phaser.Types.Loader.FileTypes.JSONFileConfig}
+		 */
+		this.fileConf = {
+			key: "tutorialData",
+			url: "src/assets/assets.json",
+			dataKey: "tutorial",
+		};
+
+		/**
+		 * @type {Phaser.Types.Loader.FileTypes.JSONFileConfig[]}
+		 */
+		this.loadList = [this.fileConf];
+
+		//#endregion
+		//#region saving
+
+		/**
+		 * list of all object to be saved
+		 * @type {object[]}
+		 */
+		this.saveableList = new Array();
+
 		//#endregion
 	}
 
@@ -123,12 +146,23 @@ export default class SceneMain extends Phaser.Scene {
 
 		//load abung of stuff
 		// for (let index = 0; index < 500; index++) {
-		// 	this.load.pack("tutData" + index, "src/assets/assets.json", "tutorial");
+		// 	this.load.pack("tutorialData" + index, "src/assets/assets.json", "tutorial");
 		// }
 
 		//#endregion
 
-		this.load.pack("tutData", "src/assets/assets.json", "tutorial");
+		this.load.pack(this.loadList);
+
+		// this.load.json(this.loadList);
+
+		// for (let index = 0; index < this.loadList.length; index++) {
+		// 	const loadConfig = this.loadList[index];
+
+		// 	console.log("LOAD - ", loadConfig);
+		// 	this.load.addFile(this.game.cache.json.get(loadConfig.key).files);
+		// }
+
+		// this.load.json("level", "src/assets/level.json");
 
 		//create loading bar
 		this.loadBarCreate();
@@ -146,6 +180,16 @@ export default class SceneMain extends Phaser.Scene {
 		// this.cache.json.getKeys().forEach((element) => {
 		// 	console.log("--", this.cache.json.get(element));
 		// });
+
+		//#endregion
+
+		//#region create level
+		let datakey = this.fileConf.dataKey;
+		let data = this.game.cache.json.get(this.fileConf.key);
+
+		console.log("CREATELEVEL - data: ", data);
+
+		this.CreateLevel(data.tutorial.mapData);
 
 		//#endregion
 
@@ -286,6 +330,9 @@ export default class SceneMain extends Phaser.Scene {
 				interactiveConfig
 			);
 
+			//add as savable
+			this.enableSaving(vertObj);
+
 			// vertObj = this.matter.add.image(
 			// 	center.x,
 			// 	center.y,
@@ -351,6 +398,36 @@ export default class SceneMain extends Phaser.Scene {
 			// this.scene.start()
 			this.load_bar.destroy(true);
 		});
+	}
+
+	/**
+	 *
+	 * @param {object} key
+	 */
+	CreateLevel(mapdata) {
+		console.log("mapdata.collisionInstances", mapdata.collisionInstances);
+
+		mapdata.collisionInstances.forEach((element) => {
+			this.mapObjVertCreate(element.vert, true);
+		});
+	}
+
+	/**
+	 *
+	 * @param {object} obj
+	 */
+	enableSaving(obj) {
+		console.log("SAVE - enableSaving of: ", obj.name);
+
+		this.saveableList.push(obj);
+		obj.on("destroy", this.savebleRemove, this);
+	}
+
+	savebleRemove(obj) {
+		let index = this.saveableList.indexOf(obj);
+		if (index > -1) {
+			this.saveableList.splice(index, 1);
+		}
 	}
 
 	//#endregion

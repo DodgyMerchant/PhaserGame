@@ -1,5 +1,5 @@
 import UILabel from "./UILabel";
-import UIElement, { UIConfig } from "./Abstract/UIElement";
+import UIElement, { UIConfig } from "./UIElement";
 
 /**
  * UI button, UIObj container + background + clickable zone
