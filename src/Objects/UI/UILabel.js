@@ -1,5 +1,5 @@
 import UIPanel from "./UIPanel";
-import UIElement, { UIConfig } from "./Abstract/UIElement";
+import UIElement, { UIConfig } from "./UIElement";
 
 /**
  * UI Label, UIObj container + background + text

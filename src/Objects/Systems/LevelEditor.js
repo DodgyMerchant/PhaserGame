@@ -1,5 +1,5 @@
 import UIManager from "../UI/Abstract/UIManager";
-import { UIConfig } from "../UI/Abstract/UIElement";
+import { UIConfig } from "../UI/UIElement";
 import worldObjImage from "../WorldObjects/abstract/worldObjImage";
 import worldObjSprite from "../WorldObjects/abstract/worldObjSprite";
 import wallObjInter from "../WorldObjects/Walls/wallObjInter";
@@ -626,7 +626,7 @@ export default class LevelEditor extends UIManager {
 		this.SaveButton.on(
 			"SaveButtonPress",
 			function () {
-        this.UISaveInteraction();
+				this.UISaveInteraction();
 			},
 			this
 		);
@@ -706,6 +706,8 @@ export default class LevelEditor extends UIManager {
 					(LEVELEDITORMODES.modeArr.findIndex((mode) => mode === this.state) +
 						1) %
 						LEVELEDITORMODES.modeArr.length
+					// (LEVELEDITORMODES.modeArr.indexOf(mode) + 1) %
+					// 	LEVELEDITORMODES.modeArr.length
 				],
 				true
 			);
@@ -1375,20 +1377,97 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
-  //#region saving loading
+	//#region saving loading
 
+	UISaveInteraction() {
+		console.log("SAVE BUTTON PRESS");
 
-  UISaveInteraction(){
-    console.log("SAVE BUTTON PRESS");
+		let data = this.saveProcessList(this.scene.saveableList);
 
-    
+		this.scene.load.saveJSON(data, "levelData");
+	}
 
+	/**
+	 * process all savable things in the scene
+	 * @param {object[]} arr
+	 * @return {object} jason object
+	 */
+	saveProcessList(arr) {
+		let data = {
+			collisionInstances: [],
+		};
+		/** @type {object} */
+		let objInfo;
+		/** @type {Array} */
+		let dataList;
 
-  }
+		// Phaser.Utils.Objects.
 
+		//go through list and process
+		let leng = arr.length;
+		for (let index = 0; index < leng; index++) {
+			objInfo = this.saveProcessObj(arr[index]);
+			if (objInfo == undefined) continue;
 
+			console.log("SAVE - objInfo - : ", objInfo);
 
-  //#endregion saving loading
+			dataList = Phaser.Utils.Objects.GetValue(data, objInfo.type, undefined);
+			dataList.push(objInfo.obj);
+		}
+
+		return data;
+	}
+	/**
+	 * process all savable things in the scene
+	 * @param {object} arr
+	 * @return {{
+	 * type: (string),
+	 * obj: (object)
+	 * }} information object
+	 */
+	saveProcessObj(obj) {
+		//go through list and process
+
+		// if (obj instanceof PLEASE GIVE BODY TYPE) {
+		// 	//raw phy body
+		// 	return {
+		// 		type: "collisionInstances",
+		// 		obj: {
+		// 			vert: obj.vertices,
+		// 		},
+		// 	};
+		// } else if (obj instanceof wallObjInter) {
+		// 	//interactive physics wall
+		// 	return this.saveProcessObj(obj.body);
+		// } else {
+		// 	console.log("SAVE - obj could not be saved - no solution setup");
+		// 	return undefined;
+		// }
+
+		if (obj instanceof wallObjInter) {
+			//interactive physics wall
+			return this.saveProcessObj(obj.body);
+		} else {
+			console.log("SAVE - temporary saving solution");
+
+			let data = {
+				type: "collisionInstances",
+				obj: {
+					vert: [],
+				},
+			};
+			obj.vertices.forEach((vec) => {
+				data.obj.vert.push({
+					x: vec.x,
+					y: vec.y,
+				});
+			});
+
+			return data;
+		}
+	}
+
+	//#endregion saving loading
 }
 
 /** enum-like for modes/states the Level editor can be in */

@@ -1,4 +1,4 @@
-import UIElement, { UIConfig } from "./UIElement";
+import UIElement, { UIConfig } from "../UIElement";
 
 /**
  * UI object
