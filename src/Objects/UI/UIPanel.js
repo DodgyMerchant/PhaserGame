@@ -1,5 +1,5 @@
-import UIElement from "./Abstract/UIElement";
-import { UIConfig } from "./Abstract/UIElement";
+import UIElement from "./UIElement";
+import { UIConfig } from "./UIElement";
 
 /**
  * UI Panel, UIObj container + background
@@ -26,8 +26,8 @@ export default class UIPanel extends UIElement {
 		depth,
 		x,
 		y,
-    w,
-    h,
+		w,
+		h,
 		UiConfig,
 		graphConfig,
 		cascadeEnable,
@@ -40,8 +40,8 @@ export default class UIPanel extends UIElement {
 			depth,
 			x,
 			y,
-      w,
-      h,
+			w,
+			h,
 			UiConfig,
 			cascadeEnable,
 			cascadeDisable,

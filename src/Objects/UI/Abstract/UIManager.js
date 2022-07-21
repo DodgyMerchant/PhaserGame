@@ -2,7 +2,7 @@ import UIButton from "../UIButton";
 import UILabel from "../UILabel";
 import UIObj from "./UIObj";
 import UIPanel from "../UIPanel";
-import UIElement, { UIConfig } from "./UIElement";
+import UIElement, { UIConfig } from "../UIElement";
 
 /** mager for ui stuff */
 export default class UIManager extends UIObj {

@@ -1,4 +1,4 @@
-import UIObj from "./UIObj";
+import UIObj from "./Abstract/UIObj";
 /** UI element to be chained for UI construction, basically a div */
 export default class UIElement extends UIObj {
 	/**

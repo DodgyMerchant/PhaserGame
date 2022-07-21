@@ -103,7 +103,7 @@ export default class ConnectObj extends MovementObj {
 
 		// this.connCircle.gameObject = this;
 
-		console.log("this.connCircle: ", this.connCircle);
+		// console.log("this.connCircle: ", this.connCircle);
 
 		//#endregion
 	}
