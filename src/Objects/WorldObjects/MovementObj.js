@@ -18,16 +18,7 @@ export default class MovementObj extends PhyObj {
 	 * @param {method | boolean | undefined} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation. If it cant be supplied set moveInputMethod.
 	 * @param {Phaser.Types.Physics.Matter.MatterBodyConfig | undefined} phyConfig config obj.
 	 */
-	constructor(
-		scene,
-		x,
-		y,
-		texture,
-		state,
-		moveMeth,
-		rotMeth,
-		phyConfig
-	) {
+	constructor(scene, x, y, texture, state, moveMeth, rotMeth, phyConfig) {
 		super(scene, x, y, texture, phyConfig);
 
 		/*
@@ -127,6 +118,18 @@ export default class MovementObj extends PhyObj {
 		super.update(delta, time);
 
 		//moves mech
+		let frametime = 1000 / this.scene.game.loop.actualFps;
+		let timestimeoffset = frametime - time;
+
+		console.log(
+			"frame time: ",
+			this.scene.game.loop.actualFps,
+			"| time: ",
+			time,
+			" |offset: ",
+			timestimeoffset
+		);
+
 		this.moveRotUpdate();
 		this.moveUpdate();
 
@@ -249,7 +252,9 @@ export default class MovementObj extends PhyObj {
 	 * runs continuously
 	 * moves mech
 	 */
-	moveUpdate() {
+	moveUpdate(mult) {
+		// console.log("mult: ", mult);
+
 		if (this.moveCanMoveGet()) {
 			this.workVec = this.moveInputMethod(this.workVec);
 

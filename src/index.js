@@ -21,6 +21,13 @@ const config = {
 		gamepad: true,
 	},
 
+  
+	fps: {
+		min: 10,
+		target: 60,
+
+		forceSetTimeOut: false,
+	},
 	physics: {
 		default: "matter",
 
