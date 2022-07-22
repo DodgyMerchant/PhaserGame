@@ -163,7 +163,7 @@ export default class UIButton extends UILabel {
 	refresh() {
 		super.refresh();
 
-		if (this.parentContainer instanceof UIElement) {
+		// if (this.parentContainer instanceof UIElement) {
 			this.UI_Button_zone.setSize(this.width, this.height);
 			this.UI_Button_zone.input.hitArea.width = this.width;
 			this.UI_Button_zone.input.hitArea.height = this.height;
@@ -174,7 +174,7 @@ export default class UIButton extends UILabel {
 			// 	this.height,
 			// 	this.UI_Button_zone.input.hitArea
 			// );
-		}
+		// }
 
 		// console.log("refresh - UIButton: ", this.name);
 	}

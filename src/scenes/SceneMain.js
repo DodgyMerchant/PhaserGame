@@ -12,6 +12,8 @@ export default class SceneMain extends Phaser.Scene {
 			active: true,
 		});
 
+		// thisstep;
+
 		//#region setup
 		/**
 		 * information on the player
@@ -169,8 +171,11 @@ export default class SceneMain extends Phaser.Scene {
 	}
 
 	create() {
-		//#region debug setup
-		//disaable debug drawing
+		//#region accumulator
+
+		this.AccumulatorSetup(this);
+
+		//#endregion
 
 		//#region debug
 		// this.input.keyboard.once("keydown-J", this.debug_setup, this);
@@ -195,7 +200,10 @@ export default class SceneMain extends Phaser.Scene {
 
 		//#region game objects
 
-		this.aliveGroup = this.add.group({ runChildUpdate: true });
+		this.aliveGroup = this.add.group({
+			runChildUpdate: true,
+		});
+
 		this.player = this.gameObjectCreatePlayer(this.playerConfig);
 
 		//#endregion
@@ -220,11 +228,56 @@ export default class SceneMain extends Phaser.Scene {
 
 		//#endregion
 
+		// this.matter.step
+
 		console.log("SceneMain create");
 	}
 
-	update() {}
+	update(time, delta) {
+		console.log("SCENE UPDATE: NOT timed");
 
+		while (this.AccumulatorEval(delta)) {
+			console.log("SCENE UPDATE: timed!!!!!!!!!!!");
+
+
+		}
+	}
+
+	//#region accumulator
+
+	/**
+	 * sets up the accumulator.
+	 * for in the speed set in the Game Configs for FPS
+	 * @param {Phaser.Scene} scene
+	 */
+	AccumulatorSetup(scene) {
+		this.accumulator = 0;
+		this.accumulatorTarget = 1000 / scene.game.loop.targetFps;
+		this.accumulatorActive = false;
+	}
+
+	/**
+	 * put this in the evaluation of a while loop to update the loop in the speed set in the Game Configs for FPS
+	 * @param {number} delta
+	 */
+	AccumulatorEval(delta) {
+		if (!this.accumulatorActive) {
+			this.accumulator += delta;
+			this.accumulatorActive = true;
+		}
+
+		if (this.accumulator >= this.accumulatorTarget) {
+			//loop is running, decrease time
+			this.accumulator -= this.accumulatorTarget;
+		} else {
+			//accumulator switch off
+			this.accumulatorActive = false;
+		}
+
+		return this.accumulatorActive;
+	}
+
+	//#endregion
 	//#region debug
 
 	/**

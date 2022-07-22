@@ -101,6 +101,8 @@ export default class MovementObj extends PhyObj {
 
 		//#endregion rotation
 
+		this.accumulate = 0;
+
 		/**
 		 * vector to be used and thrown away for calculations
 		 * dont save stuff in it
@@ -117,18 +119,17 @@ export default class MovementObj extends PhyObj {
 	update(delta, time) {
 		super.update(delta, time);
 
+		this.accumulate += time;
+		if (this.accumulate > 1000) {
+			console.log("accumulate: ", this.accumulate);
+
+			this.accumulate -= 1000;
+		}
+
 		//moves mech
 		let frametime = 1000 / this.scene.game.loop.actualFps;
 		let timestimeoffset = frametime - time;
 
-		console.log(
-			"frame time: ",
-			this.scene.game.loop.actualFps,
-			"| time: ",
-			time,
-			" |offset: ",
-			timestimeoffset
-		);
 
 		this.moveRotUpdate();
 		this.moveUpdate();

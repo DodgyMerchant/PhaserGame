@@ -1,5 +1,6 @@
 import LevelEditor from "./LevelEditor";
 import UIManager from "../UI/Abstract/UIManager";
+import { UIConfig } from "../UI/UIElement";
 
 /** debugging class */
 export default class DebugSceneObj extends UIManager {
@@ -36,8 +37,7 @@ export default class DebugSceneObj extends UIManager {
 		 */
 		this.debugTextConf = {
 			color: "#00ff00",
-			font: "Courier",
-			fontSize: 5,
+			font: "16px Courier",
 		};
 
 		//#endregion
@@ -104,7 +104,14 @@ export default class DebugSceneObj extends UIManager {
 
 		//#region ui
 
-		this.UILabelCreate(
+		/** @type {UIConfig} */
+		let uiconfig = {
+			marginApplyNoParent: false,
+			margin: 0,
+			padding: 10,
+		};
+
+		this.DebugUILabel = this.UILabelCreate(
 			this,
 			"DebugNoticeLabel",
 			this.depth,
@@ -112,7 +119,7 @@ export default class DebugSceneObj extends UIManager {
 			0,
 			150,
 			20,
-			undefined,
+			uiconfig,
 			0.5,
 			0.5,
 			"Debug Enabled",
@@ -122,13 +129,79 @@ export default class DebugSceneObj extends UIManager {
 			true
 		);
 
+		this.debugUI = this.UIPanelCreate(
+			this,
+			"DebugUI",
+			this.depth,
+			0,
+			this.DebugUILabel,
+			100,
+			100,
+			uiconfig,
+			this.debugGraphConf,
+			true,
+			true
+		);
+
+		let tx1 = this.debugUI.UIE_getInnerX1(true) + 0;
+		let ty1 = this.debugUI.UIE_getInnerY1(true) + 0;
+
+		this.debugText = this.scene.add.text(tx1, ty1, "", this.debugTextConf);
+		this.debugText.setOrigin(0, 0);
+		this.debugUI.add(this.debugText);
+
 		//#endregion
+		//#region data
+
+		//enable data, set data and buil text
+		this.setDataEnabled();
+		this.debugUpdate();
+		this.debugBuildText();
+
+		this.on(
+			"setdata",
+			function (gameObject, key, value) {
+				// console.log("DEBUG - DATA set:", key, value);
+				// console.log("DEBUG - Text Add:", key, value);
+				this.debugTextKeyAdd(key, value);
+			},
+			this
+		);
+		this.on(
+			"changedata",
+			function (gameObject, key, value) {
+				// console.log("DEBUG - DATA change:", key, value);
+				// console.log("DEBUG - Text Build:");
+
+				this.debugBuildText();
+			},
+			this
+		);
+
+		//#endregion data
 
 		console.log("//////////// Debug Obj Created ////////////");
 	}
 
 	update(time, delta) {
 		super.update(time, delta);
+
+		this.debugUpdate();
+	}
+
+	debugUpdate() {
+		let obj = {
+			fps: this.scene.game.loop.actualFps.toFixed(7),
+			test: "add stuff for debug",
+		};
+
+		// Phaser.Utils.Objects.Pick(this.data.getAll ,obj);
+		// console.log("this.data.getAll", this.data.getAll());
+		// console.log("this.data.values", this.data.values);
+		if (JSON.stringify(obj) !== JSON.stringify(this.data.getAll())) {
+			// console.log("debug update text");
+			this.data.set(obj);
+		}
 	}
 
 	/**
@@ -210,5 +283,47 @@ export default class DebugSceneObj extends UIManager {
 			bool
 		);
 		this.debugGroup.add(this.levelEditor);
+	}
+
+	debugBuildText() {
+		//reste text
+		this.debugText.text = "";
+
+		this.data.each(
+			/**
+			 * @param {object} origin originator of the call
+			 * @param {string} key
+			 * @param {any} value
+			 * @param {object} context context chosen for call */
+			function (origin, key, value, context) {
+				// console.log(" - Build:", key, value);
+
+				this.debugTextKeyAdd(key, value);
+			},
+			this
+		);
+
+		let w, h;
+		if (this.debugText.width > this.debugUI.UIE_getInnerWidth()) {
+			w =
+				this.debugText.width +
+				this.debugUI.paddingLeft +
+				this.debugUI.paddingRight;
+		}
+		if (this.debugText.height > this.debugUI.UIE_getInnerHeight()) {
+			h =
+				this.debugText.height +
+				this.debugUI.paddingTop +
+				this.debugUI.paddingBottom;
+		}
+		if (w != undefined || h != undefined) {
+			this.debugUI.UIE_setSize(w, h);
+		}
+	}
+	debugTextKeyAdd(key, val) {
+		this.debugTextAdd(key + ": " + val);
+	}
+	debugTextAdd(str) {
+		this.debugText.text += str + "\n";
 	}
 }

@@ -2,6 +2,10 @@ import Phaser from "phaser";
 import SceneMain from "./scenes/SceneMain.js";
 
 var view_size = 700;
+var zoom = 1;
+var fps = 60;
+var second = 1000;
+var time_step = second / fps;
 
 /**
  * the games config
@@ -14,24 +18,33 @@ const config = {
 	height: view_size,
 	backgroundColor: "0xffffff",
 	scene: [SceneMain],
+	pixelArt: false,
+
 	scale: {
-		zoom: 1,
+		zoom: zoom,
 	},
 	input: {
 		gamepad: true,
 	},
 
-  
 	fps: {
-		min: 10,
-		target: 60,
-
-		forceSetTimeOut: false,
+		target: fps,
+		forceSetTimeOut: true,
+		deltaHistory: time_step,
 	},
+
 	physics: {
 		default: "matter",
 
 		matter: {
+			//maybe other way?
+			autoUpdate: true,
+
+			runner: {
+				isFixed: false,
+				delta: time_step,
+			},
+
 			enableSleeping: true,
 			gravity: { y: 0, x: 0 },
 			debug: {

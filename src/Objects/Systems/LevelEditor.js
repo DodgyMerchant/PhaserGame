@@ -603,7 +603,7 @@ export default class LevelEditor extends UIManager {
 			"EditButton",
 			this.depth,
 			undefined,
-			this.RightPanel.UIE_getReliveInnerY2() -
+			this.RightPanel.UIE_getInnerY2(true) -
 				saveh -
 				(typeof UIconfig.margin === "object"
 					? UIconfig.margin.Top
