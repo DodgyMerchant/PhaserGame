@@ -31,6 +31,11 @@ export default class SceneMain extends Phaser.Scene {
 
 		let jump_speed = 5;
 
+		/*
+    4 | 0.1 > 5.1 - 5.3
+    
+    */
+
 		let speed = 4; // 1.166666667
 		let connected_air_Fric = 0.1; //  // 0.1 | 1.5 // 0.01671428571 | 9.2 //
 
@@ -293,7 +298,10 @@ export default class SceneMain extends Phaser.Scene {
 		// console.log("SCENE - MAIN - fixed update");
 
 		if (this.matter.world.enabled)
-			if (!this.matter.world.autoUpdate) this.matter.step(delta);
+			if (!this.matter.world.autoUpdate) {
+				console.log("SCENE - MAIN - maual phy step");
+				this.matter.step(delta);
+			}
 	}
 
 	//#region debug

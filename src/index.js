@@ -7,6 +7,12 @@ var fps = 60;
 var second = 1000;
 var time_step = second / fps;
 
+//phy debug
+
+let phy_autoUpdate = true;
+
+
+
 /**
  * the games config
  * @type {Phaser.Types.Core.GameConfig}
@@ -39,7 +45,7 @@ const config = {
 
 		matter: {
 			//maybe other way?
-			autoUpdate: false,
+			autoUpdate: phy_autoUpdate,
 
 			runner: {
 				isFixed: false,
