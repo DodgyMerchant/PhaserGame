@@ -96,20 +96,20 @@ export default class ConnectObj extends MovementObj {
 		//#endregion
 	}
 
-	preUpdate(delta, time) {
-		super.preUpdate(delta, time);
+	preUpdate(time, delta) {
+		super.preUpdate(time, delta);
 	}
 
-	update(delta, time) {
-		super.update(delta, time);
+	update(time, delta) {
+		super.update(time, delta);
 		//my stuff
 		// console.log("CONNECT - update");
 
 		this.connUpdate();
 	}
 
-	fixedUpdate(delta, time, executesLeft) {
-		super.fixedUpdate(delta, time);
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
+		super.fixedUpdate(time, delta);
 		//stuff to perform based on fps -->
 		// console.log("CONNECT - update fixed");
 	}

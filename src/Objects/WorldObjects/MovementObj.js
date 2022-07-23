@@ -106,12 +106,12 @@ export default class MovementObj extends PhyObj {
 		this.workVec = new Phaser.Math.Vector2();
 	}
 
-	preUpdate(delta, time) {
-		super.preUpdate(delta, time);
+	preUpdate(time, delta) {
+		super.preUpdate(time, delta);
 	}
 
-	update(delta, time) {
-		super.update(delta, time);
+	update(time, delta) {
+		super.update(time, delta);
 		//my stuff
 		// console.log("MOVEMENT - update");
 
@@ -120,8 +120,8 @@ export default class MovementObj extends PhyObj {
 		// this.moveUpdate();
 	}
 
-	fixedUpdate(delta, time, executesLeft) {
-		super.fixedUpdate(delta, time);
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
+		super.fixedUpdate(time, delta);
 		//stuff to perform based on fps -->
 
 		// console.log("MOVEMENT - update fixed");
@@ -132,15 +132,10 @@ export default class MovementObj extends PhyObj {
 
 		//#region debug
 
-		let input = this.moveInputMethod();
 		// if (this.body.speed != 0 || !this.moveRotationIsSettled())
 		// 	console.log(
 		// 		"trn spd: ",
 		// 		this.move_RotSpeed.toFixed(2),
-		// 		"input: ",
-		// 		input.x.toFixed(2),
-		// 		"/",
-		// 		input.y.toFixed(2),
 		// 		" | spd: ",
 		// 		this.body.speed.toFixed(4),
 		// 		" | vel: ",
@@ -152,7 +147,11 @@ export default class MovementObj extends PhyObj {
 		if (this.body.speed != 0)
 			console.log(
 				"fps: ",
-				this.scene.game.loop.actualFps,
+				this.scene.game.loop.actualFps.toFixed(2),
+				" / ",
+				this.scene.game.loop.targetFps,
+				" / ",
+				delta,
 				"spd: ",
 				this.body.speed.toFixed(4)
 			);

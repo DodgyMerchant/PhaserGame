@@ -17,15 +17,15 @@ export default class worldObjSprite extends Phaser.Physics.Matter.Sprite {
 		super(world, x, y, textture, frame, options);
 	}
 
-	preUpdate(delta, time) {
-		super.preUpdate(delta, time);
+	preUpdate(time, delta) {
+		super.preUpdate(time, delta);
 	}
 
-	update(delta, time) {
-		super.update(delta, time);
+	update(time, delta) {
+		super.update(time, delta);
 
 		//use accumulator
-		this.fixedUpdateCall(delta, time);
+		this.fixedUpdateCall(time, delta);
 	}
 
 	/**
@@ -38,8 +38,8 @@ export default class worldObjSprite extends Phaser.Physics.Matter.Sprite {
 	 * @param {number} delta time passed since last frame in milliseconds
 	 * @param {number} executesLeft the number of times the accumulator will be active and the fixed update called. NOTICE left means what is left!! in call this means that is was reduced by one before this call.
 	 */
-	fixedUpdate(delta, time, executesLeft) {
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
 		//END OF FIXED UPDATE CHAIN
-		// super.fixedUpdate(delta, time);
+		// super.fixedUpdate(time, delta);
 	}
 }

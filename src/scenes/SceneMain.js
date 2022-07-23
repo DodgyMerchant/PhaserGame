@@ -193,6 +193,9 @@ export default class SceneMain extends Phaser.Scene {
 		this.saveableList = new Array();
 
 		//#endregion
+
+		this.fixedCount = 0;
+		this.fixedNumCount = 0;
 	}
 
 	preload() {
@@ -292,14 +295,28 @@ export default class SceneMain extends Phaser.Scene {
 		// console.log("SCENE - MAIN - update");
 
 		this.fixedUpdateCall(time, delta);
+
+		this.fixedCount += delta;
+		if (this.fixedCount >= 1000) {
+			console.log(
+				"SCENE - MAIN - update count: ",
+				this.fixedCount,
+				this.fixedNumCount
+			);
+
+			this.fixedCount -= 1000;
+			this.fixedNumCount = 0;
+		}
 	}
 
-	fixedUpdate(time, delta, executesLeft) {
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
 		// console.log("SCENE - MAIN - fixed update");
+
+		this.fixedNumCount++;
 
 		if (this.matter.world.enabled)
 			if (!this.matter.world.autoUpdate) {
-				console.log("SCENE - MAIN - maual phy step");
+				// console.log("SCENE - MAIN - maual phy step");
 				this.matter.step(delta);
 			}
 	}
@@ -539,7 +556,7 @@ export class ACCUMULATOR {
 	 */
 	static AccumulatorSetup(obj, scene) {
 		/**
-		 * collects the not used millisecond between frames.
+		 * collects the delta not used millisecond between frames.
 		 * @type {number} number
 		 */
 		obj.accumulator = 0;
@@ -571,7 +588,11 @@ export class ACCUMULATOR {
 		 */
 		obj.fixedUpdateCall = function (time, delta) {
 			while (this.accumulatorEval(delta)) {
-				this.fixedUpdate(time, delta, this.accumulatorExecutesLeft);
+				this.fixedUpdate(
+					time,
+					this.accumulatorTarget,
+					this.accumulatorExecutesLeft
+				);
 			}
 		};
 
@@ -609,14 +630,14 @@ export class ACCUMULATOR {
 					this.accumulator / this.accumulatorTarget
 				);
 
-				//deduct used frame time for loops that will happen
+				//deduct used frame delta for loops that will happen
 				this.accumulator -=
 					this.accumulatorTarget * this.accumulatorExecutesLeft;
 			}
 
 			if (this.accumulatorExecutesLeft > 0) {
 				this.accumulatorExecutesLeft--;
-				//loop is running, decrease time
+				//loop is running, decrease times to run
 			} else {
 				//accumulator switch off
 				this.accumulatorActive = false;

@@ -9,7 +9,8 @@ var time_step = second / fps;
 
 //phy debug
 
-let phy_autoUpdate = true;
+let fps_lock = false;
+let phy_autoUpdate = false;
 
 /**
  * the games config
@@ -33,8 +34,9 @@ const config = {
 
 	fps: {
 		target: fps,
+		smoothStep: true,
 		// forceSetTimeOut: false,
-		forceSetTimeOut: true,
+		forceSetTimeOut: fps_lock,
 		deltaHistory: time_step,
 	},
 

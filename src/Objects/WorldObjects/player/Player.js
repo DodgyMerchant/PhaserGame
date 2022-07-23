@@ -101,21 +101,21 @@ export default class Player extends ConnectObj {
 		//#endregion
 	}
 
-	preUpdate(delta, time) {
-		super.preUpdate(delta, time);
+	preUpdate(time, delta) {
+		super.preUpdate(time, delta);
 	}
 
-	update(delta, time) {
+	update(time, delta) {
 		//update player input
 		// console.log("PLAYER - update");
 
 		this.inputDir = this.getInputVector(this.inputDir);
 
-		super.update(delta, time);
+		super.update(time, delta);
 	}
 
-	fixedUpdate(delta, time, executesLeft) {
-		super.fixedUpdate(delta, time);
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
+		super.fixedUpdate(time, delta);
 		//stuff to perform based on fps -->
 		// console.log("PLAYER - update fixed");
 	}
