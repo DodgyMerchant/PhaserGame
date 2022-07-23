@@ -9,7 +9,7 @@ var time_step = second / fps;
 
 //phy debug
 
-let fps_lock = false;
+let fps_lock = true;
 let phy_autoUpdate = false;
 
 /**
