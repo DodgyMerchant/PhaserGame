@@ -1,5 +1,6 @@
 import ConnectObj from "../ConnectObj";
-import { State } from "../MovementObj";
+import { State, MovementConfig } from "../MovementObj";
+import { ConnectConfig } from "../ConnectObj";
 import { CollisionCategory } from "../PhyObj";
 
 /**
@@ -16,23 +17,13 @@ export default class Player extends ConnectObj {
 			config.x,
 			config.y,
 			config.textureBody_Key,
-			config.state,
-			config.connCat,
-			config.connWith,
-			undefined,
-			undefined,
-			undefined,
+			config.connConf,
+			config.moveConf,
 			config.phyConfig
 		);
 
 		//general
 		this.setName(config.name);
-
-		this.setBody({
-			type: "circle",
-			addToWorld: true,
-			radius: 20,
-		});
 
 		//#region input
 
@@ -57,7 +48,10 @@ export default class Player extends ConnectObj {
 		super.moveRotMethodSet(this.getInputRotationVector);
 		super.connJumpInputMethod = this.getInputJumpVector;
 
-		this.setFriction(0.1);
+		/* 
+    ////////////pre fps update///////////
+
+    this.setFriction(0.1);
 		this.setFrictionStatic(0.1);
 		this.setDensity(1);
 
@@ -67,6 +61,7 @@ export default class Player extends ConnectObj {
 		super.move_RotSpeed = 0;
 
 		super.connRange = 100;
+    //*/
 
 		//#endregion
 		//#region rotation
@@ -78,22 +73,22 @@ export default class Player extends ConnectObj {
 			 * rotation speed minimum
 			 * @type {number}
 			 */
-			rotSpdMin: 0.1, //0.13
+			rotSpdMin: config.rotSpdMin,
 			/**
 			 * rotation speed maximum
 			 * @type {number}
 			 */
-			rotSpdMax: 0.03, //0.05 >  > 0.03
+			rotSpdMax: config.rotSpdMax,
 			/**
 			 * start of the speed range that scales rotation speed
 			 * @type {number}
 			 */
-			rotSpdMinRange: 1,
+			rotSpdMinRange: config.rotSpdMinRange,
 			/**
 			 * end of the speed range that scales rotation speed
 			 * @type {number}
 			 */
-			rotSpdMaxRange: 2.5,
+			rotSpdMaxRange: config.rotSpdMaxRange,
 		};
 
 		//#endregion
@@ -106,18 +101,25 @@ export default class Player extends ConnectObj {
 		//#endregion
 	}
 
-	//#region phaser methods
-	preUpdate(delta, time) {
-		super.preUpdate(delta, time);
+	preUpdate(time, delta) {
+		super.preUpdate(time, delta);
 	}
 
-	update(delta, time) {
+	update(time, delta) {
 		//update player input
+		// console.log("PLAYER - update");
+
 		this.inputDir = this.getInputVector(this.inputDir);
 
-		super.update(delta, time);
+		super.update(time, delta);
 	}
-	//#endregion
+
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
+		super.fixedUpdate(time, delta);
+		//stuff to perform based on fps -->
+		// console.log("PLAYER - update fixed");
+	}
+
 	//#region input
 
 	/**
@@ -227,11 +229,18 @@ export default class Player extends ConnectObj {
  * name: (string),
  * x: (number),
  * y: (number),
- * state: (State),
  * textureBody_Key: (string | Phaser.Textures.Texture),
- * connCat: (CollisionCategory | CollisionCategory[]),
- * connWith: (CollisionCategory | CollisionCategory[]),
+ * rotSpdMin: (number),
+ * rotSpdMax: (number),
+ * rotSpdMinRange: (number),
+ * rotSpdMaxRange: (number),
+ * connConf: (ConnectConfig),
+ * moveConf: (MovementConfig),
  * phyConfig: (Phaser.Types.Physics.Matter.MatterBodyConfig | undefined),
  * }} PlayerConfig Config for a player object
  *
  */
+/**
+ * @type {PlayerConfig}
+ */
+let obj = {};

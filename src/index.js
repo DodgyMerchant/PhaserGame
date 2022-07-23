@@ -2,6 +2,17 @@ import Phaser from "phaser";
 import SceneMain from "./scenes/SceneMain.js";
 
 var view_size = 700;
+var zoom = 1;
+var fps = 60;
+var second = 1000;
+var time_step = second / fps;
+let fps_lock = true; //kan umgestellt werden, hat keinen einfluss auf fixedUpdates
+
+//phy debug
+
+//solange die delta die die phy engined benutzt nicht gesetzt werden,
+//muss das engione update manuell performt werden
+let phy_autoUpdate = false;
 
 /**
  * the games config
@@ -14,24 +25,35 @@ const config = {
 	height: view_size,
 	backgroundColor: "0xffffff",
 	scene: [SceneMain],
+	pixelArt: false,
+
 	scale: {
-		zoom: 1,
+		zoom: zoom,
 	},
 	input: {
 		gamepad: true,
 	},
 
-  
 	fps: {
-		min: 10,
-		target: 60,
-
-		forceSetTimeOut: false,
+		target: fps,
+		smoothStep: true,
+		// forceSetTimeOut: false,
+		forceSetTimeOut: fps_lock,
+		deltaHistory: time_step,
 	},
+
 	physics: {
 		default: "matter",
 
 		matter: {
+			//maybe other way?
+			autoUpdate: phy_autoUpdate,
+
+			runner: {
+				isFixed: false,
+				delta: time_step,
+			},
+
 			enableSleeping: true,
 			gravity: { y: 0, x: 0 },
 			debug: {
