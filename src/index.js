@@ -11,8 +11,6 @@ var time_step = second / fps;
 
 let phy_autoUpdate = true;
 
-
-
 /**
  * the games config
  * @type {Phaser.Types.Core.GameConfig}

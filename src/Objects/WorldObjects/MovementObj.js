@@ -76,7 +76,7 @@ export default class MovementObj extends PhyObj {
 		this.move_CanMove = true;
 		/** movement input and movement are disabled */
 		this.move_Frozen = false;
-		
+
 		///SPEED
 		/** movement speed*/
 		this.move_Speed = movementConfig.speed;
@@ -133,20 +133,28 @@ export default class MovementObj extends PhyObj {
 		//#region debug
 
 		let input = this.moveInputMethod();
-		if (this.body.speed != 0 || !this.moveRotationIsSettled())
+		// if (this.body.speed != 0 || !this.moveRotationIsSettled())
+		// 	console.log(
+		// 		"trn spd: ",
+		// 		this.move_RotSpeed.toFixed(2),
+		// 		"input: ",
+		// 		input.x.toFixed(2),
+		// 		"/",
+		// 		input.y.toFixed(2),
+		// 		" | spd: ",
+		// 		this.body.speed.toFixed(4),
+		// 		" | vel: ",
+		// 		this.body.velocity.x.toFixed(2),
+		// 		"/",
+		// 		this.body.velocity.y.toFixed(2)
+		// 	);
+
+		if (this.body.speed != 0)
 			console.log(
-				"trn spd: ",
-				this.move_RotSpeed.toFixed(2),
-				"input: ",
-				input.x.toFixed(2),
-				"/",
-				input.y.toFixed(2),
-				" | spd: ",
-				this.body.speed.toFixed(4),
-				" | vel: ",
-				this.body.velocity.x.toFixed(2),
-				"/",
-				this.body.velocity.y.toFixed(2)
+				"fps: ",
+				this.scene.game.loop.actualFps,
+				"spd: ",
+				this.body.speed.toFixed(4)
 			);
 
 		//#endregion
