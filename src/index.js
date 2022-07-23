@@ -29,6 +29,7 @@ const config = {
 
 	fps: {
 		target: fps,
+		// forceSetTimeOut: false,
 		forceSetTimeOut: true,
 		deltaHistory: time_step,
 	},
@@ -38,7 +39,7 @@ const config = {
 
 		matter: {
 			//maybe other way?
-			autoUpdate: true,
+			autoUpdate: false,
 
 			runner: {
 				isFixed: false,

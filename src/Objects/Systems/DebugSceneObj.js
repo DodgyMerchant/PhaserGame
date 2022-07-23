@@ -191,7 +191,7 @@ export default class DebugSceneObj extends UIManager {
 
 	debugUpdate() {
 		let obj = {
-			fps: this.scene.game.loop.actualFps.toFixed(7),
+			fps: this.scene.game.loop.actualFps.toFixed(2),
 			test: "add stuff for debug",
 		};
 

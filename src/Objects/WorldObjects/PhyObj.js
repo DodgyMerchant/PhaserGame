@@ -60,6 +60,15 @@ export default class PhyObj extends worldObjSprite {
 
 	update(delta, time) {
 		super.update(delta, time);
+    //my stuff
+		// console.log("PHYOBJ - update");
+
+	}
+
+	fixedUpdate(delta, time, executesLeft) {
+		super.fixedUpdate(delta, time);
+    //stuff to perform based on fps -->
+		// console.log("PHYOBJ - update fixed");
 	}
 
 	//#region phys

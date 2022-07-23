@@ -14,28 +14,12 @@ export default class ConnectObj extends MovementObj {
 	 * @param {number} x position
 	 * @param {number} y position
 	 * @param {string | Phaser.Textures.Texture} texture texture to display as the object texture
-	 * @param {State} state tstate the object is in
-	 * @param {CollisionCategory | CollisionCategory[]} connCat collision categories for the connection determination shaape
-	 * @param {CollisionCategory | CollisionCategory[]} connWith collision categories for the connection determination shaape
-	 * @param {method | undefined} moveMeth Method called to get input for movement, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set moveInputMethod
-	 * @param {method | boolean | undefined} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation. If it cant be supplied set moveInputMethod.
-	 * @param {method | undefined} jumpMeth Method called to get input for jumping, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set connJumpInputMethod.
+	 * @param {ConnectConfig} connectConfig connectconfig object
+	 * @param {MovementConfig} movementConfig MovementConfig object
 	 * @param {Phaser.Types.Physics.Matter.MatterBodyConfig | undefined} phyConfig config obj.
 	 */
-	constructor(
-		scene,
-		x,
-		y,
-		texture,
-		state,
-		connCat,
-		connWith,
-		moveMeth,
-		rotMeth,
-		jumpMeth,
-		phyConfig
-	) {
-		super(scene, x, y, texture, state, moveMeth, rotMeth, phyConfig);
+	constructor(scene, x, y, texture, connectConfig, movementConfig, phyConfig) {
+		super(scene, x, y, texture, movementConfig, phyConfig);
 
 		//#region movement
 
@@ -46,16 +30,20 @@ export default class ConnectObj extends MovementObj {
 		 * @type method
 		 */
 		this.connJumpInputMethod;
-		if (jumpMeth != undefined) this.connJumpInputMethod = jumpMeth;
+		if (connectConfig.jumpMeth != undefined)
+			this.connJumpInputMethod = connectConfig.jumpMeth;
 
 		/** movement speed when jumping */
-		this.connSpdJump = 0;
+		this.connSpdJump = connectConfig.jumpSpeed;
 
 		/**
 		 * if object gave jump input
 		 * @type {boolean} boolean
 		 */
 		this.connJumping = false;
+
+		/** air friction of the object if connected */
+		this.move_ConnAirFric = connectConfig.connAirFric;
 
 		//#endregion
 		//#region connections (tentacles)
@@ -71,7 +59,7 @@ export default class ConnectObj extends MovementObj {
 		 * range in wich connection to aa object is possible
 		 * @type {number} value in pixels
 		 */
-		this.connRange = 10;
+		this.connRange = connectConfig.range;
 
 		/**
 		 * the range circle used for calculations
@@ -83,8 +71,8 @@ export default class ConnectObj extends MovementObj {
 			this.connRange,
 			{
 				collisionFilter: {
-					category: connCat,
-					mask: connWith,
+					category: connectConfig.connCat,
+					mask: connectConfig.connWith,
 				},
 				mass: 0,
 				ignoreGravity: true,
@@ -114,8 +102,16 @@ export default class ConnectObj extends MovementObj {
 
 	update(delta, time) {
 		super.update(delta, time);
+		//my stuff
+		// console.log("CONNECT - update");
 
 		this.connUpdate();
+	}
+
+	fixedUpdate(delta, time, executesLeft) {
+		super.fixedUpdate(delta, time);
+		//stuff to perform based on fps -->
+		// console.log("CONNECT - update fixed");
 	}
 
 	//#region movement
@@ -207,3 +203,24 @@ export default class ConnectObj extends MovementObj {
 
 	//#endregion
 }
+
+/*
+
+	 * @param {CollisionCategory | CollisionCategory[]} connCat collision categories for the connection determination shaape
+	 * @param {CollisionCategory | CollisionCategory[]} connWith collision categories for the connection determination shaape
+	 * @param {method | undefined} jumpMeth Method called to get input for jumping, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set connJumpInputMethod.
+*/
+/**
+ * @typedef {{
+ * range: (number),
+ * jumpSpeed: (number),
+ * connAirFric: (number),
+ * connCat: (CollisionCategory | CollisionCategory[]),
+ * connWith: (CollisionCategory | CollisionCategory[]),
+ * jumpMeth: (method | undefined),
+ * }} ConnectConfig Config for a connect object
+ */
+/**
+ * @type {ConnectConfig}
+ */
+let obj = {};
