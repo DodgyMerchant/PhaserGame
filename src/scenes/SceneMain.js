@@ -193,9 +193,6 @@ export default class SceneMain extends Phaser.Scene {
 		this.saveableList = new Array();
 
 		//#endregion
-
-		this.fixedCount = 0;
-		this.fixedNumCount = 0;
 	}
 
 	preload() {
@@ -295,24 +292,10 @@ export default class SceneMain extends Phaser.Scene {
 		// console.log("SCENE - MAIN - update");
 
 		this.fixedUpdateCall(time, delta);
-
-		this.fixedCount += delta;
-		if (this.fixedCount >= 1000) {
-			console.log(
-				"SCENE - MAIN - update count: ",
-				this.fixedCount,
-				this.fixedNumCount
-			);
-
-			this.fixedCount -= 1000;
-			this.fixedNumCount = 0;
-		}
 	}
 
 	fixedUpdate(time, delta, executesLeft, looseDelta) {
 		// console.log("SCENE - MAIN - fixed update");
-
-		this.fixedNumCount++;
 
 		if (this.matter.world.enabled)
 			if (!this.matter.world.autoUpdate) {

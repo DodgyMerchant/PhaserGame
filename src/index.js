@@ -6,10 +6,12 @@ var zoom = 1;
 var fps = 60;
 var second = 1000;
 var time_step = second / fps;
+let fps_lock = true; //kan umgestellt werden, hat keinen einfluss auf fixedUpdates
 
 //phy debug
 
-let fps_lock = true;
+//solange die delta die die phy engined benutzt nicht gesetzt werden,
+//muss das engione update manuell performt werden
 let phy_autoUpdate = false;
 
 /**
