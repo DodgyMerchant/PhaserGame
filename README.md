@@ -21,15 +21,16 @@ all assest should be loaded in by json files.
    Phaser > Types > Loader > FileTypes.
    if searching is not your thing and intellisense is fully funktional:
    this the files property will have an annotation that has a link to the Phaser FileTypes.
-   
+
    ``
-   /**
-     * @type {Phaser.Types.Loader.FileTypes.PackFileSection}
-     */
-    let obj = {
-      files,
-    }
-   ``
+   /\*\*
+
+   - @type {Phaser.Types.Loader.FileTypes.PackFileSection}
+     \*/
+     let obj = {
+     files,
+     }
+     ``
 
 there are 4 types of asset json files, some specific to objects some general:
 
