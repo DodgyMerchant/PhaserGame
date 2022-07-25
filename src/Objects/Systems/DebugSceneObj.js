@@ -1,6 +1,7 @@
 import LevelEditor from "./LevelEditor";
 import UIManager from "../UI/Abstract/UIManager";
 import { UIConfig } from "../UI/UIElement";
+import ACCUMULATOR from "./Accumulator";
 
 /** debugging class */
 export default class DebugSceneObj extends UIManager {
@@ -43,10 +44,14 @@ export default class DebugSceneObj extends UIManager {
 		//#endregion
 		//#region setup
 
+		// ACCUMULATOR.AccumulatorSetup(this, this.scene);//added throuch group
+
 		/** debug group
 		 * @type {Phaser.GameObjects.Group} group for debug
 		 */
 		this.debugGroup = this.scene.add.group({ runChildUpdate: true });
+		ACCUMULATOR.AccumulatorGroupSetup(this.debugGroup);
+
 		this.debugGroup.add(this);
 
 		this.toggle(bool);
@@ -101,7 +106,6 @@ export default class DebugSceneObj extends UIManager {
 		);
 
 		//#endregion
-
 		//#region ui
 
 		/** @type {UIConfig} */
@@ -184,11 +188,32 @@ export default class DebugSceneObj extends UIManager {
 	}
 
 	update(time, delta) {
-		super.update(time, delta);
-
 		this.debugUpdate();
+
+		//use accumulator
+		this.fixedUpdateCall(time, delta);
+
+		super.update(time, delta);
 	}
 
+	/**
+	 * update called depending on fps set
+	 * this is to overridden by objects that want to use it
+	 * its is recommended to user call the function. F.e: super.fixedUpdate(time, delta);
+	 *
+	 * @see ACCUMULATOR
+	 * @param {number} time time passed since game start in milliseconds
+	 * @param {number} delta time passed since last frame in milliseconds
+	 * @param {number} executesLeft the number of times the accumulator will be active and the fixed update called. NOTICE left means what is left!! in call this means that is was reduced by one before this call.
+	 */
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
+		//END OF FIXED UPDATE CHAIN
+		// super.fixedUpdate(time, delta);
+	}
+
+	/**
+	 * update debug stuff
+	 */
 	debugUpdate() {
 		let obj = {
 			fps: this.scene.game.loop.actualFps.toFixed(2),

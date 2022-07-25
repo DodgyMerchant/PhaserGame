@@ -107,7 +107,7 @@ export default class UIObj extends Phaser.GameObjects.Container {
 		this.list.forEach((child) => {
 			if (child instanceof UIObj) {
 				// console.log("refresh child: ", child.name);
-				element.refresh();
+				child.refresh();
 			}
 		});
 	}

@@ -1,18 +1,22 @@
 import Player, { PlayerConfig } from "../Objects/WorldObjects/player/Player";
 import { STATES } from "../Objects/WorldObjects/MovementObj";
-import PhyObj, { COLLCAT } from "../Objects/WorldObjects/PhyObj";
+import { COLLCAT } from "../Objects/WorldObjects/PhyObj";
 import DebugSceneObj from "../Objects/Systems/DebugSceneObj";
 import wallObjInter from "../Objects/WorldObjects/Walls/wallObjInter";
+import ACCUMULATOR from "../Objects/Systems/Accumulator";
+import GameScenes from "./abstract/GameScenes";
 
-export default class SceneMain extends Phaser.Scene {
+export default class SceneMainGame extends GameScenes {
+	/**
+	 *
+	 * @param {string[]} zones zones to load
+	 */
 	constructor() {
-		super({
-			key: "SceneMain",
-			visible: true,
-			active: true,
-		});
+		super();
 
-		// thisstep;
+		this.debug_issetup = true;
+		this.debug_enabled = true;
+		this.debug_leveleditor = true;
 
 		//#region setup
 
@@ -140,11 +144,6 @@ export default class SceneMain extends Phaser.Scene {
 			//#endregion
 		};
 
-		/** debug object if created
-		 * @type {DebugSceneObj} debugging object
-		 */
-		this.debug;
-
 		//#endregion
 		//#region game objects
 
@@ -164,24 +163,16 @@ export default class SceneMain extends Phaser.Scene {
 		//#endregion
 		//#region loading
 
-		/** loading bar object
-		 * @type {Phaser.GameObjects.Graphics} graphics object
-		 */
-		this.load_bar;
-
 		/**
-		 * @type {Phaser.Types.Loader.FileTypes.JSONFileConfig}
+		 * list of all zones
+		 * @type {object[]} list of objects
 		 */
-		this.fileConf = {
-			key: "tutorialData",
-			url: "src/assets/assets.json",
-			dataKey: "tutorial",
-		};
-
+		this.zoneList;
 		/**
-		 * @type {Phaser.Types.Loader.FileTypes.JSONFileConfig[]}
+		 * list of all loaded zones
+		 * @type {string[]} list of cache keys
 		 */
-		this.loadList = [this.fileConf];
+		this.zoneLoadedList = [];
 
 		//#endregion
 		//#region saving
@@ -196,33 +187,12 @@ export default class SceneMain extends Phaser.Scene {
 	}
 
 	preload() {
-		//#region  debug
-
-		//load abung of stuff
-		// for (let index = 0; index < 500; index++) {
-		// 	this.load.pack("tutorialData" + index, "src/assets/assets.json", "tutorial");
-		// }
-
-		//#endregion
-
-		this.load.pack(this.loadList);
-
-		// this.load.json(this.loadList);
-
-		// for (let index = 0; index < this.loadList.length; index++) {
-		// 	const loadConfig = this.loadList[index];
-
-		// 	console.log("LOAD - ", loadConfig);
-		// 	this.load.addFile(this.game.cache.json.get(loadConfig.key).files);
-		// }
-
-		// this.load.json("level", "src/assets/level.json");
-
-		//create loading bar
-		this.loadBarCreate();
+		super.preload();
 	}
 
 	create() {
+		super.create();
+
 		//#region accumulator
 
 		ACCUMULATOR.AccumulatorSetup(this, this);
@@ -230,7 +200,9 @@ export default class SceneMain extends Phaser.Scene {
 		//#endregion
 		//#region debug enabling
 
-		this.debug_setup(true, true);
+		if (this.debug_issetup)
+			//muste be over level create to manipulate level loading
+			this.debug_setup(this.debug_enabled, this.debug_leveleditor);
 
 		// console.log("loaded: ");
 		// this.cache.json.getKeys().forEach((element) => {
@@ -238,13 +210,23 @@ export default class SceneMain extends Phaser.Scene {
 		// });
 
 		//#endregion
-		//#region create level
-		let datakey = this.fileConf.dataKey;
-		let data = this.game.cache.json.get(this.fileConf.key);
+		//#region level
 
+		this.zoneList = this.cache.json.get("zones");
+
+		//#region get zones to load
+
+		//#endregion
+
+		//#region creating zones
+
+		console.log("SceneMainGame - temp map loading");
+
+		let data = this.game.cache.json.get("Zone_Tutorial");
 		console.log("CREATELEVEL - data: ", data);
+		this.CreateMapFromData(data.mapData);
 
-		this.CreateLevel(data.tutorial.mapData);
+		//#endregion
 
 		//#endregion
 		//#region aliveGroup
@@ -252,12 +234,9 @@ export default class SceneMain extends Phaser.Scene {
 		this.aliveGroup = this.add.group({
 			name: "AliveGroup",
 			runChildUpdate: true,
-			createCallback: function (item) {
-				console.log("SCENE - MAIN - alivegroup item create: ", item.name);
-
-				ACCUMULATOR.AccumulatorSetup(item, item.scene);
-			},
 		});
+
+		ACCUMULATOR.AccumulatorGroupSetup(this.aliveGroup);
 
 		//#endregion
 		//#region game objects
@@ -285,10 +264,11 @@ export default class SceneMain extends Phaser.Scene {
 
 		//#endregion
 
-		console.log("//////////// SceneMain Created Done ////////////");
+		console.log("//////////// SceneMainGame Created Done ////////////");
 	}
 
 	update(time, delta) {
+		super.update();
 		// console.log("SCENE - MAIN - update");
 
 		this.fixedUpdateCall(time, delta);
@@ -312,6 +292,9 @@ export default class SceneMain extends Phaser.Scene {
 	 * @param {boolean} levelEditor if level editor should be created?
 	 */
 	debug_setup(bool, levelEditor) {
+		/** debug object if created
+		 * @type {DebugSceneObj} debugging object
+		 */
 		this.debug = new DebugSceneObj(this, bool, levelEditor);
 
 		console.log("debug setup done");
@@ -452,52 +435,15 @@ export default class SceneMain extends Phaser.Scene {
 	//#endregion
 	//#region loading
 
-	loadBarCreate() {
-		let h = 25;
-
-		let loadBarConfig = {
-			x1: 0,
-			y1: this.game.renderer.height - h,
-			w: this.game.renderer.width,
-			h: h,
-			color: 0x00ffff,
-			alpha: 1,
-		};
-
-		this.load_bar = this.add.graphics({
-			fillStyle: {
-				alpha: loadBarConfig.alpha,
-				color: loadBarConfig.color,
-			},
-		});
-
-		this.load.on("progress", (p) => {
-			//draw loaading bar
-			this.load_bar.fillRect(
-				loadBarConfig.x1,
-				loadBarConfig.y1,
-				loadBarConfig.w * p,
-				loadBarConfig.h
-			);
-
-			console.log("loading%: ", p);
-		});
-		this.load.on("complete", (percent) => {
-			//draw loaading bar
-			// this.scene.start()
-			this.load_bar.destroy(true);
-		});
-	}
-
 	/**
 	 *
 	 * @param {object} key
 	 */
-	CreateLevel(mapdata) {
+	CreateMapFromData(mapdata) {
 		console.log("mapdata.collisionInstances", mapdata.collisionInstances);
 
 		mapdata.collisionInstances.forEach((element) => {
-			this.mapObjVertCreate(element.vert, true);
+			this.mapObjVertCreate(element.vert, this.debug_issetup);
 		});
 	}
 
@@ -519,114 +465,25 @@ export default class SceneMain extends Phaser.Scene {
 		}
 	}
 
-	//#endregion
-}
-
-/**
- * abstract class
- * an accumulator manages the a fixedUpdate function which is called based on the set fps.
- * sets up the accumulator inside any object AccumulatorSetup setup is performed on.
- * YOU HAVE TO call the fixedUpdateCall function, in wich the accumulator will call the FROM YOU DEFINED fixedUpdate depending on the fps.
- * See fixedUpdate and fixedUpdateCall methods inside the AccumulatorSetup method for more information.
- */
-export class ACCUMULATOR {
 	/**
-	 * sets up the accumulator.
-	 * Uses the speed set in the Game Configs for FPS.
-	 *
-	 * @param {object} obj object to set up the accumulator in
-	 * @param {Phaser.Scene} scene the scene this object uses
+	 * checks of position falls into a zone
+	 * @param {number} x position in world space
+	 * @param {number} y position in world space
+	 * @returns {string[]} list with cache strings referring to the zones
 	 */
-	static AccumulatorSetup(obj, scene) {
-		/**
-		 * collects the delta not used millisecond between frames.
-		 * @type {number} number
-		 */
-		obj.accumulator = 0;
-		/**
-		 * @type {number} number
-		 */
-		obj.accumulatorTarget = 1000 / scene.game.loop.targetFps;
-		/**
-		 * if the accumulator is active.
-		 * That means it is calling its fixedUpdate one/multiple times.
-		 * @type {boolean} number
-		 */
-		obj.accumulatorActive = false;
-		/**
-		 * the number of times the accumulator will be active and the fixed update called.
-		 * NOTICE left means what is left!! in call this means that is was reduced by one before this call.
-		 *
-		 * @type {number} number
-		 */
-		obj.accumulatorExecutesLeft = 0;
+	zoneCheckPos(x, y) {
+		let result = [];
+		let leng = this.zoneList.length;
+		let zoneEntry;
+		for (let index = 0; index < leng; index++) {
+			//get zone entry from list
+			zoneEntry = this.zoneList[index];
 
-		//methods
-		/**
-		 * calls the fixedUpdate function using the setup accumulator
-		 *
-		 * @see ACCUMULATOR
-		 * @param {number} time time passed since game start in milliseconds
-		 * @param {number} delta time passed since last frame in milliseconds
-		 */
-		obj.fixedUpdateCall = function (time, delta) {
-			while (this.accumulatorEval(delta)) {
-				this.fixedUpdate(
-					time,
-					this.accumulatorTarget,
-					this.accumulatorExecutesLeft
-				);
+			if (Phaser.Geom.Polygon.Contains(zoneEntry.poly, x, y)) {
+				result.push(zoneEntry.key);
 			}
-		};
-
-		/**
-		 * update called depending on fps set
-		 * this is to overridden by objects that want to use it
-		 * its is recommended to user call the function. F.e: super.fixedUpdate(time, delta);
-		 *
-		 * @see ACCUMULATOR
-		 * @param {number} time time passed since game start in milliseconds
-		 * @param {number} delta time passed since last frame in milliseconds
-		 * @param {number} executesLeft the number of times the accumulator will be active and the fixed update called. NOTICE left means what is left!! in call this means that is was reduced by one before this call.
-		 */
-		obj.fixedUpdate;
-		// obj.fixedUpdate = function (time, delta, executesLeft) {
-		//   console.log("ACCUMULATOR - fixedUpdate not overwritten: ", );
-		// };
-
-		/**
-		 * evaluated how often the accumulator should call the fixedUpdate function.
-		 * used internally
-		 * @param {number} delta
-		 */
-		obj.accumulatorEval = function (delta) {
-			if (!this.accumulatorActive) {
-				//add delta
-				this.accumulator += delta;
-				//set active
-				this.accumulatorActive = true;
-
-				// console.log("accumulator", this.accumulator);
-
-				//calc loop number
-				this.accumulatorExecutesLeft = Math.floor(
-					this.accumulator / this.accumulatorTarget
-				);
-
-				//deduct used frame delta for loops that will happen
-				this.accumulator -=
-					this.accumulatorTarget * this.accumulatorExecutesLeft;
-			}
-
-			if (this.accumulatorExecutesLeft > 0) {
-				this.accumulatorExecutesLeft--;
-				//loop is running, decrease times to run
-			} else {
-				//accumulator switch off
-				this.accumulatorActive = false;
-			}
-
-			return this.accumulatorActive;
-		};
+		}
 	}
+
+	//#endregion
 }

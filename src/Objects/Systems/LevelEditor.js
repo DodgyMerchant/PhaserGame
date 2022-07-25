@@ -1,5 +1,6 @@
 import UIManager from "../UI/Abstract/UIManager";
-import { UIConfig } from "../UI/UIElement";
+import UIButton from "../UI/UIButton";
+import UIElement, { UIConfig } from "../UI/UIElement";
 import worldObjImage from "../WorldObjects/abstract/worldObjImage";
 import worldObjSprite from "../WorldObjects/abstract/worldObjSprite";
 import wallObjInter from "../WorldObjects/Walls/wallObjInter";
@@ -20,11 +21,20 @@ export default class LevelEditor extends UIManager {
 	constructor(name, scene, debugGroup, x, y, bool) {
 		super(name, scene, 1000, x, y, undefined, true, true, undefined);
 
-		//#region this obj setup
-		/**
-		 * @type {Phaser.GameObjects.Group} group im in
-		 */
-		this.group = debugGroup;
+		//#region loading
+
+		this.assestsDataKey = "levelEditorAssets";
+		this.assets = new Map();
+		this.loadAssets();
+
+		let myMap =
+			//#endregion
+
+			//#region this obj setup
+			/**
+			 * @type {Phaser.GameObjects.Group} group im in
+			 */
+			(this.group = debugGroup);
 
 		this.scene.input.mouse.disableContextMenu();
 
@@ -163,7 +173,7 @@ export default class LevelEditor extends UIManager {
 		};
 
 		//#endregion
-		//other config
+		//#region other config
 
 		/**
 		 * config obj for interactive objects
@@ -192,6 +202,8 @@ export default class LevelEditor extends UIManager {
 			minZoom: 0.1,
 			zoomWheelComp: 8,
 		};
+
+		//#endregion
 
 		//#endregion
 		//#region input
@@ -410,6 +422,11 @@ export default class LevelEditor extends UIManager {
 			margin: 2,
 			padding: 2,
 		};
+		let UIAssetGridconfig = {
+			marginApplyNoParent: false,
+			margin: 0,
+			padding: 0,
+		};
 
 		let w = this.displayWidth / this.scaleX;
 		let h = this.displayHeight / this.scaleY;
@@ -511,22 +528,65 @@ export default class LevelEditor extends UIManager {
 			true
 		);
 
-		this.CreateHeader = this.UILabelCreate(
+		this.CreateAssetGrid = this.UIPanelCreate(
 			this.CreatePanel,
-			"Heading one",
+			"CreatePanel",
 			this.depth,
 			undefined,
 			this.CreateButton,
 			undefined,
-			StateModeLabel_h,
-			UIconfig,
-			StateModeLabel_textPosH,
-			StateModeLabel_textPosV,
-			"Create Objects",
-			this.UICreateLabelGraphConf,
-			this.textConf,
+			undefined,
+			UIAssetGridconfig,
+			this.UICreateGraphConf,
 			true,
 			true
+		);
+
+		this.gridConf = {
+			//list
+			/** @type {UIConfig} */
+			list_config: {
+				margin: 0,
+				padding: 0,
+			},
+			list_rowNum: 2,
+
+			//headr
+			/** @type {UIConfig} */
+			header_config: {
+				margin: 0,
+				padding: 0,
+			},
+			header_h: 25,
+
+			//entry
+
+			/** @type {UIConfig} */
+			entry_config: {
+				margin: 3,
+				padding: 0,
+			},
+			/** @type {Phaser.Types.GameObjects.Graphics.Options} */
+			entry_graphconfig: {
+				fillStyle: {
+					color: "0x000000",
+					alpha: 0.2,
+				},
+			},
+			/** @type {Phaser.Types.GameObjects.Text.TextStyle} */
+			entry_textconfig: {
+				fontSize: 10,
+			},
+			entry_scale: 0.9,
+		};
+
+		this.gridConf.entry_textconfig = this.UIConfigMergeOverwrite(
+			this.textButtonConf,
+			this.gridConf.entry_textconfig
+		);
+		this.gridConf.entry_graphconfig = this.UIConfigMergeOverwrite(
+			this.UICreateGraphConf,
+			this.gridConf.entry_graphconfig
 		);
 
 		//#endregion
@@ -571,24 +631,6 @@ export default class LevelEditor extends UIManager {
 			undefined,
 			UIconfig,
 			this.UIEditGraphConf,
-			true,
-			true
-		);
-
-		this.EditHeader = this.UILabelCreate(
-			this.EditPanel,
-			"EditLabel",
-			this.depth,
-			undefined,
-			this.EditButton,
-			undefined,
-			StateModeLabel_h,
-			UIconfig,
-			StateModeLabel_textPosH,
-			StateModeLabel_textPosV,
-			"Edit Objects",
-			this.UIEditLabelGraphConf,
-			this.textConf,
 			true,
 			true
 		);
@@ -652,10 +694,28 @@ export default class LevelEditor extends UIManager {
 	}
 
 	update(time, delta) {
-		//parent update
-		this.camera_update();
+		//use accumulator
+		this.fixedUpdateCall(time, delta);
 
+		//parent update
 		super.update(time, delta);
+	}
+
+	/**
+	 * update called depending on fps set
+	 * this is to overridden by objects that want to use it
+	 * its is recommended to user call the function. F.e: super.fixedUpdate(time, delta);
+	 *
+	 * @see ACCUMULATOR
+	 * @param {number} time time passed since game start in milliseconds
+	 * @param {number} delta time passed since last frame in milliseconds
+	 * @param {number} executesLeft the number of times the accumulator will be active and the fixed update called. NOTICE left means what is left!! in call this means that is was reduced by one before this call.
+	 */
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
+		//END OF FIXED UPDATE CHAIN
+		// super.fixedUpdate(time, delta);
+
+		this.camera_update();
 	}
 
 	/**
@@ -1316,6 +1376,7 @@ export default class LevelEditor extends UIManager {
 	 */
 	camera_update(delta) {
 		//applying camera controls
+		this.cameraUpdateSpeed();
 		this.camControls.update(delta);
 	}
 
@@ -1376,8 +1437,70 @@ export default class LevelEditor extends UIManager {
 		return camNew;
 	}
 
+	/**
+	 * updates camera speed depending on zoom
+	 */
+	cameraUpdateSpeed() {
+		let spd = this.camConfig.speed / this.camControls.camera.zoom;
+
+		this.camControls.speedX = spd;
+		this.camControls.speedY = spd;
+	}
+
 	//#endregion
 	//#region saving loading
+
+	loadAssets() {
+		this.scene.load.pack(this.assestsDataKey, "src/assets/EditorAssets.json");
+		this.scene.load.start();
+
+		//pack file complete
+		this.scene.load.once(
+			"filecomplete-packfile-" + this.assestsDataKey,
+			function (key, type, data) {
+				console.log("LEVELEDITOR load complete: ", key, type);
+
+				let arr = data.all.files;
+				for (let index = 0; index < arr.length; index++) {
+					let file = arr[index];
+
+					this.scene.load.once(
+						"filecomplete-" + file.type + "-" + file.key,
+						this.loadAssetComplete,
+						this
+					);
+				}
+			},
+			this
+		);
+
+		//all complete
+		this.scene.load.once("complete", this.loadComplete, this);
+	}
+
+	loadAssetComplete(key, type, data) {
+		console.log("LEVELEDITOR load complete: ", key, type);
+
+		//maintain asset list
+		
+		/** @type {string[]} */
+		let list;
+		if (this.assets.has(type)) {
+			list = this.assets.get(type);
+		} else {
+			list = new Array();
+			this.assets.set(type, list);
+		}
+
+		list.push(key);
+	}
+
+	loadComplete(loader, totalComplete, totalFailed) {
+		console.log("LEVELEDITOR load finished: ", totalComplete, totalFailed);
+
+		console.log("assets: ", this.assets);
+		this.CreateAssetGridBuild();
+	}
 
 	UISaveInteraction() {
 		console.log("SAVE BUTTON PRESS");
@@ -1468,6 +1591,147 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion saving loading
+	//#region asset grid
+
+	/**
+	 *
+	 *
+	 */
+	CreateAssetGridBuild() {
+		this.assets.forEach(this.CreateAssetGridAddList, this);
+	}
+
+	/**
+	 * @param {string[]} list
+	 * @param {string} name
+	 *
+	 */
+	CreateAssetGridAddList(list, name) {
+		let nameprefix = "UIAsset_" + name + "_";
+
+		let assetGrid = this.UIPanelCreate(
+			this.CreateAssetGrid,
+			nameprefix + "Panel",
+			this.CreateAssetGrid.depth,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			this.gridConf.list_config,
+			this.UICreateGraphConf,
+			true,
+			true
+		);
+
+		let assetGridLabel = this.UILabelCreate(
+			assetGrid,
+			nameprefix + "Label",
+			this.CreateAssetGrid.depth,
+			undefined,
+			undefined,
+			undefined,
+			this.gridConf.header_h,
+			{ margin: 0, padding: 0 },
+			0.5,
+			0.5,
+			name,
+			this.UICreateGraphConf,
+			this.textConf,
+			true,
+			true
+		);
+
+		//go through list and create an asset entry for every asset in list
+		let y_base = assetGridLabel.UIE_getFurthestY();
+		let x = 0;
+		let y = assetGridLabel;
+		let w = assetGrid.UIE_getInnerWidth() / this.gridConf.list_rowNum;
+		let h = w;
+		let leng = list.length;
+		let entry = 0;
+		for (let index = 0; index < leng; index++) {
+			x = (index % this.gridConf.list_rowNum) * w;
+			y = y_base + Math.floor(index / this.gridConf.list_rowNum) * h;
+
+			entry = this.CreateAssetGridEntryCreate(
+				assetGrid,
+				x,
+				y,
+				w,
+				h,
+				list[index]
+			);
+		}
+
+		//rresizinh list
+		assetGrid.UIE_setSize(undefined, y + h);
+	}
+
+	/**
+	 *
+	 * @param {UIElement} parent
+	 * @param {UIElement} predecessor
+	 * @param {boolean} align
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} w
+	 * @param {number} h
+	 * @param {number} key
+	 * @returns {UIButton}
+	 */
+	CreateAssetGridEntryCreate(parent, x, y, w, h, key) {
+		let button = this.UIButtonCreate(
+			parent,
+			"GridEntry" + key,
+			this.CreateAssetGrid.depth,
+			x,
+			y,
+			1 / this.gridConf.list_rowNum,
+			h,
+			this.gridConf.entry_config,
+			0,
+			1,
+			key,
+			this.gridConf.entry_graphconfig,
+			this.gridConf.entry_textconfig,
+			this.interConf,
+			"pointerdown",
+			"gridEntry",
+			true,
+			true
+		);
+
+		button.key = key;
+
+		button.on("gridEntry", this.EditAssetGridEntryTrigger, this);
+
+		let image = new Phaser.GameObjects.Image(
+			this.scene,
+			w / 2,
+			0,
+			key,
+			undefined
+		);
+		image.setOrigin(0.5, 0.3);
+		image.setPosition(w * image.originX, h * image.originY);
+		image.setScale(
+			(Math.min(w, h) / Math.max(image.width, image.height)) *
+				this.gridConf.entry_scale
+		);
+		button.add(image);
+
+		button.moveAbove(button.UI_Label_text, image);
+
+		return button;
+	}
+
+	EditAssetGridEntryTrigger(pointer, relX, relY, prop, entry) {
+		console.log("a,b,c,d,e,f", pointer, relX, relY, prop, entry);
+
+		console.log("entry: ", entry.key);
+	}
+
+	//#endregion
 }
 
 /** enum-like for modes/states the Level editor can be in */
