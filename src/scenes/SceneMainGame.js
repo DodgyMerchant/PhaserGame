@@ -12,11 +12,9 @@ export default class SceneMainGame extends GameScenes {
 	 * @param {string[]} zones zones to load
 	 */
 	constructor() {
-		super();
+		super(true, true, true); //debug
 
-		this.debug_issetup = true;
-		this.debug_enabled = true;
-		this.debug_leveleditor = true;
+		//debug
 
 		//#region setup
 
@@ -54,11 +52,11 @@ export default class SceneMainGame extends GameScenes {
 			/** sprite key:  */
 			textureBody_Key: "playerImageBody",
 
-			//debug values if 1
-			rotSpdMin: 1, //0.2333333333 //0.13 | 0.1 * fpsmult
-			rotSpdMax: 1, //0.07 //0.1166666667 >  > 0.07 | 0.03 * fpsmult
+			//values are clamped
+			rotSpdMin: 0.2333333333, //0.2333333333 //0.13 | 0.1 * fpsmult
+			rotSpdMax: 0.08, //0.07 //0.1166666667 >  > 0.07 | 0.03 * fpsmult
 			rotSpdMinRange: 1, //1
-			rotSpdMaxRange: 2.5,
+			rotSpdMaxRange: 4,
 
 			connConf: {
 				range: 100,
@@ -196,18 +194,6 @@ export default class SceneMainGame extends GameScenes {
 		//#region accumulator
 
 		ACCUMULATOR.AccumulatorSetup(this, this);
-
-		//#endregion
-		//#region debug enabling
-
-		if (this.debug_issetup)
-			//muste be over level create to manipulate level loading
-			this.debug_setup(this.debug_enabled, this.debug_leveleditor);
-
-		// console.log("loaded: ");
-		// this.cache.json.getKeys().forEach((element) => {
-		// 	console.log("--", this.cache.json.get(element));
-		// });
 
 		//#endregion
 		//#region level

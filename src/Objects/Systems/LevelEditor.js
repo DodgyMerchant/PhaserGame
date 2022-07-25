@@ -27,16 +27,13 @@ export default class LevelEditor extends UIManager {
 		this.assets = new Map();
 		this.loadAssets();
 
-		let myMap =
-			//#endregion
+		//#endregion
 
-			//#region this obj setup
-			/**
-			 * @type {Phaser.GameObjects.Group} group im in
-			 */
-			(this.group = debugGroup);
-
-		this.scene.input.mouse.disableContextMenu();
+		//#region this obj setup
+		/**
+		 * @type {Phaser.GameObjects.Group} group im in
+		 */
+		(this.group = debugGroup);
 
 		//#endregion
 		//#region config obj
@@ -1482,7 +1479,7 @@ export default class LevelEditor extends UIManager {
 		console.log("LEVELEDITOR load complete: ", key, type);
 
 		//maintain asset list
-		
+
 		/** @type {string[]} */
 		let list;
 		if (this.assets.has(type)) {

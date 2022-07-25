@@ -16,7 +16,9 @@ let fps_lock = true; //kann umgestellt werden, hat keinen einfluss auf fixedUpda
 let phy_autoUpdate = false;
 
 /** @type {Phaser.Types.Scenes.SettingsConfig} */
-let testConf2 = {};
+let testConf2 = {
+  
+};
 
 /**
  * the games config
@@ -30,13 +32,16 @@ const config = {
 	backgroundColor: "0xffffff",
 	scene: [SceneMainMenu], //SceneMainGame
 	pixelArt: false,
+	disableContextMenu: true,
 
 	scale: {
 		zoom: zoom,
 	},
+
 	input: {
 		gamepad: true,
 	},
+
 	fps: {
 		target: fps,
 		smoothStep: true,
@@ -44,6 +49,7 @@ const config = {
 		forceSetTimeOut: fps_lock,
 		deltaHistory: time_step,
 	},
+
 	physics: {
 		default: "matter",
 
@@ -58,6 +64,7 @@ const config = {
 
 			enableSleeping: true,
 			gravity: { y: 0, x: 0 },
+
 			debug: {
 				showAxes: false,
 				showAngleIndicator: true,

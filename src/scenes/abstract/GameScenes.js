@@ -1,6 +1,10 @@
 export default class GameScenes extends Phaser.Scene {
-	constructor() {
+	constructor(debugSetup, debugEnabled, debugEditor) {
 		super();
+
+		this.debug_issetup = debugSetup;
+		this.debug_enabled = debugEnabled;
+		this.debug_leveleditor = debugEditor;
 
 		//#region loading
 
@@ -19,7 +23,19 @@ export default class GameScenes extends Phaser.Scene {
 		this.load.pack("alwaysAssets", "src/assets/alwaysAssets.json");
 	}
 
-	create() {}
+	create() {
+		//#region debug enabling
+
+		if (this.debug_issetup) {
+			//muste be over level create to manipulate level loading
+			this.debug_setup(this.debug_enabled, this.debug_leveleditor);
+		} else {
+			this.matter.world.drawDebug = false;
+			this.matter.world.debugGraphic.clear();
+		}
+
+		//#endregion
+	}
 
 	update(time, delta) {}
 

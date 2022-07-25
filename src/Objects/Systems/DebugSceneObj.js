@@ -274,7 +274,9 @@ export default class DebugSceneObj extends UIManager {
 
 		//#endregion
 
+    
 		this.scene.matter.world.drawDebug = this.active;
+
 
 		if (this.active) {
 		} else {
