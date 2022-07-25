@@ -13,21 +13,10 @@ export default class MovementObj extends PhyObj {
 	 * @param {number} x position
 	 * @param {number} y position
 	 * @param {string | Phaser.Textures.Texture} texture texture to display as the object texture
-	 * @param {State} state tstate the object is in
-	 * @param {method | undefined} moveMeth Method called to get input for movement, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set moveInputMethod
-	 * @param {method | boolean | undefined} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation. If it cant be supplied set moveInputMethod.
+	 * @param {MovementConfig} movementConfig MovementConfig object
 	 * @param {Phaser.Types.Physics.Matter.MatterBodyConfig | undefined} phyConfig config obj.
 	 */
-	constructor(
-		scene,
-		x,
-		y,
-		texture,
-		state,
-		moveMeth,
-		rotMeth,
-		phyConfig
-	) {
+	constructor(scene, x, y, texture, movementConfig, phyConfig) {
 		super(scene, x, y, texture, phyConfig);
 
 		/*
@@ -40,14 +29,13 @@ export default class MovementObj extends PhyObj {
 		super.setFrictionStatic(0.5);
 		super.setDensity(1);
 
-    super.move_ConnAirFric = 0.05;
 		super.move_Speed = 0.5;
 		super.connSpdJump = 5;
 		super.move_RotSpeed = 0.1;
     */
 
 		//#region state
-		this.stateSwitch(state);
+		this.stateSwitch(movementConfig.state);
 
 		//#endregion state
 		//#region input
@@ -59,7 +47,8 @@ export default class MovementObj extends PhyObj {
 		 * @type method
 		 */
 		this.moveInputMethod;
-		if (moveMeth != undefined) this.moveInputMethod = moveMeth;
+		if (movementConfig.moveMeth != undefined)
+			this.moveInputMethod = movementConfig.moveMeth;
 
 		/**
 		 * Method called to get input for rotation, if undefined will user movement input
@@ -77,7 +66,8 @@ export default class MovementObj extends PhyObj {
 		 */
 		this.move_rotType = 2;
 
-		if (rotMeth != undefined) this.moveRotMethodSet(rotMeth);
+		if (movementConfig.rotMeth != undefined)
+			this.moveRotMethodSet(movementConfig.rotMeth);
 
 		//#endregion input
 		//#region movement
@@ -86,13 +76,10 @@ export default class MovementObj extends PhyObj {
 		this.move_CanMove = true;
 		/** movement input and movement are disabled */
 		this.move_Frozen = false;
-		/** air friction of the object if connected */
-		this.move_ConnAirFric = 1;
-		this.setFrictionAir(this.move_ConnAirFric);
 
 		///SPEED
 		/** movement speed*/
-		this.move_Speed = 0;
+		this.move_Speed = movementConfig.speed;
 
 		//#endregion movement
 		//#region rotation
@@ -106,7 +93,7 @@ export default class MovementObj extends PhyObj {
 		/** movement speed per frame in percent of one full rotation
 		 * @type {number} 0-1
 		 */
-		this.move_RotSpeed = 1;
+		this.move_RotSpeed = movementConfig.rotSpeed;
 
 		//#endregion rotation
 
@@ -119,12 +106,25 @@ export default class MovementObj extends PhyObj {
 		this.workVec = new Phaser.Math.Vector2();
 	}
 
-	preUpdate(delta, time) {
-		super.preUpdate(delta, time);
+	preUpdate(time, delta) {
+		super.preUpdate(time, delta);
 	}
 
-	update(delta, time) {
-		super.update(delta, time);
+	update(time, delta) {
+		super.update(time, delta);
+		//my stuff
+		// console.log("MOVEMENT - update");
+
+		//moves mech
+		// this.moveRotUpdate();
+		// this.moveUpdate();
+	}
+
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
+		super.fixedUpdate(time, delta);
+		//stuff to perform based on fps -->
+
+		// console.log("MOVEMENT - update fixed");
 
 		//moves mech
 		this.moveRotUpdate();
@@ -132,15 +132,10 @@ export default class MovementObj extends PhyObj {
 
 		//#region debug
 
-		// let input = this.moveInputMethod();
 		// if (this.body.speed != 0 || !this.moveRotationIsSettled())
 		// 	console.log(
 		// 		"trn spd: ",
 		// 		this.move_RotSpeed.toFixed(2),
-		// 		"input: ",
-		// 		input.x.toFixed(2),
-		// 		"/",
-		// 		input.y.toFixed(2),
 		// 		" | spd: ",
 		// 		this.body.speed.toFixed(4),
 		// 		" | vel: ",
@@ -148,6 +143,18 @@ export default class MovementObj extends PhyObj {
 		// 		"/",
 		// 		this.body.velocity.y.toFixed(2)
 		// 	);
+
+		if (this.body.speed != 0)
+			console.log(
+				"fps: ",
+				this.scene.game.loop.actualFps.toFixed(2),
+				" / ",
+				this.scene.game.loop.targetFps,
+				" / ",
+				delta,
+				"spd: ",
+				this.body.speed.toFixed(4)
+			);
 
 		//#endregion
 	}
@@ -249,7 +256,9 @@ export default class MovementObj extends PhyObj {
 	 * runs continuously
 	 * moves mech
 	 */
-	moveUpdate() {
+	moveUpdate(mult) {
+		// console.log("mult: ", mult);
+
 		if (this.moveCanMoveGet()) {
 			this.workVec = this.moveInputMethod(this.workVec);
 
@@ -320,6 +329,26 @@ export default class MovementObj extends PhyObj {
 
 	//#endregion
 }
+
+/*
+@param {State} state tstate the object is in
+@param {method | undefined} moveMeth Method called to get input for movement, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set moveInputMethod
+@param {method | boolean | undefined} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation. If it cant be supplied set moveInputMethod.
+*/
+/**
+ * @typedef {{
+ * speed: (number),
+ * rotSpeed: (number),
+ * state: (State),
+ * moveMeth: (method | undefined),
+ * rotMeth: (method | boolean | undefined),
+ * }} MovementConfig Config for a movement object
+ */
+
+/**
+ * @type {MovementConfig}
+ */
+let obj = {};
 
 /**
  * @typedef {symbol} State a sttate to be in for a MovementObj

@@ -243,8 +243,6 @@ export default class UIElement extends UIObj {
 		this.UIE_reposition();
 		this.UIE_resize();
 
-		// console.log("refresh - UIElement: ", this.name);
-
 		// console.log(
 		// 	"me: ",
 		// 	this.name,
@@ -257,6 +255,8 @@ export default class UIElement extends UIObj {
 		// 	this.parentContainer.width,
 		// 	this.parentContainer.height
 		// );
+
+		console.log("refresh - UIElement: ", this.name);
 
 		//refresh my children
 		super.refresh();
@@ -328,24 +328,49 @@ export default class UIElement extends UIObj {
 			//#endregion
 		}
 
+		// console.log("UIE - resize to: ", w, h);
 		this.setSize(w, h);
+		// console.log(
+		// 	"UIE - post resize to: ",
+		// 	this.width,
+		// 	this.height,
+		// 	this.displayWidth,
+		// 	this.displayHeight
+		// );
+	}
+
+	/**
+	 * refreshes by default after the change
+	 * @param {number | undefined} w
+	 * @param {number | undefined} h
+	 * @param {bool | undefined} h
+	 */
+	UIE_setSize(w = this.originalW, h = this.originalH, refresh = true) {
+		// if (w != undefined)
+		this.originalW = w;
+		// if (h != undefined)
+		this.originalH = h;
+
+		// console.log("UIE - ", w, h, this.originalW, this.originalH);
+
+		if (refresh) this.refresh();
 	}
 
 	/**
 	 *
-	 * @param {number} numX
-	 * @param {boolean} relative
+	 * @param {number} numX default 0
+	 * @param {boolean} relative default false
 	 * @returns {number}
 	 */
-	UIE_getPositionRestrictedX(numX, relative) {
+	UIE_getPositionRestrictedX(numX = 0, relative = false) {
 		if (this.parentContainer instanceof UIElement) {
 			return Phaser.Math.Clamp(
 				numX,
 				(relative
-					? this.parentContainer.UIE_getReliveInnerX1()
+					? this.parentContainer.UIE_getInnerX1(true)
 					: this.parentContainer.UIE_getInnerX1()) + this.marginLeft,
 				(relative
-					? this.parentContainer.UIE_getReliveInnerX2()
+					? this.parentContainer.UIE_getInnerX2(true)
 					: this.parentContainer.UIE_getInnerX2()) + this.marginRight
 			);
 		} else if (this.marginApplyNoParent) {
@@ -359,15 +384,15 @@ export default class UIElement extends UIObj {
 	 * @param {boolean} relative
 	 * @returns {number}
 	 */
-	UIE_getPositionRestrictedY(numY, relative) {
+	UIE_getPositionRestrictedY(numY = 0, relative = false) {
 		if (this.parentContainer instanceof UIElement) {
 			return Phaser.Math.Clamp(
 				numY,
 				(relative
-					? this.parentContainer.UIE_getReliveInnerY1()
+					? this.parentContainer.UIE_getInnerY1(true)
 					: this.parentContainer.UIE_getInnerY1()) + this.marginTop,
 				(relative
-					? this.parentContainer.UIE_getReliveInnerY2()
+					? this.parentContainer.UIE_getInnerY2(true)
 					: this.parentContainer.UIE_getInnerY2()) + this.marginBottom
 			);
 		} else if (this.marginApplyNoParent) {
@@ -395,6 +420,7 @@ export default class UIElement extends UIObj {
 	UIE_getTotalHeight() {
 		return this.UIE_getHeight() + this.marginTop + this.marginBottom;
 	}
+
 	/**
 	 * furthest x position.
 	 * x + width + marginRight.
@@ -423,53 +449,34 @@ export default class UIElement extends UIObj {
 	UIE_getInnerHeight() {
 		return this.UIE_getHeight() - (this.paddingTop + this.paddingBottom);
 	}
+
 	/**
 	 * gets the elements inner x1
+	 * @param relative value should be relative to object
 	 */
-	UIE_getInnerX1() {
-		return this.x + this.UIE_getReliveInnerX1();
+	UIE_getInnerX1(relative = false) {
+		return (relative ? 0 : this.x) + this.paddingLeft;
 	}
 	/**
 	 * gets the elements inner y1
+	 * @param relative value should be relative to object
 	 */
-	UIE_getInnerY1() {
-		return this.y + this.UIE_getReliveInnerY1();
+	UIE_getInnerY1(relative = false) {
+		return (relative ? 0 : this.y) + this.paddingTop;
 	}
 	/**
 	 * gets the elements inner x2
+	 * @param relative value should be relative to object
 	 */
-	UIE_getInnerX2() {
-		return this.x + this.UIE_getReliveInnerX2();
+	UIE_getInnerX2(relative = false) {
+		return (relative ? 0 : this.x) + this.UIE_getWidth() - this.paddingRight;
 	}
 	/**
 	 * gets the elements inner y2
+	 * @param relative value should be relative to object
 	 */
-	UIE_getInnerY2() {
-		return this.y + this.UIE_getReliveInnerY2();
-	}
-	/**
-	 * gets the elements inner x1 relative to its position
-	 */
-	UIE_getReliveInnerX1() {
-		return this.paddingLeft;
-	}
-	/**
-	 * gets the elements inner y1 relative to its position
-	 */
-	UIE_getReliveInnerY1() {
-		return this.paddingTop;
-	}
-	/**
-	 * gets the elements inner x2 relative to its position
-	 */
-	UIE_getReliveInnerX2() {
-		return this.UIE_getWidth() - this.paddingRight;
-	}
-	/**
-	 * gets the elements inner y2 relative to its position
-	 */
-	UIE_getReliveInnerY2() {
-		return this.UIE_getHeight() - this.paddingBottom;
+	UIE_getInnerY2(relative = false) {
+		return (relative ? 0 : this.y) + this.UIE_getHeight() - this.paddingBottom;
 	}
 }
 

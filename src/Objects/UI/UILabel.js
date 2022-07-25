@@ -31,8 +31,8 @@ export default class UILabel extends UIPanel {
 		depth,
 		x,
 		y,
-    w,
-    h,
+		w,
+		h,
 		UiConfig,
 		posH,
 		posV,
@@ -49,8 +49,8 @@ export default class UILabel extends UIPanel {
 			depth,
 			x,
 			y,
-      w,
-      h,
+			w,
+			h,
 			UiConfig,
 			graphConfig,
 			cascadeEnable,
@@ -86,8 +86,8 @@ export default class UILabel extends UIPanel {
 	refresh() {
 		super.refresh();
 
-		if (this.parentContainer instanceof UIElement)
-			this.UI_Label_repositionText(this.UI_Label_posH, this.UI_Label_posV);
+		// if (this.parentContainer instanceof UIElement)
+		this.UI_Label_repositionText(this.UI_Label_posH, this.UI_Label_posV);
 
 		// console.log("refresh - UILabel: ", this.name);
 	}

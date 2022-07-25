@@ -382,15 +382,15 @@ export default class LevelEditor extends UIManager {
 		 */
 		this.worldSelectableList = [worldObjImage, worldObjSprite];
 
-		/**
-		 * @type {MatterJS.ConstraintType}
-		 */
-		this.PointerConstraint = this.scene.matter.add.pointerConstraint({
-			label: "LevelEditorPointerConstraint",
-			length: 0,
-			stiffness: 1,
-			render: true,
-		});
+		// /**
+		//  * @type {MatterJS.ConstraintType}
+		//  */
+		// this.PointerConstraint = this.scene.matter.add.pointerConstraint({
+		// 	label: "LevelEditorPointerConstraint",
+		// 	length: 0,
+		// 	stiffness: 1,
+		// 	render: true,
+		// });
 
 		//#endregion
 
@@ -603,7 +603,7 @@ export default class LevelEditor extends UIManager {
 			"EditButton",
 			this.depth,
 			undefined,
-			this.RightPanel.UIE_getReliveInnerY2() -
+			this.RightPanel.UIE_getInnerY2(true) -
 				saveh -
 				(typeof UIconfig.margin === "object"
 					? UIconfig.margin.Top
