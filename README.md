@@ -10,11 +10,13 @@ The Level Editor manual is in:
 
 ## ASSET MANAGEMENT
 
-1. json vs manual
+1. ### json vs manual
+
    All assest should be loaded in by json files.
    The can be exceptions, especially for testing.
 
-2. "files: []":
+2. ### "files: []":
+
    everytime any kind of json structure has a "files" property it will hold assets.
    "files" is a built in system of phaser that recognizes all objects in the "files" list as assets add will process them according to their "type" property.
    for information on these types look at the [File Types in Phaser](node_modules\phaser\types\phaser.d.ts) Line: 63002.
@@ -27,7 +29,8 @@ The Level Editor manual is in:
    this the files property will have an annotation that has a link to the Phaser FileTypes.
    `/** @type {Phaser.Types.Loader.FileTypes.PackFileSection} */ let obj = { files, } `
 
-3. System explanation
+3. ### System explanation
+
    there are 4 types of asset json files, some specific to objects and some general:
 
    - "alwaysAssets.json":
@@ -46,7 +49,8 @@ The Level Editor manual is in:
      These follow no system rules.
      F.e. MainMenuAssets.json is for the Main Menu and gets loaded in by the Menu.
 
-4. Where should I add my new assets?
+4. ### Where should I add my new assets?
+
    If the assets is uses in the world space (the game map) or enviroment, then putting them into the "EditorAssets.json" will be correct 90% of the time.
    If the asset cant be associated with a game zone, f.e. the player sprites,
    then they belong in "alwaysAssets.json".
