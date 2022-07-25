@@ -4,7 +4,18 @@ export default class SceneMainMenu extends Phaser.Scene {
 	constructor() {
 		super({
 			key: "SceneMainMenu",
+      pack: {
+
+      }
 		});
+
+    
+    /**
+     * @type {Phaser.Types.Loader.FileTypes.PackFileSection}
+     */
+    let obj = {
+      files,
+    }
 
 		//#region config
 
@@ -33,7 +44,7 @@ export default class SceneMainMenu extends Phaser.Scene {
 
 		this.load.json("zoneData", "src/assets/zoneData.json");
 
-    
+
 	}
 
 	create() {
