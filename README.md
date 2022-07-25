@@ -21,6 +21,7 @@ all assest should be loaded in by json files.
    Phaser > Types > Loader > FileTypes.
    if searching is not your thing and intellisense is fully funktional:
    this the files property will have an annotation that has a link to the Phaser FileTypes.
+   
    ``
    /**
      * @type {Phaser.Types.Loader.FileTypes.PackFileSection}
