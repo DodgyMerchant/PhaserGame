@@ -15,6 +15,9 @@ export default class worldObjSprite extends Phaser.Physics.Matter.Sprite {
 	 */
 	constructor(world, x, y, textture, frame, options) {
 		super(world, x, y, textture, frame, options);
+
+		this.setActive(true);
+		this.setVisible(true);
 	}
 
 	preUpdate(time, delta) {

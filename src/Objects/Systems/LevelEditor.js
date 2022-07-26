@@ -1,9 +1,8 @@
+import { GUI } from "dat.gui";
 import UIManager from "../UI/Abstract/UIManager";
-import UIButton from "../UI/UIButton";
+import UIObj from "../UI/Abstract/UIObj";
 import UIElement, { UIConfig } from "../UI/UIElement";
-import worldObjImage from "../WorldObjects/abstract/worldObjImage";
-import worldObjSprite from "../WorldObjects/abstract/worldObjSprite";
-import wallObjInter from "../WorldObjects/Walls/wallObjInter";
+import CollisionInstance from "../WorldObjects/Dev/CollisionInstance";
 
 /**
  * level editor
@@ -24,7 +23,11 @@ export default class LevelEditor extends UIManager {
 		//#region loading
 
 		this.assestsDataKey = "levelEditorAssets";
-		this.assets = new Map();
+		this.assets = {
+			number: 0,
+			typeNum: 0,
+			map: new Map(),
+		};
 		this.loadAssets();
 
 		//#endregion
@@ -367,7 +370,12 @@ export default class LevelEditor extends UIManager {
 		//#endregion
 
 		//#endregion
-		//#region world interaction
+		//#region world general
+
+		this.worldGraph = this.scene.add.graphics(this.worldGraphConf);
+
+		//#endregion world general
+		//#region world vert create
 
 		/**
 		 * array of vec2 for object vertecie creation
@@ -375,9 +383,8 @@ export default class LevelEditor extends UIManager {
 		 */
 		this.worldVertList = new Array();
 
-		this.worldGraph = this.scene.add.graphics(this.worldGraphConf);
-
-		//manipulating objects in world
+		//#endregion world vert create
+		//#region world select obj
 
 		/**
 		 * the selected world Object
@@ -389,7 +396,7 @@ export default class LevelEditor extends UIManager {
 		 * selectable types of objects
 		 * @type {Phaser.Physics.Matter.Image[] | Phaser.Physics.Matter.Sprite[]}
 		 */
-		this.worldSelectableList = [worldObjImage, worldObjSprite];
+		this.worldSelectableList = [CollisionInstance];
 
 		// /**
 		//  * @type {MatterJS.ConstraintType}
@@ -401,7 +408,7 @@ export default class LevelEditor extends UIManager {
 		// 	render: true,
 		// });
 
-		//#endregion
+		//#endregion world select obj
 
 		if (bool != undefined) {
 			this.toggle(bool);
@@ -439,12 +446,11 @@ export default class LevelEditor extends UIManager {
 		let header_h = 20;
 
 		//inspector
-
 		let StateButton_h = 30;
 		let StateButton_w = 0.5;
-		let StateModeLabel_h = 30;
-		let StateModeLabel_textPosH = 0.1;
-		let StateModeLabel_textPosV = 0.5;
+
+		let button_w = 0.5;
+		let button_h = 30;
 
 		//heading
 		this.Label = this.UILabelCreate(
@@ -481,7 +487,6 @@ export default class LevelEditor extends UIManager {
 			true
 		);
 
-		//#region create
 		this.CreateButton = this.UIButtonCreate(
 			this.RightPanel,
 			"CreateButton",
@@ -511,26 +516,132 @@ export default class LevelEditor extends UIManager {
 			this
 		);
 
+		this.EditButton = this.UIButtonCreate(
+			this.RightPanel,
+			"EditButton",
+			this.depth,
+			this.CreateButton,
+			undefined,
+			StateButton_w,
+			StateButton_h,
+			UIconfig,
+			0.5,
+			0.5,
+			"Edit",
+			this.UIEditLabelGraphConf,
+			this.textConf,
+			this.interConf, //this.interConf  undefined
+			"pointerdown",
+			"switch",
+			true,
+			true
+		);
+
+		this.EditButton.on(
+			"switch",
+			function () {
+				this.modeSwitch(LEVELEDITORMODES.mode_edit);
+			},
+			this
+		);
+
+		//#region save
+
+		this.SaveButton = this.UIButtonCreate(
+			this.RightPanel,
+			"EditButton",
+			this.depth,
+			undefined,
+			-30,
+			undefined,
+			undefined,
+			UIconfig,
+			0.5,
+			0.5,
+			"Save",
+			this.UISaveGraphConf,
+			this.textConf,
+			this.interConf, //this.interConf  undefined
+			"pointerdown",
+			"SaveButtonPress",
+			true,
+			true
+		).on(
+			"SaveButtonPress",
+			function (a, b, c, d, e) {
+				console.log("a,b,c,d,e: ", a, b, c, d, e);
+				this.UISaveInteraction();
+			},
+			this
+		);
+
+		//#endregion save
+		//#region create panel
+
 		this.CreatePanel = this.UIPanelCreate(
 			this.RightPanel,
 			"CreatePanel",
 			this.depth,
 			undefined,
+			this.CreateButton,
 			undefined,
-			undefined,
-			undefined,
+			this.SaveButton,
 			UIconfig,
 			this.UICreateGraphConf,
 			true,
 			true
 		);
 
-		this.CreateAssetGrid = this.UIPanelCreate(
+		//#region collider button
+
+		this.CreateColliderButton = this.createRecourceButton(
 			this.CreatePanel,
-			"CreatePanel",
+			"CreateColliderButton",
 			this.depth,
 			undefined,
-			this.CreateButton,
+			undefined,
+			button_w,
+			button_h,
+			UIconfig,
+			0.5,
+			0.5,
+			"object",
+			"collider",
+			this.UICreateGraphConf,
+			this.textButtonConf,
+			this.interConf
+		);
+
+		//#endregion collider button
+		//#region zone button
+
+		this.CreateZoneButton = this.createRecourceButton(
+			this.CreatePanel,
+			"CreateZoneButton",
+			this.depth,
+			this.CreateColliderButton,
+			undefined,
+			button_w,
+			button_h,
+			UIconfig,
+			0.5,
+			0.5,
+			"object",
+			"zone",
+			this.UICreateGraphConf,
+			this.textButtonConf,
+			this.interConf
+		);
+
+		//#endregion zone button
+		//#region asset grid
+
+		this.CreateAssetGrid = this.UIPanelCreate(
+			this.CreatePanel,
+			"CreateAssetGrid",
+			this.depth,
+			undefined,
+			this.CreateColliderButton,
 			undefined,
 			undefined,
 			UIAssetGridconfig,
@@ -586,37 +697,10 @@ export default class LevelEditor extends UIManager {
 			this.gridConf.entry_graphconfig
 		);
 
-		//#endregion
-		//#region edit
+		//#endregion asset grid
 
-		this.EditButton = this.UIButtonCreate(
-			this.RightPanel,
-			"EditButton",
-			this.depth,
-			this.CreateButton,
-			undefined,
-			StateButton_w,
-			StateButton_h,
-			UIconfig,
-			0.5,
-			0.5,
-			"Edit",
-			this.UIEditLabelGraphConf,
-			this.textConf,
-			this.interConf, //this.interConf  undefined
-			"pointerdown",
-			"switch",
-			true,
-			true
-		);
-
-		this.EditButton.on(
-			"switch",
-			function () {
-				this.modeSwitch(LEVELEDITORMODES.mode_edit);
-			},
-			this
-		);
+		//#endregion create panel
+		//#region edit panel
 
 		this.EditPanel = this.UIPanelCreate(
 			this.RightPanel,
@@ -625,52 +709,14 @@ export default class LevelEditor extends UIManager {
 			undefined,
 			undefined,
 			undefined,
-			undefined,
+			this.SaveButton,
 			UIconfig,
 			this.UIEditGraphConf,
 			true,
 			true
 		);
 
-		//#endregion
-		//#region save
-
-		let saveh = 30;
-
-		this.SaveButton = this.UIButtonCreate(
-			this.RightPanel,
-			"EditButton",
-			this.depth,
-			undefined,
-			this.RightPanel.UIE_getInnerY2(true) -
-				saveh -
-				(typeof UIconfig.margin === "object"
-					? UIconfig.margin.Top
-					: UIconfig.margin),
-			undefined,
-			saveh,
-			UIconfig,
-			0.5,
-			0.5,
-			"Save",
-			this.UISaveGraphConf,
-			this.textConf,
-			this.interConf, //this.interConf  undefined
-			"pointerdown",
-			"SaveButtonPress",
-			true,
-			true
-		);
-
-		this.SaveButton.on(
-			"SaveButtonPress",
-			function () {
-				this.UISaveInteraction();
-			},
-			this
-		);
-
-		//#endregion save
+		//#endregion edit panel
 
 		//#endregion right panel
 
@@ -686,6 +732,12 @@ export default class LevelEditor extends UIManager {
 		this.modeSetupModeListener(this.modeCheck(), true);
 
 		//#endregion
+
+		this.datgui = new GUI({
+			hideable: true,
+			name: "LevelEditorDatGUI",
+			closeOnTop: false,
+		});
 
 		console.log("//////////// level editor created ////////////");
 	}
@@ -743,6 +795,24 @@ export default class LevelEditor extends UIManager {
 		this.inputManageMyLIsteners(this.active);
 	}
 
+	//#region ui
+
+	/**
+	 *
+	 * @param {number} x
+	 * @param {number} y
+	 * @returns {boolean} if point is on UI
+	 */
+	pointOnUI(x, y) {
+		return (
+			this.RightPanel.x < x &&
+			x < this.RightPanel.x + this.RightPanel.width &&
+			this.RightPanel.y < y &&
+			y < this.RightPanel.y + this.RightPanel.height
+		);
+	}
+
+	//#endregion
 	//#region modes
 
 	//#region general
@@ -811,7 +881,7 @@ export default class LevelEditor extends UIManager {
 				break;
 		}
 	}
-	//#endregion
+	//#endregion general
 	//#region internal
 
 	/**
@@ -927,8 +997,23 @@ export default class LevelEditor extends UIManager {
 
 	//#endregion
 
+	//#endregion modes
 	//#region create
+
 	modeCreateSetupListeners(bool) {
+		//manache world vert setup
+
+		this.worldVertSetup(bool);
+
+		if (bool) {
+		} else {
+		}
+	}
+
+	//#region vertecies object
+
+	/** activate or deactivate the vertecy world drawing system */
+	worldVertSetup(bool) {
 		if (bool) {
 			//////pointer//////
 			//clicking, drawing poly walls and selecting them
@@ -940,12 +1025,13 @@ export default class LevelEditor extends UIManager {
 				 */
 				function (pointer, intObjects) {
 					// console.log("Level Editor World Input pointerdown");
-
-					if (pointer.leftButtonDown()) {
-						this.worldVertAdd(this.pointer.positionToCamera(this.CamEditor));
-					}
-					if (pointer.rightButtonDown()) {
-						this.worldVertRemove();
+					if (!this.pointOnUI(pointer.x, pointer.y)) {
+						if (pointer.leftButtonDown()) {
+							this.worldVertAdd(this.pointer.positionToCamera(this.CamEditor));
+						}
+						if (pointer.rightButtonDown()) {
+							this.worldVertRemove();
+						}
 					}
 				},
 				this
@@ -980,125 +1066,18 @@ export default class LevelEditor extends UIManager {
 				this
 			);
 		} else {
-			//clicking
+			//////pointer//////
+			//clicking, drawing poly walls and selecting them
 			this.scene.input.removeListener("pointerdown", undefined, this);
 
-			// mouse move, updating line to mouse
+			//mouse move, updating line to mouse
 			this.scene.input.removeListener("pointermove", undefined, this);
 
+			//////keyboard//////
 			//closing poly
 			this.inputKeys.worldVertClose.removeListener("down", undefined, this);
 		}
 	}
-
-	//#endregion create
-	//#region edit
-
-	modeEditSetupListeners(bool) {
-		if (bool) {
-			//////pointer//////
-
-			// clicking, drawing poly walls and selecting them
-			this.scene.input.on(
-				"pointerdown",
-				/**
-				 * @param {Phaser.Input.Pointer} pointer
-				 * @param {Phaser.GameObjects.GameObject[]} intObjects
-				 */
-				function (pointer, intObjects) {
-					// console.log("mode edit mouse objs: ", intObjects);
-
-					if (intObjects.length >= 1) {
-						this.worldSelect(intObjects);
-					} else {
-						this.worldUnselect(false);
-					}
-				},
-				this
-			);
-
-			// mouse move, updating line to mouse
-			this.scene.input.on(
-				"pointermove",
-				/**
-				 * @param {Phaser.Input.Pointer} pointer
-				 * @param {Phaser.GameObjects.GameObject[]} intObjects
-				 */
-				function (pointer, intObjects) {
-					// draw line from vert to pointer
-					// console.log("Level Editor World Input pointermove");
-
-					if (this.worldObjSelected != undefined) {
-						if (this.worldObjSelected.input.dragState == 2)
-							this.worldObjHighlight();
-					}
-				},
-				this
-			);
-
-			//////keyboard//////
-			// unselecting
-			this.inputKeys.worldEditUnselect.on(
-				"down",
-				function () {
-					// console.log("Level Editor World Input worldVertClose down");
-					this.worldUnselect();
-				},
-				this
-			);
-			//deleting objs
-			this.inputKeys.worldEditDelete.on(
-				"down",
-				function () {
-					// console.log("Level Editor World Input worldVertClose down");
-					this.modeEditDelete();
-				},
-				this
-			);
-		} else {
-			//////pointer//////
-			//clicking
-			this.scene.input.removeListener("pointerdown", undefined, this);
-
-			// mouse move, updating line to mouse
-			this.scene.input.removeListener("pointermove", undefined, this);
-
-			//////keyboard//////
-			// unselecting
-			this.inputKeys.worldEditDelete.removeListener("down", undefined, this);
-			// deleting objs
-			this.inputKeys.worldEditUnselect.removeListener("down", undefined, this);
-		}
-	}
-
-	/**
-	 * deletes the selectedd object
-	 * @param {Phaser.GameObjects.GameObject} obj
-	 */
-	modeEditDelete() {
-		this.worldUnselect(true);
-	}
-
-	//#endregion edit
-	//#endregion modes
-	//#region listeners general
-
-	inputManageMyLIsteners(bool) {
-		//world interaction
-
-		this.modeSetupListeners(bool);
-		//configure listeners for current mode
-		this.modeSetupModeListener(this.modeCheck(), bool);
-
-		if (bool) {
-		} else {
-		}
-	}
-
-	//#endregion
-	//#region world interaction
-
-	//#region vertecies object
 
 	/**
 	 *
@@ -1191,7 +1170,7 @@ export default class LevelEditor extends UIManager {
 		if (forceSucc || this.worldVertList.length >= 3) {
 			//create obj
 
-			this.scene.mapObjVertCreate(this.worldVertList, true);
+			this.scene.mapObjCreate_Collision(this.worldVertList, true);
 			//reset
 			this.worldVertReset();
 		} else {
@@ -1205,6 +1184,329 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+	//#region menu interaction
+
+	/**
+	 *
+	 * @param {UIObj} parent
+	 * @param {string} namePrefix namePrefix + "_" + type + "_" + key
+	 * @param {number} depth
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} w
+	 * @param {number} h
+	 * @param {UIConfig} UiConfig
+	 * @param {number} posH
+	 * @param {number} posV
+	 * @param {string} type
+	 * @param {string} key
+	 * @param {Phaser.Types.GameObjects.Graphics.Options} graphconfig
+	 * @param {Phaser.Types.GameObjects.Text.TextStyle} textconfig
+	 * @param {Phaser.Types.Input.InputConfiguration} interConf
+	 */
+	createRecourceButton(
+		parent,
+		namePrefix,
+		depth,
+		x,
+		y,
+		w,
+		h,
+		UiConfig,
+		posH,
+		posV,
+		type,
+		key,
+		graphconfig,
+		textconfig,
+		interConf
+	) {
+		let button = this.UIButtonCreate(
+			parent,
+			namePrefix + "_" + type + "_" + key,
+			depth,
+			x,
+			y,
+			w,
+			h,
+			UiConfig,
+			posH,
+			posV,
+			key,
+			graphconfig,
+			textconfig,
+			interConf,
+			"pointerdown",
+			"RecourceButtonTrigger",
+			true,
+			true
+		).on("RecourceButtonTrigger", this.interactionRecource, this);
+
+		button.recourceKey = key;
+		button.recourceType = type;
+
+		switch (type) {
+			case "image":
+				let image = new Phaser.GameObjects.Image(
+					this.scene,
+					button.width / 2,
+					0,
+					key,
+					undefined
+				);
+				image.setOrigin(0.5, 0.3);
+				image.setPosition(
+					button.width * image.originX,
+					button.height * image.originY
+				);
+				image.setScale(
+					(Math.min(button.width, button.height) /
+						Math.max(image.width, image.height)) *
+						this.gridConf.entry_scale
+				);
+
+				button.add(image);
+
+				button.moveAbove(button.UI_Label_text, image);
+				break;
+			case "object":
+
+			default:
+				console.log(
+					"recource button type hasnt been fully impemented: ",
+					type,
+					key
+				);
+				break;
+		}
+
+		return button;
+	}
+
+	interactionRecource(pointer, relX, relY, stopPropagation, obj) {
+		// button.recourceKey = key;
+		// button.recourceType = type;
+		switch (obj.recourceType) {
+			case "image":
+				console.log("image: ", obj.recourceType, obj.recourceKey);
+
+				break;
+			case "object":
+				console.log("object: ", obj.recourceType, obj.recourceKey);
+
+				break;
+
+			default:
+				console.log(
+					"recource button type not supported, contact admin: ",
+					obj.recourceType,
+					obj.recourceKey
+				);
+				break;
+		}
+	}
+
+	//#endregion menu interaction
+	//#region asset grid
+
+	/**
+	 *
+	 *
+	 */
+	AssetGridBuild() {
+		this.assets.map.forEach(this.AssetGridAddList, this);
+	}
+
+	/**
+	 * @param {string[]} list
+	 * @param {string} type type of recource
+	 *
+	 */
+	AssetGridAddList(list, type) {
+		let nameprefix = "UIAsset_" + type + "_";
+
+		let assetGrid = this.UIPanelCreate(
+			this.CreateAssetGrid,
+			nameprefix + "Panel",
+			this.CreateAssetGrid.depth,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			this.gridConf.list_config,
+			this.UICreateGraphConf,
+			true,
+			true
+		);
+
+		let assetGridLabel = this.UILabelCreate(
+			assetGrid,
+			nameprefix + "Label",
+			this.CreateAssetGrid.depth,
+			undefined,
+			undefined,
+			undefined,
+			this.gridConf.header_h,
+			{ margin: 0, padding: 0 },
+			0.5,
+			0.5,
+			"type - " + type,
+			this.UICreateGraphConf,
+			this.textConf,
+			true,
+			true
+		);
+
+		let asset_height =
+			assetGrid.UIE_getInnerHeight() -
+			(this.assets.typeNum *
+				(this.gridConf.header_h +
+					UIElement.UIE_configGetMargin(this.gridConf.header_config, 3, 0) +
+					UIElement.UIE_configGetMargin(this.gridConf.header_config, 1, 0) +
+					UIElement.UIE_configGetPadding(this.gridConf.header_config, 3, 0) +
+					UIElement.UIE_configGetPadding(this.gridConf.header_config, 1, 0) +
+					UIElement.UIE_configGetMargin(this.gridConf.list_config, 3, 0) +
+					UIElement.UIE_configGetMargin(this.gridConf.list_config, 1, 0) +
+					UIElement.UIE_configGetPadding(this.gridConf.list_config, 3, 0) +
+					UIElement.UIE_configGetPadding(this.gridConf.list_config, 1, 0))) /
+				this.assets.number;
+
+		let leng = list.length;
+
+		Math.ceil(leng / this.gridConf.list_rowNum);
+
+		//go through list and create an asset entry for every asset in list
+		let y_base = assetGridLabel.UIE_getOutterY2(false);
+		let x = 0;
+		let y = assetGridLabel;
+
+		let winc = assetGrid.UIE_getInnerWidth() / this.gridConf.list_rowNum;
+		let hinc = Math.min(winc, asset_height);
+
+		let w = 1 / this.gridConf.list_rowNum;
+		let h = hinc;
+		let entry = 0;
+		for (let index = 0; index < leng; index++) {
+			x = (index % this.gridConf.list_rowNum) * winc;
+			y = y_base + Math.floor(index / this.gridConf.list_rowNum) * hinc;
+
+			entry = this.createRecourceButton(
+				assetGrid,
+				"gridEntry",
+				this.CreateAssetGrid.depth,
+				x,
+				y,
+				w,
+				h,
+				this.gridConf.entry_config,
+				0,
+				1,
+				type,
+				list[index],
+				this.gridConf.entry_graphconfig,
+				this.gridConf.entry_textconfig,
+				this.interConf,
+				true,
+				true
+			);
+		}
+
+		//rresizinh list
+		assetGrid.UIE_setSize(undefined, y + h);
+	}
+
+	//#endregion
+
+	//#endregion create
+	//#region edit
+
+	modeEditSetupListeners(bool) {
+		if (bool) {
+			//////pointer//////
+
+			// clicking, drawing poly walls and selecting them
+			this.scene.input.on(
+				"pointerdown",
+				/**
+				 * @param {Phaser.Input.Pointer} pointer
+				 * @param {Phaser.GameObjects.GameObject[]} intObjects
+				 */
+				function (pointer, intObjects) {
+					// console.log("mode edit mouse objs: ", intObjects);
+
+					if (!this.pointOnUI(pointer.x, pointer.y)) {
+						if (intObjects.length >= 1) {
+							this.worldSelect(intObjects);
+						} else {
+							this.worldUnselect(false);
+						}
+					}
+				},
+				this
+			);
+
+			// mouse move, updating line to mouse
+			this.scene.input.on(
+				"pointermove",
+				/**
+				 * @param {Phaser.Input.Pointer} pointer
+				 * @param {Phaser.GameObjects.GameObject[]} intObjects
+				 */
+				function (pointer, intObjects) {
+					// draw line from vert to pointer
+					// console.log("Level Editor World Input pointermove");
+
+					if (this.worldObjSelected != undefined) {
+						if (this.worldObjSelected.input.dragState == 2)
+							this.worldObjHighlight();
+					}
+				},
+				this
+			);
+
+			//////keyboard//////
+			// unselecting
+			this.inputKeys.worldEditUnselect.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldUnselect();
+				},
+				this
+			);
+			//deleting objs
+			this.inputKeys.worldEditDelete.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.modeEditDelete();
+				},
+				this
+			);
+		} else {
+			//////pointer//////
+			//clicking
+			this.scene.input.removeListener("pointerdown", undefined, this);
+
+			// mouse move, updating line to mouse
+			this.scene.input.removeListener("pointermove", undefined, this);
+
+			//////keyboard//////
+			// unselecting
+			this.inputKeys.worldEditDelete.removeListener("down", undefined, this);
+			// deleting objs
+			this.inputKeys.worldEditUnselect.removeListener("down", undefined, this);
+		}
+	}
+
+	/**
+	 * deletes the selectedd object
+	 * @param {Phaser.GameObjects.GameObject} obj
+	 */
+	modeEditDelete() {
+		this.worldUnselect(true);
+	}
+
 	//#region selecting a obj
 
 	/**
@@ -1306,7 +1608,7 @@ export default class LevelEditor extends UIManager {
 	 */
 	worldObjSelectOne(obj, bool, deleteObj) {
 		if (bool) {
-			if (!(obj instanceof wallObjInter)) {
+			if (!(obj instanceof CollisionInstance)) {
 				console.log(
 					"Oh nooooo, semi implemented object type selected, the system doesnt support this"
 				);
@@ -1363,6 +1665,21 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+
+	//#endregion edit
+	//#region listeners general
+
+	inputManageMyLIsteners(bool) {
+		//world interaction
+
+		this.modeSetupListeners(bool);
+		//configure listeners for current mode
+		this.modeSetupModeListener(this.modeCheck(), bool);
+
+		if (bool) {
+		} else {
+		}
+	}
 
 	//#endregion
 	//#region camera
@@ -1482,21 +1799,23 @@ export default class LevelEditor extends UIManager {
 
 		/** @type {string[]} */
 		let list;
-		if (this.assets.has(type)) {
-			list = this.assets.get(type);
+		if (this.assets.map.has(type)) {
+			list = this.assets.map.get(type);
 		} else {
 			list = new Array();
-			this.assets.set(type, list);
+			this.assets.map.set(type, list);
+			this.assets.typeNum++;
 		}
 
 		list.push(key);
+		this.assets.number++;
 	}
 
 	loadComplete(loader, totalComplete, totalFailed) {
 		console.log("LEVELEDITOR load finished: ", totalComplete, totalFailed);
 
 		console.log("assets: ", this.assets);
-		this.CreateAssetGridBuild();
+		this.AssetGridBuild();
 	}
 
 	UISaveInteraction() {
@@ -1556,7 +1875,7 @@ export default class LevelEditor extends UIManager {
 		// 			vert: obj.vertices,
 		// 		},
 		// 	};
-		// } else if (obj instanceof wallObjInter) {
+		// } else if (obj instanceof CollisionInstance) {
 		// 	//interactive physics wall
 		// 	return this.saveProcessObj(obj.body);
 		// } else {
@@ -1564,7 +1883,7 @@ export default class LevelEditor extends UIManager {
 		// 	return undefined;
 		// }
 
-		if (obj instanceof wallObjInter) {
+		if (obj instanceof CollisionInstance) {
 			//interactive physics wall
 			return this.saveProcessObj(obj.body);
 		} else {
@@ -1588,147 +1907,6 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion saving loading
-	//#region asset grid
-
-	/**
-	 *
-	 *
-	 */
-	CreateAssetGridBuild() {
-		this.assets.forEach(this.CreateAssetGridAddList, this);
-	}
-
-	/**
-	 * @param {string[]} list
-	 * @param {string} name
-	 *
-	 */
-	CreateAssetGridAddList(list, name) {
-		let nameprefix = "UIAsset_" + name + "_";
-
-		let assetGrid = this.UIPanelCreate(
-			this.CreateAssetGrid,
-			nameprefix + "Panel",
-			this.CreateAssetGrid.depth,
-			undefined,
-			undefined,
-			undefined,
-			undefined,
-			this.gridConf.list_config,
-			this.UICreateGraphConf,
-			true,
-			true
-		);
-
-		let assetGridLabel = this.UILabelCreate(
-			assetGrid,
-			nameprefix + "Label",
-			this.CreateAssetGrid.depth,
-			undefined,
-			undefined,
-			undefined,
-			this.gridConf.header_h,
-			{ margin: 0, padding: 0 },
-			0.5,
-			0.5,
-			name,
-			this.UICreateGraphConf,
-			this.textConf,
-			true,
-			true
-		);
-
-		//go through list and create an asset entry for every asset in list
-		let y_base = assetGridLabel.UIE_getFurthestY();
-		let x = 0;
-		let y = assetGridLabel;
-		let w = assetGrid.UIE_getInnerWidth() / this.gridConf.list_rowNum;
-		let h = w;
-		let leng = list.length;
-		let entry = 0;
-		for (let index = 0; index < leng; index++) {
-			x = (index % this.gridConf.list_rowNum) * w;
-			y = y_base + Math.floor(index / this.gridConf.list_rowNum) * h;
-
-			entry = this.CreateAssetGridEntryCreate(
-				assetGrid,
-				x,
-				y,
-				w,
-				h,
-				list[index]
-			);
-		}
-
-		//rresizinh list
-		assetGrid.UIE_setSize(undefined, y + h);
-	}
-
-	/**
-	 *
-	 * @param {UIElement} parent
-	 * @param {UIElement} predecessor
-	 * @param {boolean} align
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} w
-	 * @param {number} h
-	 * @param {number} key
-	 * @returns {UIButton}
-	 */
-	CreateAssetGridEntryCreate(parent, x, y, w, h, key) {
-		let button = this.UIButtonCreate(
-			parent,
-			"GridEntry" + key,
-			this.CreateAssetGrid.depth,
-			x,
-			y,
-			1 / this.gridConf.list_rowNum,
-			h,
-			this.gridConf.entry_config,
-			0,
-			1,
-			key,
-			this.gridConf.entry_graphconfig,
-			this.gridConf.entry_textconfig,
-			this.interConf,
-			"pointerdown",
-			"gridEntry",
-			true,
-			true
-		);
-
-		button.key = key;
-
-		button.on("gridEntry", this.EditAssetGridEntryTrigger, this);
-
-		let image = new Phaser.GameObjects.Image(
-			this.scene,
-			w / 2,
-			0,
-			key,
-			undefined
-		);
-		image.setOrigin(0.5, 0.3);
-		image.setPosition(w * image.originX, h * image.originY);
-		image.setScale(
-			(Math.min(w, h) / Math.max(image.width, image.height)) *
-				this.gridConf.entry_scale
-		);
-		button.add(image);
-
-		button.moveAbove(button.UI_Label_text, image);
-
-		return button;
-	}
-
-	EditAssetGridEntryTrigger(pointer, relX, relY, prop, entry) {
-		console.log("a,b,c,d,e,f", pointer, relX, relY, prop, entry);
-
-		console.log("entry: ", entry.key);
-	}
-
-	//#endregion
 }
 
 /** enum-like for modes/states the Level editor can be in */
@@ -1745,8 +1923,8 @@ class LEVELEDITORMODES {
 		LEVELEDITORMODES.modeArr.push(mode);
 		return mode;
 	}
+	//#endregion other
 
-	//#endregion
 	/**
 	 * mode to edit, selectm, manipulate objects
 	 * @type {mode}

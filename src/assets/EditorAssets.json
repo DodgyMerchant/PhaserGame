@@ -18,17 +18,22 @@
 			},
 			{
 				"type": "image",
-				"key": "PlayerTest",
-				"url": "src/assets/Player/playerBodyTEMP.png"
+				"key": "WallSmall2",
+				"url": "src/assets/World/SmallWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallBig2",
-				"url": "src/assets/World/BigWall-TEMP.png"
+				"key": "WallSmall2",
+				"url": "src/assets/World/SmallWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallSmall3",
+				"key": "WallSmall2",
+				"url": "src/assets/World/SmallWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "WallSmall2",
 				"url": "src/assets/World/SmallWall-TEMP.png"
 			}
 		]

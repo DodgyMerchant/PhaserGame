@@ -1,19 +1,17 @@
 import worldObjImage from "../abstract/worldObjImage";
 
-export default class wallObjInter extends worldObjImage {
+export default class CollisionInstance extends worldObjImage {
 	/**
 	 *
 	 * @param {string} name a name
 	 * @param {Phaser.Physics.Matter.World} world physics world
 	 * @param {number} x
 	 * @param {number} y
-	 * @param {string | Phaser.Textures.Texture} textture
-	 * @param {string | number | undefined} frame
 	 * @param {Phaser.Types.Physics.Matter.MatterBodyConfig | undefined} options
 	 * @param {Phaser.Types.Input.InputConfiguration} interactiveConfig
 	 */
-	constructor(name, world, x, y, textture, frame, options, interactiveConfig) {
-		super(world, x, y, textture, frame, options);
+	constructor(name, world, x, y, options, interactiveConfig) {
+		super(world, x, y, undefined, undefined, options);
 
 		this.name = name;
 
@@ -43,6 +41,7 @@ export default class wallObjInter extends worldObjImage {
 
 		//#region move obj with mouse
 
+		//start
 		this.on(
 			"dragstart",
 			/** @param {Phaser.Input.Pointer} pointer */
@@ -56,6 +55,7 @@ export default class wallObjInter extends worldObjImage {
 			},
 			this
 		);
+		//drag
 		this.on(
 			"drag",
 			/**
@@ -64,14 +64,17 @@ export default class wallObjInter extends worldObjImage {
 			 * @param {number} dragY */
 			function (pointer, dragX, dragY) {
 				// this.setPosition(dragX, dragY);
-				this.setPosition(dragX, dragY);
 
+				if (!this.scene.debug.levelEditor.pointOnUI(pointer.x, pointer.y)) {
+					this.setPosition(dragX, dragY);
+				}
 				// this.scene.matter.body.translate(this.body, new Phaser.Math.Vector2(dragX, dragY));
 
 				// console.log("drag: ", this.body.position);
 			},
 			this
 		);
+		//end
 		this.on(
 			"dragend",
 			/** @param {Phaser.Input.Pointer} pointer */
@@ -87,7 +90,6 @@ export default class wallObjInter extends worldObjImage {
 			},
 			this
 		);
-
 		// console.log("new wall", this);
 
 		//#endregion
@@ -105,7 +107,7 @@ export default class wallObjInter extends worldObjImage {
 	 * convert this to a non interactable static physics object
 	 */
 	convert() {
-		this.scene.mapObjVertCreate(this.body.vertices, false);
+		this.scene.mapObjCreate_Collision(this.body.vertices, false);
 		this.destroy(false);
 	}
 }

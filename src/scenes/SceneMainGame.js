@@ -2,9 +2,10 @@ import Player, { PlayerConfig } from "../Objects/WorldObjects/player/Player";
 import { STATES } from "../Objects/WorldObjects/MovementObj";
 import { COLLCAT } from "../Objects/WorldObjects/PhyObj";
 import DebugSceneObj from "../Objects/Systems/DebugSceneObj";
-import wallObjInter from "../Objects/WorldObjects/Walls/wallObjInter";
+import CollisionInstance from "../Objects/WorldObjects/Dev/CollisionInstance";
 import ACCUMULATOR from "../Objects/Systems/Accumulator";
 import GameScenes from "./abstract/GameScenes";
+import devPoly from "../Objects/WorldObjects/Dev/abstract/devPoly";
 
 export default class SceneMainGame extends GameScenes {
 	/**
@@ -47,8 +48,8 @@ export default class SceneMainGame extends GameScenes {
 		 */
 		this.playerConfig = {
 			name: "PlayerObject",
-			x: 50,
-			y: 50,
+			x: 0,
+			y: 0,
 			/** sprite key:  */
 			textureBody_Key: "playerImageBody",
 
@@ -250,6 +251,16 @@ export default class SceneMainGame extends GameScenes {
 
 		//#endregion
 
+		let obj = new devPoly("devPoly", this, 100, 100, [
+			{ x: 100, y: 100 },
+			{ x: 200, y: 100 },
+			{ x: 200, y: 200 },
+			{ x: 100, y: 200 },
+			{ x: 70, y: 150 },
+		]);
+
+		this.add.existing(obj);
+
 		console.log("//////////// SceneMainGame Created Done ////////////");
 	}
 
@@ -341,7 +352,7 @@ export default class SceneMainGame extends GameScenes {
 	}
 
 	//#endregion
-	//#region create map obj
+	//#region create map
 
 	/**
 	 *
@@ -349,7 +360,7 @@ export default class SceneMainGame extends GameScenes {
 	 * @param {boolean} interactive if the obj should be interactive
 	 * @returns {MatterJS.BodyType}
 	 */
-	mapObjVertCreate(vecArr, interactive) {
+	mapObjCreate_Collision(vecArr, interactive) {
 		let center = this.matter.vertices.centre(vecArr);
 		let vertObj;
 
@@ -376,13 +387,11 @@ export default class SceneMainGame extends GameScenes {
 				useHandCursor: true,
 			};
 
-			vertObj = new wallObjInter(
+			vertObj = new CollisionInstance(
 				"wall",
 				this.matter.world,
 				center.x,
 				center.y,
-				undefined,
-				undefined,
 				collconf,
 				// this.mapCollisionConfig,
 				interactiveConfig
@@ -429,7 +438,7 @@ export default class SceneMainGame extends GameScenes {
 		console.log("mapdata.collisionInstances", mapdata.collisionInstances);
 
 		mapdata.collisionInstances.forEach((element) => {
-			this.mapObjVertCreate(element.vert, this.debug_issetup);
+			this.mapObjCreate_Collision(element.vert, this.debug_issetup);
 		});
 	}
 
@@ -455,9 +464,9 @@ export default class SceneMainGame extends GameScenes {
 	 * checks of position falls into a zone
 	 * @param {number} x position in world space
 	 * @param {number} y position in world space
-	 * @returns {string[]} list with cache strings referring to the zones
+	 * @returns {obj[]} zone objects from zone list, should just be one zone, but can go wrong
 	 */
-	zoneCheckPos(x, y) {
+	zoneCheckPoint(x, y) {
 		let result = [];
 		let leng = this.zoneList.length;
 		let zoneEntry;
@@ -466,8 +475,45 @@ export default class SceneMainGame extends GameScenes {
 			zoneEntry = this.zoneList[index];
 
 			if (Phaser.Geom.Polygon.Contains(zoneEntry.poly, x, y)) {
-				result.push(zoneEntry.key);
+				result.push(zoneEntry);
 			}
+		}
+		return result;
+	}
+
+	/**
+	 * checks of position falls into a zone
+	 * @param {number} x position in world space
+	 * @param {number} y position in world space
+	 * @param {number} connectionRange number of zone connections to include
+	 * @returns {obj[]} list with cache strings referring to the zones
+	 */
+	zoneCheckPointConnected(x, y, connectionRange) {
+		let list = this.zoneCheckPoint(x, y);
+		let result = list;
+		let leng = list.length;
+
+		for (let index = 0; index < leng; index++) {
+			//get zone entry from list
+			zone = list[index];
+		}
+
+		return result;
+	}
+
+	/**
+	 *
+	 * @param {obj} zone
+	 * @param {number} range how maany zones deep the connections should be returned, 0 just this zones connections, 1 all connections of connected zones ...
+	 * @returns {object[]}
+	 */
+	zoneGrabConnection(zone, range) {
+		/** @type {Array} */
+		var list = zone.connection.slice();
+		var leng = list.length;
+
+		for (let index = 0; index < leng; index++) {
+			list[index];
 		}
 	}
 
