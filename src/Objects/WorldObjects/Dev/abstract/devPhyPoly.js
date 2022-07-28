@@ -3,35 +3,28 @@ import devPoly from "./devPoly";
 export default class devPhyPoly extends devPoly {
 	/**
 	 *
-	 * @param {*} scene
-	 * @param {*} x
-	 * @param {*} y
+	 * @param {Phaser.Scene} scene
+	 * @param {number} x
+	 * @param {number} y
 	 * @param {Phaser.Types.Physics.Matter.MatterBodyConfig | undefined} options
-	 *  @param {Phaser.Types.Input.InputConfiguration} interactiveConfig
+	 * @param {Phaser.Types.Input.InputConfiguration} interactiveConfig
 	 */
-	constructor(name, scene, x, y, points) {
-		super(name, scene, x, y, points);
+	constructor(name, scene, x, y, points, phyoptions, interactiveConfig) {
+		super(name, scene, x, y, points, interactiveConfig);
 
-    Phaser.Geom.Polygon.
-
-
-		this.scene.matter.add.gameObject(this, undefined, true);
-
-
+		scene.matter.add.gameObject(this, phyoptions, true);
 
 		// console.log("new wall", this);
 
 		//#endregion
-
-    
 	}
 
-  /**
+	/**
 	 *
 	 * manually update the objects physics
 	 */
-	myRefresh() {
-    super.myRefresh()
+	refresh() {
+		super.refresh();
 		this.setAwake();
 	}
 
@@ -39,7 +32,7 @@ export default class devPhyPoly extends devPoly {
 	 * convert this to a non interactable static physics object
 	 */
 	convert() {
-		this.scene.mapObjCreate_Collision(this.body.vertices, false);
+		this.scene.mapObjCreate_Collision(false, this.body.vertices);
 		this.destroy(false);
 	}
 }

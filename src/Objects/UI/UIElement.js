@@ -223,7 +223,7 @@ export default class UIElement extends UIObj {
 		// 	this.parentContainer.height
 		// );
 
-		console.log("refresh - UIElement: ", this.name);
+		// console.log("refresh - UIElement: ", this.name);
 
 		//refresh my children
 		super.refresh();

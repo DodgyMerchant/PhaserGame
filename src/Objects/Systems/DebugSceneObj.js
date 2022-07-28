@@ -303,12 +303,14 @@ export default class DebugSceneObj extends UIManager {
 			this.debugGroup,
 			0,
 			0,
-			this.scene.cameras.main.displayWidth / this.scene.cameras.main.zoom,
-			this.scene.cameras.main.displayHeight / this.scene.cameras.main.zoom,
+			// this.scene.cameras.main.displayWidth / this.scene.cameras.main.zoom,
+			// this.scene.cameras.main.displayHeight / this.scene.cameras.main.zoom,
 			bool
 		);
 		this.debugGroup.add(this.levelEditor);
 	}
+
+	//#region debug data text
 
 	debugBuildText() {
 		//reste text
@@ -351,4 +353,6 @@ export default class DebugSceneObj extends UIManager {
 	debugTextAdd(str) {
 		this.debugText.text += str + "\n";
 	}
+
+	//#endregion debug data text
 }

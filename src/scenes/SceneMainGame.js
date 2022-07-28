@@ -6,6 +6,8 @@ import CollisionInstance from "../Objects/WorldObjects/Dev/CollisionInstance";
 import ACCUMULATOR from "../Objects/Systems/Accumulator";
 import GameScenes from "./abstract/GameScenes";
 import devPoly from "../Objects/WorldObjects/Dev/abstract/devPoly";
+import devPhyPoly from "../Objects/WorldObjects/Dev/abstract/devPhyPoly";
+import ImageInteractive from "../Objects/WorldObjects/Dev/imageInteractive";
 
 export default class SceneMainGame extends GameScenes {
 	/**
@@ -174,15 +176,6 @@ export default class SceneMainGame extends GameScenes {
 		this.zoneLoadedList = [];
 
 		//#endregion
-		//#region saving
-
-		/**
-		 * list of all object to be saved
-		 * @type {object[]}
-		 */
-		this.saveableList = new Array();
-
-		//#endregion
 	}
 
 	preload() {
@@ -250,16 +243,6 @@ export default class SceneMainGame extends GameScenes {
 		);
 
 		//#endregion
-
-		let obj = new devPoly("devPoly", this, 100, 100, [
-			{ x: 100, y: 100 },
-			{ x: 200, y: 100 },
-			{ x: 200, y: 200 },
-			{ x: 100, y: 200 },
-			{ x: 70, y: 150 },
-		]);
-
-		this.add.existing(obj);
 
 		console.log("//////////// SceneMainGame Created Done ////////////");
 	}
@@ -356,11 +339,11 @@ export default class SceneMainGame extends GameScenes {
 
 	/**
 	 *
-	 * @param {Phaser.Math.Vector2[]} vecArr
 	 * @param {boolean} interactive if the obj should be interactive
-	 * @returns {MatterJS.BodyType}
+	 * @param {Phaser.Math.Vector2[]} vecArr
+	 * @returns {MatterJS.BodyType | CollisionInstance}
 	 */
-	mapObjCreate_Collision(vecArr, interactive) {
+	mapObjCreate_Collision(interactive, vecArr) {
 		let center = this.matter.vertices.centre(vecArr);
 		let vertObj;
 
@@ -373,32 +356,62 @@ export default class SceneMainGame extends GameScenes {
 			/** @type {Phaser.Types.Physics.Matter.MatterBodyConfig} */
 			let collconf = Phaser.Utils.Objects.DeepCopy(this.mapCollisionConfig);
 
-			collconf.vertices = vecArr;
+			let poly = new Phaser.Geom.Polygon(vecArr);
+			let boundBox = Phaser.Geom.Polygon.GetAABB(poly, undefined);
+			let boundTopLeft = new Phaser.Math.Vector2(boundBox.x, boundBox.y);
+
+			let zeroTopLeftArr = Phaser.Utils.Objects.DeepCopy(vecArr);
+			this.matter.vertices.translate(zeroTopLeftArr, boundTopLeft, -1);
+
+			// let zeroCenterArr = Phaser.Utils.Objects.DeepCopy(vecArr);
+			// this.matter.vertices.translate(zeroCenterArr, center, -1);
 
 			/**
 			 * interactive config
 			 * @type {Phaser.Types.Input.InputConfiguration}
 			 */
 			let interactiveConfig = {
-				hitArea: new Phaser.Geom.Polygon(vecArr),
+				hitArea: new Phaser.Geom.Polygon(zeroTopLeftArr),
 				hitAreaCallback: Phaser.Geom.Polygon.Contains,
 				pixelPerfect: false,
 				draggable: false,
 				useHandCursor: true,
 			};
 
+			collconf.vertices = vecArr;
 			vertObj = new CollisionInstance(
-				"wall",
-				this.matter.world,
+				"collisionInstance",
+				this,
 				center.x,
 				center.y,
+				zeroTopLeftArr,
 				collconf,
-				// this.mapCollisionConfig,
 				interactiveConfig
 			);
 
+			// vertObj = new devPoly(
+			// 	"collisionInstance",
+			// 	this,
+			// 	center.x,
+			// 	center.y,
+			// 	zeroTopLeftArr,
+			// 	interactiveConfig
+			// );
+
+			// collconf.vertices = vecArr;
+			// vertObj = new devPhyPoly(
+			// 	"collisionInstance",
+			// 	this,
+			// 	center.x,
+			// 	center.y,
+			// 	zeroTopLeftArr,
+			// 	collconf,
+			// 	interactiveConfig
+			// );
+
 			//add as savable
-			this.enableSaving(vertObj);
+
+			this.debug.levelEditor.enableSaving(vertObj);
 
 			// vertObj = this.matter.add.image(
 			// 	center.x,
@@ -427,6 +440,48 @@ export default class SceneMainGame extends GameScenes {
 		return vertObj;
 	}
 
+	/**
+	 * create a new image object. Optianally supply load data as the x argument to use the whole data.
+	 * @param {boolean} interactive number or data object
+	 * @param {number | obj} x number or data object
+	 * @param {number} y
+	 * @param {string | Phaser.Textures.Texture} texture
+	 * @param {string | number | undefined} frame
+	 * @returns {Phaser.GameObjects.Image | ImageInteractive}
+	 */
+	mapObjCreate_Image(interactive, x, y, texture, frame) {
+		let constructor = interactive ? ImageInteractive : Phaser.GameObjects.Image;
+		let imageObj;
+
+		/**
+		 * interactive config
+		 * @type {Phaser.Types.Input.InputConfiguration}
+		 */
+		let interactiveConfig = {
+			pixelPerfect: false,
+			draggable: false,
+			useHandCursor: true,
+		};
+
+		if (typeof x === "object") {
+			imageObj = new constructor(
+				this,
+				x.x,
+				x.y,
+				x.texture,
+				x.frame,
+				interactiveConfig
+			);
+			Phaser.Utils.Objects.Extend(imageObj, x);
+		} else {
+			imageObj = new constructor(this, x, y, texture, frame, interactiveConfig);
+		}
+
+		this.add.existing(imageObj);
+
+		return imageObj;
+	}
+
 	//#endregion
 	//#region loading
 
@@ -438,28 +493,11 @@ export default class SceneMainGame extends GameScenes {
 		console.log("mapdata.collisionInstances", mapdata.collisionInstances);
 
 		mapdata.collisionInstances.forEach((element) => {
-			this.mapObjCreate_Collision(element.vert, this.debug_issetup);
+			this.mapObjCreate_Collision(this.debug_issetup, element.vert);
 		});
 	}
 
-	/**
-	 *
-	 * @param {object} obj
-	 */
-	enableSaving(obj) {
-		console.log("SAVE - enableSaving of: ", obj.name);
-
-		this.saveableList.push(obj);
-		obj.on("destroy", this.savebleRemove, this);
-	}
-
-	savebleRemove(obj) {
-		let index = this.saveableList.indexOf(obj);
-		if (index > -1) {
-			this.saveableList.splice(index, 1);
-		}
-	}
-
+	//zones
 	/**
 	 * checks of position falls into a zone
 	 * @param {number} x position in world space
@@ -518,4 +556,76 @@ export default class SceneMainGame extends GameScenes {
 	}
 
 	//#endregion
+}
+
+export class MAPDATAINFO {
+	static DataDefault = {
+		collisionInstances: [],
+		worldImages: [],
+	};
+
+	static type_collisionInstance = "collisionInstances";
+	/**
+	 * obj to data
+	 * @param {MatterJS.Vector[] | undefined} vecArr
+	 * @returns
+	 */
+	static data_collisionInstance(vecArr) {
+		let data = {
+			type: this.type_collisionInstance,
+			obj: {
+				vert: [],
+			},
+		};
+
+		if (vecArr != undefined) {
+			vecArr.forEach((vec) => {
+				data.obj.vert.push({
+					x: vec.x,
+					y: vec.y,
+				});
+			});
+		}
+
+		return data;
+	}
+	/**
+	 * data to obj
+	 * @param {Phaser.Scene} scene
+	 * @param {object} obj
+	 * @returns {MatterJS.BodyType | CollisionInstance}
+	 */
+	static from_collisionInstance(scene, obj) {
+		return scene.mapObjCreate_Collision(scene.debug_issetup, obj.vert);
+	}
+
+	static type_worldImage = "worldImages";
+	/**
+	 * obj to data
+	 * @param {Phaser.GameObjects.Image} imageObj
+	 * @returns
+	 */
+	static data_collisionInstance(imageObj) {
+		let data = {
+			type: this.type_worldImage,
+			obj: {
+				x: imageObj.x,
+				y: imageObj.y,
+				rotation: imageObj.rotation,
+				alpha: imageObj.alpha,
+				blendMode: imageObj.blendMode,
+				depth: imageObj.depth,
+				scaleX: imageObj.scaleX,
+				scaleY: imageObj.scaleY,
+				frame: imageObj.frame,
+				scrollFactorX: imageObj.scrollFactorX,
+				scrollFactorY: imageObj.scrollFactorY,
+				texture: imageObj.texture.key,
+				tint: imageObj.tint,
+				visible: imageObj.visible,
+			},
+		};
+
+		return data;
+	}
 }
