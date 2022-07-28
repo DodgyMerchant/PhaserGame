@@ -1873,7 +1873,7 @@ export default class LevelEditor extends UIManager {
 
 		let geom = this.worldObjSelected.input.hitArea;
 
-		this.worldObjSelected.rotation = 1;
+		// this.worldObjSelected.rotation = 1;
 
 		console.log("???????", this.worldObjSelected, geom);
 
