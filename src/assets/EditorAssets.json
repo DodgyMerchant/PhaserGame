@@ -1,0 +1,41 @@
+{
+	"all": {
+		"files": [
+			{
+				"type": "image",
+				"key": "WallSmall",
+				"url": "src/assets/World/SmallWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "WallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "WallSmall2",
+				"url": "src/assets/World/SmallWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "WallSmall2",
+				"url": "src/assets/World/SmallWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "WallSmall2",
+				"url": "src/assets/World/SmallWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "WallSmall2",
+				"url": "src/assets/World/SmallWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "WallSmall2",
+				"url": "src/assets/World/SmallWall-TEMP.png"
+			}
+		]
+	}
+}

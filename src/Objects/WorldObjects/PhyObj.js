@@ -17,11 +17,6 @@ export default class PhyObj extends worldObjSprite {
 	constructor(scene, x, y, texture, phyConfig) {
 		super(scene.matter.world, x, y, texture, undefined, phyConfig);
 
-		this.setActive(true);
-		this.setVisible(true);
-
-		this.scene.add.existing(this);
-
 		//#region collision
 
 		// /**
@@ -203,48 +198,64 @@ export class COLLCAT {
   but this could go out of controll eaasily
   */
 
+	//#region internal
+
+	//#region other
+	/**
+	 * collision category array
+	 * holds all categories
+	 */
+	static CATARR = new Array();
+
+	static catAdd(number) {
+		COLLCAT.CATARR.push(number);
+		return number;
+	}
+
+	//#endregion
+
 	// prettier-ignore
 	/**
 	 * map
 	 * @type {CollisionCategory}
 	 * */
-	static MAP =          0b000001;
+	static MAP =          COLLCAT.catAdd(0b000001);
 	// prettier-ignore
 	/**
 	 * player
 	 * @type {CollisionCategory}
 	 * */
-	static PLAYER =       0b000010;
+	static PLAYER =       COLLCAT.catAdd(0b000010);
 	// prettier-ignore
 	/**
 	 * gameobj
 	 * @type {CollisionCategory}
 	 * */
-	static GAMEOBJ =      0b000100;
+	static GAMEOBJ =      COLLCAT.catAdd(0b000100);
 	// prettier-ignore
 	/**
 	 * connector for footholds
 	 * @type {CollisionCategory}
 	 * */
-	static CONNECTER =    0b001000;
+	static CONNECTER =    COLLCAT.catAdd(0b001000);
 	// prettier-ignore
 	/**
 	 * connectable, a foothold
 	 * @type {CollisionCategory}
 	 * */
-	static CONNECTABLE =  0b010000;
+	static CONNECTABLE =  COLLCAT.catAdd(0b010000);
 	// prettier-ignore
 	/**
 	 * nothing collides
 	 * @type {CollisionCategory}
 	 * */
-	static NOTHING =      0b00000000000000000000000000000000;
+	static NOTHING =      COLLCAT.catAdd(0b00000000000000000000000000000000);
 	// prettier-ignore
 	/**
 	 * all collides
 	 * @type {CollisionCategory}
 	 * */
-	static ALL =          0b11111111111111111111111111111111;
+	static ALL =          COLLCAT.catAdd(0b11111111111111111111111111111111);
 
 	/**
 	 * compiles array with collision 32bit categories into one 32bit number

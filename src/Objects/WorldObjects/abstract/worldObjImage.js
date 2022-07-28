@@ -15,6 +15,9 @@ export default class worldObjImage extends Phaser.Physics.Matter.Image {
 	 */
 	constructor(world, x, y, textture, frame, options) {
 		super(world, x, y, textture, frame, options);
+
+		this.setActive(true);
+		this.setVisible(true);
 	}
 
 	preUpdate(time, delta) {

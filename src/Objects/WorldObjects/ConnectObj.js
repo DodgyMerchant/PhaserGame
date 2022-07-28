@@ -208,7 +208,7 @@ export default class ConnectObj extends MovementObj {
 
 	 * @param {CollisionCategory | CollisionCategory[]} connCat collision categories for the connection determination shaape
 	 * @param {CollisionCategory | CollisionCategory[]} connWith collision categories for the connection determination shaape
-	 * @param {method | undefined} jumpMeth Method called to get input for jumping, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set connJumpInputMethod.
+	 * @param {function | undefined} jumpMeth Method called to get input for jumping, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set connJumpInputMethod.
 */
 /**
  * @typedef {{
@@ -217,7 +217,7 @@ export default class ConnectObj extends MovementObj {
  * connAirFric: (number),
  * connCat: (CollisionCategory | CollisionCategory[]),
  * connWith: (CollisionCategory | CollisionCategory[]),
- * jumpMeth: (method | undefined),
+ * jumpMeth: (function | undefined),
  * }} ConnectConfig Config for a connect object
  */
 /**

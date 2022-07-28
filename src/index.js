@@ -1,18 +1,24 @@
 import Phaser from "phaser";
-import SceneMain from "./scenes/SceneMain.js";
+import SceneMainGame from "./scenes/SceneMainGame.js";
+import SceneMainMenu from "./scenes/SceneMainMenu.js";
 
 var view_size = 700;
 var zoom = 1;
 var fps = 60;
 var second = 1000;
 var time_step = second / fps;
-let fps_lock = true; //kan umgestellt werden, hat keinen einfluss auf fixedUpdates
+let fps_lock = true; //kann umgestellt werden, hat keinen einfluss auf fixedUpdates
 
 //phy debug
 
 //solange die delta die die phy engined benutzt nicht gesetzt werden,
 //muss das engione update manuell performt werden
 let phy_autoUpdate = false;
+
+/** @type {Phaser.Types.Scenes.SettingsConfig} */
+let testConf2 = {
+  
+};
 
 /**
  * the games config
@@ -24,12 +30,14 @@ const config = {
 	width: view_size,
 	height: view_size,
 	backgroundColor: "0xffffff",
-	scene: [SceneMain],
+	scene: [SceneMainMenu], //SceneMainGame
 	pixelArt: false,
+	disableContextMenu: true,
 
 	scale: {
 		zoom: zoom,
 	},
+
 	input: {
 		gamepad: true,
 	},
@@ -56,6 +64,7 @@ const config = {
 
 			enableSleeping: true,
 			gravity: { y: 0, x: 0 },
+
 			debug: {
 				showAxes: false,
 				showAngleIndicator: true,

@@ -1,5 +1,33 @@
 {
-	"tutorial": {
+	"zones": [
+		{
+			"name": "Tutorial",
+			"key": "Zone_Tutorial",
+			"connection": [],
+			"poly": 0,
+			"vert": [
+				{ "x": 100, "y": 100 },
+				{ "x": 200, "y": 100 },
+				{ "x": 200, "y": 200 },
+				{ "x": 100, "y": 200 }
+			]
+		},
+		{
+			"name": "TestZone",
+			"key": "Zone_TestZone",
+			"connection": [],
+			"poly": 0,
+			"vert": [
+				{ "x": 200, "y": 200 },
+				{ "x": 300, "y": 200 },
+				{ "x": 300, "y": 300 },
+				{ "x": 200, "y": 300 }
+			]
+		}
+	],
+
+	"Zone_Tutorial": {
+		"index": 0,
 		"files": [
 			{
 				"type": "image",
@@ -90,5 +118,8 @@
 			]
 		}
 	},
-	"zone1": {}
+	"Zone_TestZone": {
+		"index": 0,
+		"files": []
+	}
 }

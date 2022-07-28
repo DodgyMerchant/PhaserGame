@@ -1,48 +1,31 @@
-import worldObjImage from "../abstract/worldObjImage";
-
-export default class wallObjInter extends worldObjImage {
+export default class devPoly extends Phaser.GameObjects.Polygon {
 	/**
 	 *
-	 * @param {string} name a name
-	 * @param {Phaser.Physics.Matter.World} world physics world
+	 * @param {Phaser.Scene} scene
 	 * @param {number} x
 	 * @param {number} y
-	 * @param {string | Phaser.Textures.Texture} textture
-	 * @param {string | number | undefined} frame
-	 * @param {Phaser.Types.Physics.Matter.MatterBodyConfig | undefined} options
+	 * @param {any} points
 	 * @param {Phaser.Types.Input.InputConfiguration} interactiveConfig
 	 */
-	constructor(name, world, x, y, textture, frame, options, interactiveConfig) {
-		super(world, x, y, textture, frame, options);
+	constructor(name, scene, x, y, points, interactiveConfig) {
+		super(scene, x, y, points, 0xff0000, 0);
+
+		this.setActive(true);
+		this.setVisible(true);
+
+		scene.add.existing(this);
+
+		//altering polygon to make interaction accurate
+		// let zeroArr = points.slice();
+		// scene.matter.vertices.translate(zeroArr, this.getTopLeft().negate(), 1);
+
+		this.setInteractive(interactiveConfig);
 
 		this.name = name;
 
-		//altering polygon to make interaction accurate
-		let zeroArr = options.vertices.slice();
-		this.scene.matter.vertices.translate(
-			zeroArr,
-			this.getTopLeft().negate(),
-			1
-		);
+		//#region interaction
 
-		interactiveConfig.hitArea.setTo(zeroArr);
-
-		// console.log("log - vertObj.getTopLeft(): ", vertObj.getTopLeft());
-
-		//make interactive
-		this.setInteractive(interactiveConfig);
-
-		// this.setActive(true);
-		// this.setVisible(true);
-
-		// this.scene.add.existing(this);
-
-		// this.scene.input.setDraggable();
-
-		this.saveStatic = this.isStatic;
-
-		//#region move obj with mouse
-
+		//start
 		this.on(
 			"dragstart",
 			/** @param {Phaser.Input.Pointer} pointer */
@@ -56,6 +39,7 @@ export default class wallObjInter extends worldObjImage {
 			},
 			this
 		);
+		//drag
 		this.on(
 			"drag",
 			/**
@@ -64,14 +48,17 @@ export default class wallObjInter extends worldObjImage {
 			 * @param {number} dragY */
 			function (pointer, dragX, dragY) {
 				// this.setPosition(dragX, dragY);
-				this.setPosition(dragX, dragY);
 
+				if (!this.scene.debug.levelEditor.pointOnUI(pointer.x, pointer.y)) {
+					this.setPosition(dragX, dragY);
+				}
 				// this.scene.matter.body.translate(this.body, new Phaser.Math.Vector2(dragX, dragY));
 
 				// console.log("drag: ", this.body.position);
 			},
 			this
 		);
+		//end
 		this.on(
 			"dragend",
 			/** @param {Phaser.Input.Pointer} pointer */
@@ -88,8 +75,6 @@ export default class wallObjInter extends worldObjImage {
 			this
 		);
 
-		// console.log("new wall", this);
-
 		//#endregion
 	}
 
@@ -97,15 +82,10 @@ export default class wallObjInter extends worldObjImage {
 	 *
 	 * manually update the objects physics
 	 */
-	refresh() {
-		this.setAwake();
-	}
+	refresh() {}
 
 	/**
 	 * convert this to a non interactable static physics object
 	 */
-	convert() {
-		this.scene.mapObjVertCreate(this.body.vertices, false);
-		this.destroy(false);
-	}
+	convert() {}
 }

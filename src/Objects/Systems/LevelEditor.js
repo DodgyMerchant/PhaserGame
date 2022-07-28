@@ -1,8 +1,10 @@
+import { GUI } from "dat.gui";
 import UIManager from "../UI/Abstract/UIManager";
-import { UIConfig } from "../UI/UIElement";
-import worldObjImage from "../WorldObjects/abstract/worldObjImage";
-import worldObjSprite from "../WorldObjects/abstract/worldObjSprite";
-import wallObjInter from "../WorldObjects/Walls/wallObjInter";
+import UIObj from "../UI/Abstract/UIObj";
+import UIElement, { UIConfig } from "../UI/UIElement";
+import CollisionInstance from "../WorldObjects/Dev/CollisionInstance";
+import { MAPDATAINFO } from "../../scenes/SceneMainGame";
+import ImageInteractive from "../WorldObjects/Dev/imageInteractive";
 
 /**
  * level editor
@@ -15,18 +17,58 @@ export default class LevelEditor extends UIManager {
 	 * @param {Phaser.GameObjects.Group} debugGroup The Scene to which this Game Object belongs. A Game Object can only belong to one Scene at a time.
 	 * @param {number | undefined} x The horizontal position of this Game Object in the world. Default 0.
 	 * @param {number | undefined} y The vertical position of this Game Object in the world. Default 0.
-	 * @param {bool | undefined} bool if active. default true
+	 * @param {bool | undefined} active if active. default true
+	 * @param {mode | undefined} editorMode mode to start in default, create
 	 */
-	constructor(name, scene, debugGroup, x, y, bool) {
+	constructor(name, scene, debugGroup, x, y, active, editorMode) {
 		super(name, scene, 1000, x, y, undefined, true, true, undefined);
 
+		//#region loading
+
+		this.assestsDataKey = "levelEditorAssets";
+		this.assets = {
+			number: 0,
+			typeNum: 0,
+			map: new Map(),
+		};
+		this.loadAssets();
+
+		//#endregion
+		//#region saving
+
+		//#region saving
+
+		/**
+		 * list of all object to be saved
+		 * @type {object[]}
+		 */
+		this.saveableList = new Array();
+
+		//#endregion
+
+		//#endregion
+		//#region recources
+
+		/**
+		 * the type of recource selected
+		 * @type {string}
+		 */
+		this.recourceType = RECOURCETYPES.NOTHING;
+		/**
+		 * sibject of the recource selection
+		 * different types of recources have different subject types
+		 * f.e. image => string sprite key, polygon => function to call with the polygon data
+		 */
+		this.recourceSubject;
+
+		this.recourceDefaultText = "NaN";
+
+		//#endregion
 		//#region this obj setup
 		/**
 		 * @type {Phaser.GameObjects.Group} group im in
 		 */
-		this.group = debugGroup;
-
-		this.scene.input.mouse.disableContextMenu();
+		(this.group = debugGroup);
 
 		//#endregion
 		//#region config obj
@@ -163,7 +205,7 @@ export default class LevelEditor extends UIManager {
 		};
 
 		//#endregion
-		//other config
+		//#region other config
 
 		/**
 		 * config obj for interactive objects
@@ -192,6 +234,8 @@ export default class LevelEditor extends UIManager {
 			minZoom: 0.1,
 			zoomWheelComp: 8,
 		};
+
+		//#endregion
 
 		//#endregion
 		//#region input
@@ -358,7 +402,16 @@ export default class LevelEditor extends UIManager {
 		//#endregion
 
 		//#endregion
-		//#region world interaction
+		//#region world general
+
+		this.worldGraph = this.scene.add.graphics(this.worldGraphConf);
+
+		//#endregion world general
+
+		//post world graph
+		this.cameraActivate(true);
+
+		//#region world vert create
 
 		/**
 		 * array of vec2 for object vertecie creation
@@ -366,9 +419,14 @@ export default class LevelEditor extends UIManager {
 		 */
 		this.worldVertList = new Array();
 
-		this.worldGraph = this.scene.add.graphics(this.worldGraphConf);
+		/**
+		 * set method that uses the vertevies created
+		 * @type {function}
+		 */
+		this.worldVertCallback;
 
-		//manipulating objects in world
+		//#endregion world vert create
+		//#region world select obj
 
 		/**
 		 * the selected world Object
@@ -380,7 +438,7 @@ export default class LevelEditor extends UIManager {
 		 * selectable types of objects
 		 * @type {Phaser.Physics.Matter.Image[] | Phaser.Physics.Matter.Sprite[]}
 		 */
-		this.worldSelectableList = [worldObjImage, worldObjSprite];
+		this.worldSelectableList = [CollisionInstance, ImageInteractive];
 
 		// /**
 		//  * @type {MatterJS.ConstraintType}
@@ -392,14 +450,7 @@ export default class LevelEditor extends UIManager {
 		// 	render: true,
 		// });
 
-		//#endregion
-
-		if (bool != undefined) {
-			this.toggle(bool);
-		} else {
-			this.toggle(true);
-		}
-
+		//#endregion world select obj
 		//#region UI creation
 
 		/**
@@ -409,6 +460,11 @@ export default class LevelEditor extends UIManager {
 			marginApplyNoParent: false,
 			margin: 2,
 			padding: 2,
+		};
+		let UIAssetGridconfig = {
+			marginApplyNoParent: false,
+			margin: 0,
+			padding: 0,
 		};
 
 		let w = this.displayWidth / this.scaleX;
@@ -425,12 +481,14 @@ export default class LevelEditor extends UIManager {
 		let header_h = 20;
 
 		//inspector
-
 		let StateButton_h = 30;
 		let StateButton_w = 0.5;
-		let StateModeLabel_h = 30;
-		let StateModeLabel_textPosH = 0.1;
-		let StateModeLabel_textPosV = 0.5;
+
+		let button_w = 0.5;
+		let button_h = 30;
+
+		let saveButton_h = 30;
+		let recouceSelectLabel_h = 30;
 
 		//heading
 		this.Label = this.UILabelCreate(
@@ -467,7 +525,6 @@ export default class LevelEditor extends UIManager {
 			true
 		);
 
-		//#region create
 		this.CreateButton = this.UIButtonCreate(
 			this.RightPanel,
 			"CreateButton",
@@ -496,41 +553,6 @@ export default class LevelEditor extends UIManager {
 			},
 			this
 		);
-
-		this.CreatePanel = this.UIPanelCreate(
-			this.RightPanel,
-			"CreatePanel",
-			this.depth,
-			undefined,
-			undefined,
-			undefined,
-			undefined,
-			UIconfig,
-			this.UICreateGraphConf,
-			true,
-			true
-		);
-
-		this.CreateHeader = this.UILabelCreate(
-			this.CreatePanel,
-			"Heading one",
-			this.depth,
-			undefined,
-			this.CreateButton,
-			undefined,
-			StateModeLabel_h,
-			UIconfig,
-			StateModeLabel_textPosH,
-			StateModeLabel_textPosV,
-			"Create Objects",
-			this.UICreateLabelGraphConf,
-			this.textConf,
-			true,
-			true
-		);
-
-		//#endregion
-		//#region edit
 
 		this.EditButton = this.UIButtonCreate(
 			this.RightPanel,
@@ -561,55 +583,16 @@ export default class LevelEditor extends UIManager {
 			this
 		);
 
-		this.EditPanel = this.UIPanelCreate(
-			this.RightPanel,
-			"EditPanel",
-			this.depth,
-			undefined,
-			undefined,
-			undefined,
-			undefined,
-			UIconfig,
-			this.UIEditGraphConf,
-			true,
-			true
-		);
-
-		this.EditHeader = this.UILabelCreate(
-			this.EditPanel,
-			"EditLabel",
-			this.depth,
-			undefined,
-			this.EditButton,
-			undefined,
-			StateModeLabel_h,
-			UIconfig,
-			StateModeLabel_textPosH,
-			StateModeLabel_textPosV,
-			"Edit Objects",
-			this.UIEditLabelGraphConf,
-			this.textConf,
-			true,
-			true
-		);
-
-		//#endregion
 		//#region save
-
-		let saveh = 30;
 
 		this.SaveButton = this.UIButtonCreate(
 			this.RightPanel,
 			"EditButton",
 			this.depth,
 			undefined,
-			this.RightPanel.UIE_getInnerY2(true) -
-				saveh -
-				(typeof UIconfig.margin === "object"
-					? UIconfig.margin.Top
-					: UIconfig.margin),
+			-saveButton_h,
 			undefined,
-			saveh,
+			undefined,
 			UIconfig,
 			0.5,
 			0.5,
@@ -621,17 +604,181 @@ export default class LevelEditor extends UIManager {
 			"SaveButtonPress",
 			true,
 			true
-		);
-
-		this.SaveButton.on(
+		).on(
 			"SaveButtonPress",
-			function () {
+			function (a, b, c, d, e) {
+				console.log("a,b,c,d,e: ", a, b, c, d, e);
 				this.UISaveInteraction();
 			},
 			this
 		);
 
 		//#endregion save
+		//#region create panel
+
+		this.CreatePanel = this.UIPanelCreate(
+			this.RightPanel,
+			"CreatePanel",
+			this.depth,
+			undefined,
+			this.CreateButton,
+			undefined,
+			this.SaveButton,
+			UIconfig,
+			this.UICreateGraphConf,
+			true,
+			true
+		);
+
+		//#region collider button
+
+		this.CreateColliderButton = this.recourceButtonCreate(
+			this.CreatePanel,
+			"CreateColliderButton",
+			this.depth,
+			undefined,
+			undefined,
+			button_w,
+			button_h,
+			UIconfig,
+			0.5,
+			0.5,
+			"collider",
+			"poly",
+			this.createCollisionObject,
+			this.UICreateGraphConf,
+			this.textButtonConf,
+			this.interConf
+		);
+
+		//#endregion collider button
+		//#region zone button
+
+		this.CreateZoneButton = this.recourceButtonCreate(
+			this.CreatePanel,
+			"CreateZoneButton",
+			this.depth,
+			this.CreateColliderButton,
+			undefined,
+			button_w,
+			button_h,
+			UIconfig,
+			0.5,
+			0.5,
+			"zone",
+			"poly",
+			"zone",
+			this.UICreateGraphConf,
+			this.textButtonConf,
+			this.interConf
+		);
+
+		//#endregion zone button
+
+		//#region recouce select label
+
+		this.recouceSelectLabel = this.UILabelCreate(
+			this.CreatePanel,
+			"recouceSelectLabel",
+			this.depth,
+			undefined,
+			-recouceSelectLabel_h,
+			undefined,
+			undefined,
+			UIconfig,
+			0.5,
+			0.5,
+			this.recourceDefaultText,
+			this.UICreateGraphConf,
+			this.textConf,
+			true,
+			true
+		);
+
+		//#endregion recouce select label
+		//#region asset grid
+
+		this.CreateAssetGrid = this.UIPanelCreate(
+			this.CreatePanel,
+			"CreateAssetGrid",
+			this.depth,
+			undefined,
+			this.CreateColliderButton,
+			undefined,
+			this.recouceSelectLabel,
+			UIAssetGridconfig,
+			this.UICreateGraphConf,
+			true,
+			true
+		);
+
+		this.gridConf = {
+			//list
+			/** @type {UIConfig} */
+			list_config: {
+				margin: 0,
+				padding: 0,
+			},
+			list_rowNum: 2,
+
+			//headr
+			/** @type {UIConfig} */
+			header_config: {
+				margin: 0,
+				padding: 0,
+			},
+			header_h: 25,
+
+			//entry
+
+			/** @type {UIConfig} */
+			entry_config: {
+				margin: 3,
+				padding: 0,
+			},
+			/** @type {Phaser.Types.GameObjects.Graphics.Options} */
+			entry_graphconfig: {
+				fillStyle: {
+					color: "0x000000",
+					alpha: 0.2,
+				},
+			},
+			/** @type {Phaser.Types.GameObjects.Text.TextStyle} */
+			entry_textconfig: {
+				fontSize: 10,
+			},
+			entry_scale: 0.9,
+		};
+
+		this.gridConf.entry_textconfig = this.UIConfigMergeOverwrite(
+			this.textButtonConf,
+			this.gridConf.entry_textconfig
+		);
+		this.gridConf.entry_graphconfig = this.UIConfigMergeOverwrite(
+			this.UICreateGraphConf,
+			this.gridConf.entry_graphconfig
+		);
+
+		//#endregion asset grid
+
+		//#endregion create panel
+		//#region edit panel
+
+		this.EditPanel = this.UIPanelCreate(
+			this.RightPanel,
+			"EditPanel",
+			this.depth,
+			undefined,
+			undefined,
+			undefined,
+			this.SaveButton,
+			UIconfig,
+			this.UIEditGraphConf,
+			true,
+			true
+		);
+
+		//#endregion edit panel
 
 		//#endregion right panel
 
@@ -642,20 +789,50 @@ export default class LevelEditor extends UIManager {
 		 * the level editor state, UI state
 		 * @type {mode}
 		 */
-		this.state;
-		this.modeLeaveAll(LEVELEDITORMODES.mode_create, false);
-		this.modeSetupModeListener(this.modeCheck(), true);
+		this.state =
+			editorMode != undefined ? editorMode : LEVELEDITORMODES.mode_create;
+		this.modeSetup(true);
 
 		//#endregion
+		//#region dat.gui
+
+		this.datgui = new GUI({
+			hideable: true,
+			name: "LevelEditorDatGUI",
+			closeOnTop: false,
+		});
+
+		//#endregion
+
+		this.enable(active);
+		this.inputManageMyLIsteners(this.active);
 
 		console.log("//////////// level editor created ////////////");
 	}
 
 	update(time, delta) {
-		//parent update
-		this.camera_update();
+		//use accumulator
+		this.fixedUpdateCall(time, delta);
 
+		//parent update
 		super.update(time, delta);
+	}
+
+	/**
+	 * update called depending on fps set
+	 * this is to overridden by objects that want to use it
+	 * its is recommended to user call the function. F.e: super.fixedUpdate(time, delta);
+	 *
+	 * @see ACCUMULATOR
+	 * @param {number} time time passed since game start in milliseconds
+	 * @param {number} delta time passed since last frame in milliseconds
+	 * @param {number} executesLeft the number of times the accumulator will be active and the fixed update called. NOTICE left means what is left!! in call this means that is was reduced by one before this call.
+	 */
+	fixedUpdate(time, delta, executesLeft, looseDelta) {
+		//END OF FIXED UPDATE CHAIN
+		// super.fixedUpdate(time, delta);
+
+		this.camera_update();
 	}
 
 	/**
@@ -684,22 +861,45 @@ export default class LevelEditor extends UIManager {
 
 		this.cameraActivate(this.active);
 		this.inputManageMyLIsteners(this.active);
+
+		//mode
+		console.log("here");
+		this.modeSetup(this.active);
 	}
 
+	//#region ui
+
+	/**
+	 *
+	 * @param {number} x
+	 * @param {number} y
+	 * @returns {boolean} if point is on UI
+	 */
+	pointOnUI(x, y) {
+		return (
+			this.RightPanel.x < x &&
+			x < this.RightPanel.x + this.RightPanel.width &&
+			this.RightPanel.y < y &&
+			y < this.RightPanel.y + this.RightPanel.height
+		);
+	}
+
+	//#endregion
 	//#region modes
 
 	//#region general
+
 	/**
 	 * @param {mode | undefined} mode mode to switch to, undefined will witch through the modes
 	 */
 	modeSwitch(mode) {
 		//old mode and leaving it
 		let oldMode = this.state;
-		this.modeLeave(oldMode, true);
+		this.modeSetupMode(oldMode, false);
 
 		//new mode
 		if (mode != undefined) {
-			this.modeSetTo(mode, true);
+			this.modeSetTo(mode);
 		} else {
 			this.modeSetTo(
 				LEVELEDITORMODES.modeArr[
@@ -708,8 +908,7 @@ export default class LevelEditor extends UIManager {
 						LEVELEDITORMODES.modeArr.length
 					// (LEVELEDITORMODES.modeArr.indexOf(mode) + 1) %
 					// 	LEVELEDITORMODES.modeArr.length
-				],
-				true
+				]
 			);
 		}
 
@@ -724,7 +923,7 @@ export default class LevelEditor extends UIManager {
 	/**
 	 * check if the mode provided is the current mode.
 	 * if undefined returns the current mode
-	 * @param {LEVELEDITORMODES.mode | undefined} modeToCheck
+	 * @param {mode | undefined} modeToCheck
 	 */
 	modeCheck(modeToCheck) {
 		if (modeToCheck != undefined) {
@@ -734,124 +933,23 @@ export default class LevelEditor extends UIManager {
 		}
 	}
 
-	/**
-	 *
-	 * @param {mode} mode
-	 * @param {boolean} bool
-	 */
-	modeSetupModeListener(mode, bool) {
-		console.log("MODE - listeners for: ", mode.description, " set to: ", bool);
-
-		switch (mode) {
-			case LEVELEDITORMODES.mode_create:
-				this.modeCreateSetupListeners(bool);
-				break;
-			case LEVELEDITORMODES.mode_edit:
-				this.modeEditSetupListeners(bool);
-				break;
-
-			default:
-				break;
-		}
-	}
-	//#endregion
+	//#endregion general
 	//#region internal
 
-	/**
-	 *
-	 * @param {mode} mode
-	 * @param {boolean} listeners should listeners be updated
-	 */
-	modeSetTo(mode, listeners) {
-		console.log("MODE - set to: ", mode.description);
+	//#region system
 
-		this.state = mode;
-		this.modeEnter(mode, listeners);
+	modeSetup(bool) {
+		//general
+		this.modeSetupListeners(bool);
+
+		//mode specific
+		this.modeSetupMode(this.modeCheck(), bool);
 	}
 
 	/**
-	 * use modeSwitch if you can,
-	 * this is mostly for interal use.
-	 * @param {mode} mode mode to perform enter actions for
-	 * @param {boolean} listeners should listeners be updated
+	 * listeners for general mode input
+	 * @param {boolean} bool
 	 */
-	modeEnter(mode, listeners) {
-		console.log("MODE - entering mode: ", mode.description);
-
-		switch (mode) {
-			case LEVELEDITORMODES.mode_create:
-				//UI
-				this.CreatePanel.enable(true);
-
-				break;
-			case LEVELEDITORMODES.mode_edit:
-				//UI
-				this.EditPanel.enable(true);
-
-				break;
-
-			default:
-				break;
-		}
-
-		if (listeners) this.modeSetupModeListener(mode, true);
-	}
-
-	/**
-	 * use modeSwitch if you can,
-	 * this is mostly for interal use.
-	 * @param {mode} mode mode to perform exit actions for
-	 * @param {boolean} listeners should listeners be updated
-	 */
-	modeLeave(mode, listeners) {
-		console.log("MODE - leaving mode: ", mode.description);
-
-		switch (mode) {
-			case LEVELEDITORMODES.mode_create:
-				//UI
-				this.CreatePanel.enable(false);
-				this.worldVertReset();
-
-				break;
-			case LEVELEDITORMODES.mode_edit:
-				//UI
-
-				this.EditPanel.enable(false);
-				this.worldUnselect();
-
-				//world interaction
-
-				break;
-
-			default:
-				break;
-		}
-
-		if (listeners) this.modeSetupModeListener(mode, false);
-	}
-
-	/**
-	 * leave all modes.
-	 * Optionally stay or enter one mode
-	 * @param {mode | undefined} but leave aall but this mode
-	 * @param {boolean} listeners should listeners be updated
-	 */
-	modeLeaveAll(but, listeners) {
-		let mode;
-		let arr = LEVELEDITORMODES.modeArr;
-		for (let index = 0; index < arr.length; index++) {
-			mode = arr[index];
-
-			if (mode != but) {
-				this.modeLeave(mode, listeners);
-			}
-		}
-
-		if (!this.modeCheck(but)) {
-			this.modeSetTo(but, listeners);
-		}
-	}
-
 	modeSetupListeners(bool) {
 		if (bool) {
 			//tab awitch
@@ -868,11 +966,116 @@ export default class LevelEditor extends UIManager {
 		}
 	}
 
-	//#endregion
+	//#endregion system
+	//#region mode
 
+	//setup
+
+	/**
+	 * INTERNAL
+	 * enable or disaable mode properties
+	 * @param {mode} mode mode to perform exit actions for
+	 * @param {boolean} bool enable or disable
+	 * @param {boolean} listeners should listeners be updated
+	 */
+	modeSetupMode(mode, bool) {
+		switch (mode) {
+			case LEVELEDITORMODES.mode_create:
+				//UI panel
+				this.CreatePanel.enable(bool);
+				this.recourceSetup(this.recourceCheck(), bool, this.recourceSubject);
+
+				if (bool) {
+					//entering
+				} else {
+					//leaving
+				}
+
+				break;
+			case LEVELEDITORMODES.mode_edit:
+				//UI panel
+
+				this.EditPanel.enable(bool);
+				this.modeEditSetupListeners(bool);
+
+				if (bool) {
+					//entering
+				} else {
+					//leaving
+
+					this.worldUnselect();
+				}
+				break;
+
+			default:
+				console.log("MODE - SETUP - UNKNOWN MODE: ", mode);
+				return;
+		}
+
+		console.log("MODE - SETUP - mode: ", mode.description, ", to: ", bool);
+	}
+
+	//setting modes
+	/**
+	 * internal
+	 * @param {mode} mode
+	 * @param {boolean} listeners should listeners be updated
+	 */
+	modeSetTo(mode) {
+		console.log("MODE - set to: ", mode.description);
+
+		this.state = mode;
+		this.modeSetupMode(mode, true);
+	}
+
+	/**
+	 * leave all modes.
+	 * Optionally stay or enter one mode
+	 * @param {mode | undefined} but leave aall but this mode
+	 * @param {boolean | undefined} listeners should listeners be updated
+	 */
+	modeLeaveAll(but) {
+		console.log("MODE - Leave all, but: ", but.description, " - start");
+		let mode;
+		let arr = LEVELEDITORMODES.modeArr;
+		for (let index = 0; index < arr.length; index++) {
+			mode = arr[index];
+
+			if (mode != but) {
+				this.modeSetupMode(mode, false);
+			}
+		}
+
+		if (!this.modeCheck(but)) {
+			this.modeSetTo(but);
+		}
+
+		console.log("MODE - Leave all - end");
+	}
+
+	//#endregion mode
+
+	//#endregion internal
+
+	//#endregion modes
 	//#region create
-	modeCreateSetupListeners(bool) {
+
+	//#region vertecies object
+
+	/**
+	 * activate or deactivate the vertecy world drawing system
+	 * @param {boolean} bool
+	 * @param {function} callback
+	 */
+	worldVertSetup(bool, callback) {
 		if (bool) {
+			//set callback function
+			if (callback == undefined) {
+				this.worldVertCallback = undefined;
+			} else {
+				this.worldVertCallback = callback;
+			}
+
 			//////pointer//////
 			//clicking, drawing poly walls and selecting them
 			this.scene.input.on(
@@ -883,12 +1086,13 @@ export default class LevelEditor extends UIManager {
 				 */
 				function (pointer, intObjects) {
 					// console.log("Level Editor World Input pointerdown");
-
-					if (pointer.leftButtonDown()) {
-						this.worldVertAdd(this.pointer.positionToCamera(this.CamEditor));
-					}
-					if (pointer.rightButtonDown()) {
-						this.worldVertRemove();
+					if (!this.pointOnUI(pointer.x, pointer.y)) {
+						if (pointer.leftButtonDown()) {
+							this.worldVertAdd(this.pointer.positionToCamera(this.CamEditor));
+						}
+						if (pointer.rightButtonDown()) {
+							this.worldVertRemove();
+						}
 					}
 				},
 				this
@@ -918,130 +1122,26 @@ export default class LevelEditor extends UIManager {
 				"down",
 				function () {
 					// console.log("Level Editor World Input worldVertClose down");
-					this.worldVertEnd(false);
+					this.worldVertEnd();
 				},
 				this
 			);
 		} else {
-			//clicking
+			this.worldVertCallback = undefined;
+			this.worldVertReset();
+
+			//////pointer//////
+			//clicking, drawing poly walls and selecting them
 			this.scene.input.removeListener("pointerdown", undefined, this);
 
-			// mouse move, updating line to mouse
+			//mouse move, updating line to mouse
 			this.scene.input.removeListener("pointermove", undefined, this);
 
+			//////keyboard//////
 			//closing poly
 			this.inputKeys.worldVertClose.removeListener("down", undefined, this);
 		}
 	}
-
-	//#endregion create
-	//#region edit
-
-	modeEditSetupListeners(bool) {
-		if (bool) {
-			//////pointer//////
-
-			// clicking, drawing poly walls and selecting them
-			this.scene.input.on(
-				"pointerdown",
-				/**
-				 * @param {Phaser.Input.Pointer} pointer
-				 * @param {Phaser.GameObjects.GameObject[]} intObjects
-				 */
-				function (pointer, intObjects) {
-					// console.log("mode edit mouse objs: ", intObjects);
-
-					if (intObjects.length >= 1) {
-						this.worldSelect(intObjects);
-					} else {
-						this.worldUnselect(false);
-					}
-				},
-				this
-			);
-
-			// mouse move, updating line to mouse
-			this.scene.input.on(
-				"pointermove",
-				/**
-				 * @param {Phaser.Input.Pointer} pointer
-				 * @param {Phaser.GameObjects.GameObject[]} intObjects
-				 */
-				function (pointer, intObjects) {
-					// draw line from vert to pointer
-					// console.log("Level Editor World Input pointermove");
-
-					if (this.worldObjSelected != undefined) {
-						if (this.worldObjSelected.input.dragState == 2)
-							this.worldObjHighlight();
-					}
-				},
-				this
-			);
-
-			//////keyboard//////
-			// unselecting
-			this.inputKeys.worldEditUnselect.on(
-				"down",
-				function () {
-					// console.log("Level Editor World Input worldVertClose down");
-					this.worldUnselect();
-				},
-				this
-			);
-			//deleting objs
-			this.inputKeys.worldEditDelete.on(
-				"down",
-				function () {
-					// console.log("Level Editor World Input worldVertClose down");
-					this.modeEditDelete();
-				},
-				this
-			);
-		} else {
-			//////pointer//////
-			//clicking
-			this.scene.input.removeListener("pointerdown", undefined, this);
-
-			// mouse move, updating line to mouse
-			this.scene.input.removeListener("pointermove", undefined, this);
-
-			//////keyboard//////
-			// unselecting
-			this.inputKeys.worldEditDelete.removeListener("down", undefined, this);
-			// deleting objs
-			this.inputKeys.worldEditUnselect.removeListener("down", undefined, this);
-		}
-	}
-
-	/**
-	 * deletes the selectedd object
-	 * @param {Phaser.GameObjects.GameObject} obj
-	 */
-	modeEditDelete() {
-		this.worldUnselect(true);
-	}
-
-	//#endregion edit
-	//#endregion modes
-	//#region listeners general
-
-	inputManageMyLIsteners(bool) {
-		//world interaction
-
-		this.modeSetupListeners(bool);
-		//configure listeners for current mode
-		this.modeSetupModeListener(this.modeCheck(), bool);
-
-		if (bool) {
-		} else {
-		}
-	}
-
-	//#endregion
-	//#region world interaction
-
-	//#region vertecies object
 
 	/**
 	 *
@@ -1128,13 +1228,14 @@ export default class LevelEditor extends UIManager {
 	}
 
 	/**
-	 * @param {boolean} forceSucc force obj creation
+	 *
 	 */
-	worldVertEnd(forceSucc) {
-		if (forceSucc || this.worldVertList.length >= 3) {
+	worldVertEnd() {
+		if (this.worldVertList.length >= 3) {
 			//create obj
 
-			this.scene.mapObjVertCreate(this.worldVertList, true);
+			this.worldVertCallback(this.worldVertList);
+
 			//reset
 			this.worldVertReset();
 		} else {
@@ -1148,6 +1249,499 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+	//#region point create
+
+	pointCreateSetup(bool) {
+		if (bool) {
+			//////pointer//////
+			//clicking, to place obj
+			this.scene.input.on(
+				"pointerdown",
+				/**
+				 * @param {Phaser.Input.Pointer} pointer
+				 * @param {Phaser.GameObjects.GameObject[]} intObjects
+				 */
+				function (pointer, intObjects) {
+					if (!this.pointOnUI(pointer.x, pointer.y)) {
+						if (pointer.leftButtonDown()) {
+							this.createImageObject(pointer.worldX, pointer.worldY);
+						}
+						if (pointer.rightButtonDown()) {
+						}
+					}
+				},
+				this
+			);
+		} else {
+			//////pointer//////
+			//click to place obj
+			this.scene.input.removeListener("pointerdown", undefined, this);
+		}
+	}
+
+	//#endregion
+
+	//#region recources / menu interaction
+
+	/**
+	 *
+	 * @param {UIObj} parent
+	 * @param {string} namePrefix namePrefix + "_" + displayTxt
+	 * @param {number} depth
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} w
+	 * @param {number} h
+	 * @param {UIConfig} UiConfig
+	 * @param {number} posH
+	 * @param {number} posV
+	 * @param {string} displayTxt
+	 * @param {string} type so far supports image, poly
+	 * @param {any} subject
+	 * @param {Phaser.Types.GameObjects.Graphics.Options} graphconfig
+	 * @param {Phaser.Types.GameObjects.Text.TextStyle} textconfig
+	 * @param {Phaser.Types.Input.InputConfiguration} interConf
+	 */
+	recourceButtonCreate(
+		parent,
+		namePrefix,
+		depth,
+		x,
+		y,
+		w,
+		h,
+		UiConfig,
+		posH,
+		posV,
+		displayTxt,
+		type,
+		subject,
+		graphconfig,
+		textconfig,
+		interConf
+	) {
+		let button = this.UIButtonCreate(
+			parent,
+			namePrefix + "_" + displayTxt,
+			depth,
+			x,
+			y,
+			w,
+			h,
+			UiConfig,
+			posH,
+			posV,
+			displayTxt,
+			graphconfig,
+			textconfig,
+			interConf,
+			"pointerdown",
+			"RecourceButtonTrigger",
+			true,
+			true
+		).on("RecourceButtonTrigger", this.recourceButtonInteract, this);
+
+		button.recourceSubject = subject;
+		button.recourceType = type;
+
+		switch (type) {
+			case RECOURCETYPES.IMAGE:
+				let image = new Phaser.GameObjects.Image(
+					this.scene,
+					button.width / 2,
+					0,
+					subject,
+					undefined
+				);
+				image.setOrigin(0.5, 0.3);
+				image.setPosition(
+					button.width * image.originX,
+					button.height * image.originY
+				);
+				image.setScale(
+					(Math.min(button.width, button.height) /
+						Math.max(image.width, image.height)) *
+						this.gridConf.entry_scale
+				);
+
+				button.add(image);
+
+				button.moveAbove(button.UI_Label_text, image);
+				break;
+			case RECOURCETYPES.POLY:
+				break;
+			case "object":
+
+			default:
+				console.log(
+					"RECOURCE BUTTON - button type hasnt been fully impemented - txt: ",
+					displayTxt,
+					", type: ",
+					type,
+					", subject: ",
+					subject
+				);
+				break;
+		}
+
+		return button;
+	}
+
+	/**
+	 * receives information from selected recource buttons
+	 * @param {Phaser.Input.Pointer} pointer
+	 * @param {number} relX
+	 * @param {number} relY
+	 * @param {function} stopPropagation
+	 * @param {object} obj
+	 * @returns
+	 */
+	recourceButtonInteract(pointer, relX, relY, stopPropagation, obj) {
+		// button.recourceSubject = key;
+		// button.recourceType = type;
+
+		switch (obj.recourceType) {
+			case RECOURCETYPES.IMAGE:
+				break;
+			case RECOURCETYPES.POLY:
+				break;
+			default:
+				console.log(
+					"recource button type not supported, contact admin: ",
+					obj.recourceType,
+					obj.recourceSubject
+				);
+				return;
+		}
+
+		this.recourceSelect(obj.recourceType, obj.recourceSubject);
+	}
+
+	/**
+	 * return the current type, if a type is supplied will return if that is the current type
+	 * @param {string | undefined} type
+	 * @returns
+	 */
+	recourceCheck(type) {
+		if (type == undefined) {
+			return this.recourceType;
+		} else {
+			return type == this.recourceType;
+		}
+	}
+
+	/**
+	 * select new type, performs background stuff.
+	 * If a type was previously selected it and its systems will be disabled
+	 * @param {string} type so far supports image, poly
+	 * @param {any} subject
+	 */
+	recourceSelect(type, subject) {
+		//deactiovate old
+		if (this.recourceType != RECOURCETYPES.NOTHING) {
+			let oldtype = this.recourceType;
+			this.recourceSetup(oldtype, false);
+		}
+
+		this.recourceType = type;
+		this.recourceSubject = subject;
+
+		//change label text
+		this.recouceSelectLabel.UI_Label_setText(
+			this.recourceSelectText(type, subject)
+		);
+
+		//activate new
+		this.recourceSetup(this.recourceType, true, this.recourceSubject);
+	}
+
+	recourceUnselect() {
+		//deactiovate new
+		this.recourceSetup(this.recourceType, false);
+
+		this.recourceType = undefined;
+		this.recourceSubject = undefined;
+
+		//change label text
+		this.recouceSelectLabel.UI_Label_setText(this.recourceDefaultText);
+	}
+
+	/**
+	 *
+	 * @param {*} type
+	 * @param {*} bool
+	 * @param {any} subject
+	 */
+	recourceSetup(type, bool, subject) {
+		switch (type) {
+			// case RECOURCETYPES.IMAGE:
+			// 	break;
+			case RECOURCETYPES.POLY:
+				this.worldVertSetup(bool, subject);
+				break;
+			case RECOURCETYPES.IMAGE:
+				this.pointCreateSetup(bool);
+
+				break;
+			case RECOURCETYPES.NOTHING:
+				console.log("RECOURCE SETUP - empty type attemt setup", bool);
+				break;
+			default:
+				console.log("RECOURCE SETUP - type not setup: ", type, bool);
+				break;
+		}
+	}
+
+	/**
+	 *
+	 * @param {string} type so far supports image, poly
+	 * @param {any} subject
+	 * @returns {string} text for label
+	 */
+	recourceSelectText(type, subject) {
+		switch (type) {
+			case RECOURCETYPES.IMAGE:
+				return type + ": " + subject;
+			case RECOURCETYPES.POLY:
+				return type + ": " + subject.name;
+
+			default:
+				return this.recourceDefaultText;
+		}
+	}
+
+	//#endregion menu interaction
+	//#region asset grid
+
+	/**
+	 *
+	 *
+	 */
+	AssetGridBuild() {
+		this.assets.map.forEach(this.AssetGridAddList, this);
+	}
+
+	/**
+	 * @param {string[]} list
+	 * @param {string} type type of recource
+	 *
+	 */
+	AssetGridAddList(list, type) {
+		let nameprefix = "UIAsset_" + type + "_";
+
+		let assetGrid = this.UIPanelCreate(
+			this.CreateAssetGrid,
+			nameprefix + "Panel",
+			this.CreateAssetGrid.depth,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			this.gridConf.list_config,
+			this.UICreateGraphConf,
+			true,
+			true
+		);
+
+		let assetGridLabel = this.UILabelCreate(
+			assetGrid,
+			nameprefix + "Label",
+			this.CreateAssetGrid.depth,
+			undefined,
+			undefined,
+			undefined,
+			this.gridConf.header_h,
+			{ margin: 0, padding: 0 },
+			0.5,
+			0.5,
+			"type - " + type,
+			this.UICreateGraphConf,
+			this.textConf,
+			true,
+			true
+		);
+
+		let asset_height =
+			assetGrid.UIE_getInnerHeight() -
+			(this.assets.typeNum *
+				(this.gridConf.header_h +
+					UIElement.UIE_configGetMargin(this.gridConf.header_config, 3, 0) +
+					UIElement.UIE_configGetMargin(this.gridConf.header_config, 1, 0) +
+					UIElement.UIE_configGetPadding(this.gridConf.header_config, 3, 0) +
+					UIElement.UIE_configGetPadding(this.gridConf.header_config, 1, 0) +
+					UIElement.UIE_configGetMargin(this.gridConf.list_config, 3, 0) +
+					UIElement.UIE_configGetMargin(this.gridConf.list_config, 1, 0) +
+					UIElement.UIE_configGetPadding(this.gridConf.list_config, 3, 0) +
+					UIElement.UIE_configGetPadding(this.gridConf.list_config, 1, 0))) /
+				this.assets.number;
+
+		let leng = list.length;
+
+		Math.ceil(leng / this.gridConf.list_rowNum);
+
+		//go through list and create an asset entry for every asset in list
+		let y_base = assetGridLabel.UIE_getOutterY2(false);
+		let x = 0;
+		let y = assetGridLabel;
+
+		let winc = assetGrid.UIE_getInnerWidth() / this.gridConf.list_rowNum;
+		let hinc = Math.min(winc, asset_height);
+
+		let w = 1 / this.gridConf.list_rowNum;
+		let h = hinc;
+		let entry = 0;
+		let key;
+		for (let index = 0; index < leng; index++) {
+			x = (index % this.gridConf.list_rowNum) * winc;
+			y = y_base + Math.floor(index / this.gridConf.list_rowNum) * hinc;
+
+			key = list[index];
+
+			entry = this.recourceButtonCreate(
+				assetGrid,
+				"gridEntry",
+				this.CreateAssetGrid.depth,
+				x,
+				y,
+				w,
+				h,
+				this.gridConf.entry_config,
+				0,
+				1,
+				key,
+				type,
+				key,
+				this.gridConf.entry_graphconfig,
+				this.gridConf.entry_textconfig,
+				this.interConf,
+				true,
+				true
+			);
+		}
+
+		//rresizinh list
+		assetGrid.UIE_setSize(undefined, y + h);
+	}
+
+	//#endregion
+	//#region creating
+
+	/**
+	 * creates a collision only object
+	 * @param {Phaser.Math.Vector2} vecArr
+	 * @returns {MatterJS.BodyType | CollisionInstance}
+	 */
+	createCollisionObject(vecArr) {
+		this.scene.mapObjCreate_Collision(true, vecArr);
+	}
+
+	/**
+	 * creates a collision only object
+	 * @param {Phaser.Math.Vector2} vecArr
+	 * @returns {Phaser.GameObjects.Image | ImageInteractive}
+	 */
+	createImageObject(x, y) {
+		return this.scene.mapObjCreate_Image(
+			true,
+			x,
+			y,
+			this.recourceSubject,
+			undefined
+		);
+	}
+
+	//#endregion
+
+	//#endregion create
+	//#region edit
+
+	modeEditSetupListeners(bool) {
+		if (bool) {
+			//////pointer//////
+
+			// clicking, drawing poly walls and selecting them
+			this.scene.input.on(
+				"pointerdown",
+				/**
+				 * @param {Phaser.Input.Pointer} pointer
+				 * @param {Phaser.GameObjects.GameObject[]} intObjects
+				 */
+				function (pointer, intObjects) {
+					// console.log("mode edit mouse objs: ", intObjects);
+
+					if (!this.pointOnUI(pointer.x, pointer.y)) {
+						if (intObjects.length >= 1) {
+							this.worldSelect(intObjects);
+						} else {
+							this.worldUnselect(false);
+						}
+					}
+				},
+				this
+			);
+
+			// mouse move, updating line to mouse
+			this.scene.input.on(
+				"pointermove",
+				/**
+				 * @param {Phaser.Input.Pointer} pointer
+				 * @param {Phaser.GameObjects.GameObject[]} intObjects
+				 */
+				function (pointer, intObjects) {
+					// draw line from vert to pointer
+					// console.log("Level Editor World Input pointermove");
+
+					if (this.worldObjSelected != undefined) {
+						if (this.worldObjSelected.input.dragState == 2)
+							this.worldObjHighlight();
+					}
+				},
+				this
+			);
+
+			//////keyboard//////
+			// unselecting
+			this.inputKeys.worldEditUnselect.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldUnselect();
+				},
+				this
+			);
+			//deleting objs
+			this.inputKeys.worldEditDelete.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.modeEditDelete();
+				},
+				this
+			);
+		} else {
+			//////pointer//////
+			//clicking
+			this.scene.input.removeListener("pointerdown", undefined, this);
+
+			// mouse move, updating line to mouse
+			this.scene.input.removeListener("pointermove", undefined, this);
+
+			//////keyboard//////
+			// unselecting
+			this.inputKeys.worldEditDelete.removeListener("down", undefined, this);
+			// deleting objs
+			this.inputKeys.worldEditUnselect.removeListener("down", undefined, this);
+		}
+	}
+
+	/**
+	 * deletes the selectedd object
+	 * @param {Phaser.GameObjects.GameObject} obj
+	 */
+	modeEditDelete() {
+		this.worldUnselect(true);
+	}
+
 	//#region selecting a obj
 
 	/**
@@ -1231,7 +1825,7 @@ export default class LevelEditor extends UIManager {
 	 * @param {boolean} bool select or unselect
 	 * @param {boolean} deleteObj should delete?
 	 */
-	worldObjSelectAll(objs, bool, deleteObj) {
+	worldObjSelectAll(objs, bool, deleteObj = false) {
 		if (Array.isArray(objs)) {
 			for (let index = 0; index < objs.length; index++) {
 				worldObjSelectAll(objs[index], bool, deleteObj);
@@ -1247,9 +1841,9 @@ export default class LevelEditor extends UIManager {
 	 * @param {boolean} bool
 	 * @param {boolean} deleteObj should delete?
 	 */
-	worldObjSelectOne(obj, bool, deleteObj) {
+	worldObjSelectOne(obj, bool, deleteObj = false) {
 		if (bool) {
-			if (!(obj instanceof wallObjInter)) {
+			if (!(obj instanceof CollisionInstance)) {
 				console.log(
 					"Oh nooooo, semi implemented object type selected, the system doesnt support this"
 				);
@@ -1275,17 +1869,38 @@ export default class LevelEditor extends UIManager {
 		/**
 		 * @type {Phaser.Math.Vector2[]}
 		 */
-		let vertArray = this.worldObjSelected.body.vertices;
+		let vertArray;
 
+		let geom = this.worldObjSelected.input.hitArea;
+
+		// this.worldObjSelected.rotation = 1;
+
+		console.log("???????", this.worldObjSelected, geom);
+
+		switch (geom.type) {
+			case Phaser.Geom.POLYGON:
+				vertArray = geom.points;
+				break;
+			case Phaser.Geom.RECTANGLE:
+				vertArray = new Array();
+
+				break;
+			default:
+				console.log("what to highlight???");
+				break;
+		}
+
+		let xoff = 0; //this.worldObjSelected.x;
+		let yoff = 0; //this.worldObjSelected.y;
 		for (let index = 0; index < vertArray.length; index++) {
 			const element2 = vertArray[index];
 			const element1 = vertArray.at(index - 1);
 
 			this.worldGraph.lineBetween(
-				element1.x,
-				element1.y,
-				element2.x,
-				element2.y
+				element1.x + xoff,
+				element1.y + yoff,
+				element2.x + xoff,
+				element2.y + yoff
 			);
 		}
 	}
@@ -1307,6 +1922,17 @@ export default class LevelEditor extends UIManager {
 
 	//#endregion
 
+	//#endregion edit
+	//#region listeners general
+
+	inputManageMyLIsteners(bool) {
+		//world interaction
+
+		if (bool) {
+		} else {
+		}
+	}
+
 	//#endregion
 	//#region camera
 
@@ -1316,6 +1942,7 @@ export default class LevelEditor extends UIManager {
 	 */
 	camera_update(delta) {
 		//applying camera controls
+		this.cameraUpdateSpeed();
 		this.camControls.update(delta);
 	}
 
@@ -1376,13 +2003,80 @@ export default class LevelEditor extends UIManager {
 		return camNew;
 	}
 
+	/**
+	 * updates camera speed depending on zoom
+	 */
+	cameraUpdateSpeed() {
+		let spd = this.camConfig.speed / this.camControls.camera.zoom;
+
+		this.camControls.speedX = spd;
+		this.camControls.speedY = spd;
+	}
+
 	//#endregion
-	//#region saving loading
+	//#region loading
+
+	loadAssets() {
+		this.scene.load.pack(this.assestsDataKey, "src/assets/EditorAssets.json");
+		this.scene.load.start();
+
+		//pack file complete
+		this.scene.load.once(
+			"filecomplete-packfile-" + this.assestsDataKey,
+			function (key, type, data) {
+				// console.log("LEVELEDITOR load complete: ", key, type);
+
+				let arr = data.all.files;
+				for (let index = 0; index < arr.length; index++) {
+					let file = arr[index];
+
+					this.scene.load.once(
+						"filecomplete-" + file.type + "-" + file.key,
+						this.loadAssetComplete,
+						this
+					);
+				}
+			},
+			this
+		);
+
+		//all complete
+		this.scene.load.once("complete", this.loadComplete, this);
+	}
+
+	loadAssetComplete(key, type, data) {
+		// console.log("LEVELEDITOR load complete: ", key, type);
+
+		//maintain asset list
+
+		/** @type {string[]} */
+		let list;
+		if (this.assets.map.has(type)) {
+			list = this.assets.map.get(type);
+		} else {
+			list = new Array();
+			this.assets.map.set(type, list);
+			this.assets.typeNum++;
+		}
+
+		list.push(key);
+		this.assets.number++;
+	}
+
+	loadComplete(loader, totalComplete, totalFailed) {
+		// console.log("LEVELEDITOR load finished: ", totalComplete, totalFailed);
+
+		console.log("assets: ", this.assets);
+		this.AssetGridBuild();
+	}
+
+	//#endregion loading
+	//#region saving
 
 	UISaveInteraction() {
 		console.log("SAVE BUTTON PRESS");
 
-		let data = this.saveProcessList(this.scene.saveableList);
+		let data = this.saveProcessList(this.saveableList);
 
 		this.scene.load.saveJSON(data, "levelData");
 	}
@@ -1393,9 +2087,8 @@ export default class LevelEditor extends UIManager {
 	 * @return {object} jason object
 	 */
 	saveProcessList(arr) {
-		let data = {
-			collisionInstances: [],
-		};
+		let data = Phaser.Utils.Objects.DeepCopy(MAPDATAINFO.DataDefault);
+
 		/** @type {object} */
 		let objInfo;
 		/** @type {Array} */
@@ -1428,46 +2121,59 @@ export default class LevelEditor extends UIManager {
 	saveProcessObj(obj) {
 		//go through list and process
 
-		// if (obj instanceof PLEASE GIVE BODY TYPE) {
-		// 	//raw phy body
-		// 	return {
-		// 		type: "collisionInstances",
-		// 		obj: {
-		// 			vert: obj.vertices,
-		// 		},
-		// 	};
-		// } else if (obj instanceof wallObjInter) {
-		// 	//interactive physics wall
-		// 	return this.saveProcessObj(obj.body);
-		// } else {
-		// 	console.log("SAVE - obj could not be saved - no solution setup");
-		// 	return undefined;
-		// }
-
-		if (obj instanceof wallObjInter) {
+		if (obj instanceof CollisionInstance) {
 			//interactive physics wall
-			return this.saveProcessObj(obj.body);
+
+			//let data = {
+			// 	type: MAPDATAINFO.type_collisionInstance,
+			// 	obj: {
+			// 		vert: [],
+			// 	},
+			// };
+			// obj.body.vertices.forEach((vec) => {
+			// 	data.obj.vert.push({
+			// 		x: vec.x,
+			// 		y: vec.y,
+			// 	});
+			// });
+			//return data;
+
+			// return MAPDATAINFO.data_collisionInstance(obj.body.vertices);
+			return MAPDATAINFO.data_collisionInstance(obj.body.vertices);
 		} else {
 			console.log("SAVE - temporary saving solution");
-
-			let data = {
-				type: "collisionInstances",
-				obj: {
-					vert: [],
-				},
-			};
-			obj.vertices.forEach((vec) => {
-				data.obj.vert.push({
-					x: vec.x,
-					y: vec.y,
-				});
-			});
-
-			return data;
 		}
 	}
 
-	//#endregion saving loading
+	//object
+
+	/**
+	 *
+	 * @param {Phaser.GameObjects.GameObject} obj
+	 */
+	enableSaving(obj) {
+		console.log("SAVE - enableSaving of: ", obj.name);
+
+		this.saveableList.push(obj);
+
+		obj.on("destroy", this.savebleRemove, this);
+	}
+
+	/**
+	 *
+	 * @param {Phaser.GameObjects.GameObject} obj
+	 */
+	savebleRemove(obj) {
+		let index = this.saveableList.indexOf(obj);
+		if (index > -1) {
+			this.saveableList.splice(index, 1);
+			console.log("disabled saving :", obj.name);
+
+			obj.removeListener("destroy", this.savebleRemove, this);
+		}
+	}
+
+	//#endregion saving
 }
 
 /** enum-like for modes/states the Level editor can be in */
@@ -1475,8 +2181,8 @@ class LEVELEDITORMODES {
 	/**
 	 * @typedef {symbol} mode a mode
 	 */
-
 	//#region other
+	/** @type {mode[]} */
 	static modeArr = new Array();
 
 	static modeAdd(modeName) {
@@ -1484,8 +2190,8 @@ class LEVELEDITORMODES {
 		LEVELEDITORMODES.modeArr.push(mode);
 		return mode;
 	}
+	//#endregion other
 
-	//#endregion
 	/**
 	 * mode to edit, selectm, manipulate objects
 	 * @type {mode}
@@ -1495,4 +2201,10 @@ class LEVELEDITORMODES {
 	 * @type {mode}
 	 */
 	static mode_create = LEVELEDITORMODES.modeAdd("modeCreate");
+}
+
+class RECOURCETYPES {
+	static IMAGE = "image";
+	static POLY = "poly";
+	static NOTHING = undefined;
 }
