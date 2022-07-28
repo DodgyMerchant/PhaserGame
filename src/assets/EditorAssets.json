@@ -4,17 +4,17 @@
 			{
 				"type": "image",
 				"key": "WallSmall",
-				"url": "src/assets/World/SmallWall-TEMP.png"
+				"url": "src/assets/World/pipes.png"
 			},
 			{
 				"type": "image",
 				"key": "WallBig",
-				"url": "src/assets/World/BigWall-TEMP.png"
+				"url": "src/assets/World/metalPipeStraight.png"
 			},
 			{
 				"type": "image",
 				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
+				"url": "src/assets/World/metalPipe.png"
 			},
 			{
 				"type": "image",
