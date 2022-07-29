@@ -30,8 +30,9 @@ export default class LevelEditor extends UIManager {
 			name: "LevelEditorDatGUI",
 			closeOnTop: false,
 		});
+		this.datgui.folderArr = [];
 
-		this.datGuiSelected = this.datgui.addFolder("Selected Obj");
+		this.datGuiSelected = this.datGuiFolderCreate(this.datgui, "Selected Obj");
 		this.datGuiSelected.open();
 
 		//#endregion
@@ -1817,20 +1818,82 @@ export default class LevelEditor extends UIManager {
 		if (bool && !(typeof this.worldObjSelected === "object")) return;
 		// this.worldObjSelected
 		// this.datGuiSelected
+		let gui = this.datGuiSelected;
+
+		//this.__gui.levelEditor.worldObjSelectRefresh();
+		//this.__gui.levelEditor.worldObjSelected
+		//this.__gui.levelEditor
 
 		if (bool) {
-			this.datGuiSelected.add(this.worldObjSelected, "name");
-			this.datGuiSelected.add(this.worldObjSelected, "x");
-			this.datGuiSelected.add(this.worldObjSelected, "y");
+			let refresh = function () {
+				this.__gui.levelEditor.worldObjSelectRefresh();
+			};
 
-			this.datGuiSelected.add(this.worldObjSelected, "originX", 0, 1);
-			this.datGuiSelected.add(this.worldObjSelected, "originY", 0, 1);
-		} else {
-			let list = this.datGuiSelected.__controllers;
+			let obj = this.worldObjSelected;
+			gui.add(obj, "name").listen();
+			gui.add(obj, "type").listen();
 
-			while (list.length > 0) {
-				this.datGuiSelected.remove(list[0]);
+			gui.add(obj, "x").step(1).listen().onChange(refresh);
+			gui.add(obj, "y").step(1).listen().onChange(refresh);
+
+			gui.add(obj, "displayWidth").step(1).listen().onChange(refresh);
+			gui.add(obj, "displayHeight").step(1).listen().onChange(refresh);
+
+			gui.add(obj, "width").step(1).listen().onChange(refresh);
+			gui.add(obj, "height").step(1).listen().onChange(refresh);
+
+			gui.add(obj, "scaleX", 0.001).listen().onChange(refresh);
+			gui.add(obj, "scaleY", 0.001).listen().onChange(refresh);
+
+			gui.add(obj, "depth", -1000, 999, 1).listen().onChange(refresh);
+			gui.add(obj, "alpha", 0, 1, 0.01).listen().onChange(refresh);
+
+			gui
+				.add(obj, "rotation", -Math.PI, Math.PI, (Math.PI * 2) / 100)
+				.listen()
+				.onChange(refresh);
+			gui.add(obj, "angle", -180, 180).listen().onChange(refresh);
+
+			gui.add(obj, "originX", 0, 1, 0.01).listen().onChange(refresh);
+			gui.add(obj, "originY", 0, 1, 0.01).listen().onChange(refresh);
+
+			gui.add(obj, "scrollFactorX").step(0.01).listen().onChange(refresh);
+			gui.add(obj, "scrollFactorY").step(0.01).listen().onChange(refresh);
+
+			gui.add(obj, "visible", true).listen().onChange(refresh);
+
+			switch (obj.type) {
+				case RECOURCETYPES.OBJ_IMAGE:
+					let folder = this.datGuiFolderCreate(gui, "Image");
+					folder.open();
+
+					//texture
+					// obj.texture.__tempParentConnection = obj;
+					folder.add(obj.texture, "key").listen();
+					folder
+						.add(
+							obj.texture,
+							"key",
+							this.assets.map.get(obj.type.toLowerCase())
+						)
+						.listen()
+						// .onFinishChange(obj.setTexture);
+						.onFinishChange(function (value) {
+							this.__gui.levelEditor.worldObjSelected.setTexture(value);
+							this.__gui.levelEditor.worldObjSelectRefresh();
+						});
+
+					// folder.add(obj, "frame");
+
+					break;
+				case RECOURCETYPES.OBJ_POLYGON:
+					break;
+
+				default:
+					break;
 			}
+		} else {
+			gui.clear();
 		}
 	}
 
@@ -1936,10 +1999,17 @@ export default class LevelEditor extends UIManager {
 	 */
 	worldObjSelectOne(obj, bool, deleteObj = false) {
 		if (bool) {
-			if (!(obj instanceof CollisionInstance)) {
-				console.log(
-					"Oh nooooo, semi implemented object type selected, the system doesnt support this"
-				);
+			switch (obj.type) {
+				case RECOURCETYPES.OBJ_IMAGE:
+					break;
+				case RECOURCETYPES.OBJ_POLYGON:
+					break;
+
+				default:
+					console.log(
+						"Oh nooooo, semi implemented object type selected, the system doesnt support this"
+					);
+					break;
 			}
 
 			this.scene.input.setDraggable(obj, true);
@@ -2045,6 +2115,11 @@ export default class LevelEditor extends UIManager {
 		return false;
 	}
 
+	worldObjSelectRefresh() {
+		this.worldObjSelected.refresh();
+		this.worldObjHighlight();
+	}
+
 	//#endregion
 	//edit
 
@@ -2056,9 +2131,6 @@ export default class LevelEditor extends UIManager {
 			let power = 1;
 			// this.worldObjSelected.rotation += (Phaser.Math.PI2 * 2) / (10 * mod);
 			this.worldObjSelected.setAngle(this.worldObjSelected.angle + power * mod);
-
-			this.worldObjSelected.refresh();
-			this.worldObjHighlight();
 		}
 	}
 
@@ -2408,6 +2480,51 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+	//#region dat gui
+
+	/**
+	 *
+	 * @param {GUI} parent
+	 * @param {string} propName
+	 * @returns {GUI} the folder
+	 */
+	datGuiFolderCreate(parent, propName) {
+		let folder = parent.addFolder(propName);
+		/**
+		 * @type {GUI}
+		 */
+		folder.folderArr = [];
+		parent.folderArr.push(folder);
+		/**
+		 * clears all folder children
+		 */
+		folder.clear = function () {
+			let list = this.__controllers;
+
+			while (list.length > 0) {
+				this.remove(list[0]);
+			}
+
+			//folders
+			list = this.folderArr;
+			let leng = list.length;
+
+			if (leng > 0) {
+				let folder;
+				for (let index = 0; index < leng; index++) {
+					folder = list[index];
+					this.removeFolder(folder);
+				}
+				this.folderArr = [];
+			}
+		};
+
+		folder.levelEditor = this;
+
+		return folder;
+	}
+
+	//#endregion
 }
 
 /** enum-like for modes/states the Level editor can be in */
@@ -2439,6 +2556,9 @@ class LEVELEDITORMODES {
 
 class RECOURCETYPES {
 	static IMAGE = "image";
-	static POLYGON = "poly";
+	static POLYGON = "polygon";
 	static NOTHING = undefined;
+
+	static OBJ_IMAGE = "Image";
+	static OBJ_POLYGON = "Polygon";
 }

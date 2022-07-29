@@ -594,7 +594,7 @@ export class MAPDATAINFO {
 	 * @param {Phaser.GameObjects.Image} imageObj
 	 * @returns
 	 */
-	static data_collisionInstance(imageObj) {
+	static data_worldImage(imageObj) {
 		let data = {
 			type: this.type_worldImage,
 			obj: {
@@ -610,7 +610,7 @@ export class MAPDATAINFO {
 				scrollFactorX: imageObj.scrollFactorX,
 				scrollFactorY: imageObj.scrollFactorY,
 				texture: imageObj.texture.key,
-				tint: imageObj.tint,
+				tint: imageObj.tintTopLeft,
 				visible: imageObj.visible,
 			},
 		};
