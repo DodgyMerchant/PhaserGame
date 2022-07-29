@@ -16,12 +16,13 @@ export default class CollisionInstance extends devPhyPoly {
 	 * @param {number} x
 	 * @param {number} y
 	 * @param {Phaser.Types.Physics.Matter.MatterBodyConfig | undefined} options
-	 * @param {Phaser.Types.Input.InputConfiguration} interactiveConfig
 	 */
-	constructor(name, scene, x, y, points, phyoptions, interactiveConfig) {
-		super(name, scene, x, y, points, phyoptions, interactiveConfig);
+	constructor(name, scene, x, y, points, phyoptions) {
+		super(name, scene, x, y, points, phyoptions);
 
-		
+		// this.setOrigin(0);
+		// this.setOrigin(0.5);
+		// this.setOrigin(1);
 	}
 
 	convert() {

@@ -23,6 +23,18 @@ export default class LevelEditor extends UIManager {
 	constructor(name, scene, debugGroup, x, y, active, editorMode) {
 		super(name, scene, 1000, x, y, undefined, true, true, undefined);
 
+		//#region dat.gui
+
+		this.datgui = new GUI({
+			hideable: true,
+			name: "LevelEditorDatGUI",
+			closeOnTop: false,
+		});
+
+		this.datGuiSelected = this.datgui.addFolder("Selected Obj");
+		this.datGuiSelected.open();
+
+		//#endregion
 		//#region loading
 
 		this.assestsDataKey = "levelEditorAssets";
@@ -198,7 +210,12 @@ export default class LevelEditor extends UIManager {
 			x: 0,
 			y: 0,
 			lineStyle: {
-				alpha: 0.7,
+				alpha: 1,
+				color: "0xffff00",
+				width: 3,
+			},
+			fillStyle: {
+				alpha: 1,
 				color: "0xffff00",
 				width: 3,
 			},
@@ -271,15 +288,22 @@ export default class LevelEditor extends UIManager {
 			worldVertClose: Phaser.Input.Keyboard.KeyCodes.CTRL,
 
 			//edit
-
 			worldEditUnselect: Phaser.Input.Keyboard.KeyCodes.ESC,
 			worldEditDelete: Phaser.Input.Keyboard.KeyCodes.DELETE,
+			worldEditRotateLeft: Phaser.Input.Keyboard.KeyCodes.PAGE_UP,
+			worldEditRotateRight: Phaser.Input.Keyboard.KeyCodes.PAGE_DOWN,
+
+			//not implemented
+			worldEditScaleUp: Phaser.Input.Keyboard.KeyCodes.HOME,
+			worldEditScaleDown: Phaser.Input.Keyboard.KeyCodes.END,
+
+			worldEditDuplicate: Phaser.Input.Keyboard.KeyCodes.INSERT,
 
 			//#endregion
 			//#region UI
 
 			/** @type {Phaser.Input.Keyboard.Key} */
-			UISwitchModes: Phaser.Input.Keyboard.KeyCodes.TAB,
+			UISwitchModes: Phaser.Input.Keyboard.KeyCodes.ENTER,
 
 			//#endregion
 		};
@@ -404,7 +428,9 @@ export default class LevelEditor extends UIManager {
 		//#endregion
 		//#region world general
 
-		this.worldGraph = this.scene.add.graphics(this.worldGraphConf);
+		this.worldGraph = this.scene.add
+			.graphics(this.worldGraphConf)
+			.setDepth(this.depth + 100);
 
 		//#endregion world general
 
@@ -644,7 +670,7 @@ export default class LevelEditor extends UIManager {
 			0.5,
 			0.5,
 			"collider",
-			"poly",
+			RECOURCETYPES.POLYGON,
 			this.createCollisionObject,
 			this.UICreateGraphConf,
 			this.textButtonConf,
@@ -666,7 +692,7 @@ export default class LevelEditor extends UIManager {
 			0.5,
 			0.5,
 			"zone",
-			"poly",
+			RECOURCETYPES.POLYGON,
 			"zone",
 			this.UICreateGraphConf,
 			this.textButtonConf,
@@ -790,17 +816,10 @@ export default class LevelEditor extends UIManager {
 		 * @type {mode}
 		 */
 		this.state =
-			editorMode != undefined ? editorMode : LEVELEDITORMODES.mode_create;
+			// editorMode != undefined ? editorMode : LEVELEDITORMODES.mode_create;
+			editorMode != undefined ? editorMode : LEVELEDITORMODES.mode_edit;
+		this.modeLeaveAll(this.modeCheck());
 		this.modeSetup(true);
-
-		//#endregion
-		//#region dat.gui
-
-		this.datgui = new GUI({
-			hideable: true,
-			name: "LevelEditorDatGUI",
-			closeOnTop: false,
-		});
 
 		//#endregion
 
@@ -1368,7 +1387,7 @@ export default class LevelEditor extends UIManager {
 
 				button.moveAbove(button.UI_Label_text, image);
 				break;
-			case RECOURCETYPES.POLY:
+			case RECOURCETYPES.POLYGON:
 				break;
 			case "object":
 
@@ -1403,7 +1422,7 @@ export default class LevelEditor extends UIManager {
 		switch (obj.recourceType) {
 			case RECOURCETYPES.IMAGE:
 				break;
-			case RECOURCETYPES.POLY:
+			case RECOURCETYPES.POLYGON:
 				break;
 			default:
 				console.log(
@@ -1476,7 +1495,7 @@ export default class LevelEditor extends UIManager {
 		switch (type) {
 			// case RECOURCETYPES.IMAGE:
 			// 	break;
-			case RECOURCETYPES.POLY:
+			case RECOURCETYPES.POLYGON:
 				this.worldVertSetup(bool, subject);
 				break;
 			case RECOURCETYPES.IMAGE:
@@ -1502,7 +1521,7 @@ export default class LevelEditor extends UIManager {
 		switch (type) {
 			case RECOURCETYPES.IMAGE:
 				return type + ": " + subject;
-			case RECOURCETYPES.POLY:
+			case RECOURCETYPES.POLYGON:
 				return type + ": " + subject.name;
 
 			default:
@@ -1632,7 +1651,7 @@ export default class LevelEditor extends UIManager {
 	 * @returns {MatterJS.BodyType | CollisionInstance}
 	 */
 	createCollisionObject(vecArr) {
-		this.scene.mapObjCreate_Collision(true, vecArr);
+		return this.scene.mapObjCreate_Collision(true, vecArr);
 	}
 
 	/**
@@ -1718,6 +1737,43 @@ export default class LevelEditor extends UIManager {
 				},
 				this
 			);
+
+			//rotating
+			this.inputKeys.worldEditRotateLeft.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldEditRotate(-1);
+				},
+				this
+			);
+			this.inputKeys.worldEditRotateRight.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldEditRotate(1);
+				},
+				this
+			);
+			//size
+			this.inputKeys.worldEditScaleUp.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldEditScale(1);
+					console.log("scalllle up");
+				},
+				this
+			);
+			this.inputKeys.worldEditScaleDown.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldEditScale(-1);
+					console.log("scalllle down");
+				},
+				this
+			);
 		} else {
 			//////pointer//////
 			//clicking
@@ -1731,6 +1787,21 @@ export default class LevelEditor extends UIManager {
 			this.inputKeys.worldEditDelete.removeListener("down", undefined, this);
 			// deleting objs
 			this.inputKeys.worldEditUnselect.removeListener("down", undefined, this);
+
+			//rotating
+			this.inputKeys.worldEditRotateLeft.removeListener(
+				"down",
+				undefined,
+				this
+			);
+			this.inputKeys.worldEditRotateRight.removeListener(
+				"down",
+				undefined,
+				this
+			);
+			//size
+			this.inputKeys.worldEditScaleUp.removeListener("down", undefined, this);
+			this.inputKeys.worldEditScaleDown.removeListener("down", undefined, this);
 		}
 	}
 
@@ -1740,6 +1811,27 @@ export default class LevelEditor extends UIManager {
 	 */
 	modeEditDelete() {
 		this.worldUnselect(true);
+	}
+
+	modeEditSelectGUISetup(bool) {
+		if (bool && !(typeof this.worldObjSelected === "object")) return;
+		// this.worldObjSelected
+		// this.datGuiSelected
+
+		if (bool) {
+			this.datGuiSelected.add(this.worldObjSelected, "name");
+			this.datGuiSelected.add(this.worldObjSelected, "x");
+			this.datGuiSelected.add(this.worldObjSelected, "y");
+
+			this.datGuiSelected.add(this.worldObjSelected, "originX", 0, 1);
+			this.datGuiSelected.add(this.worldObjSelected, "originY", 0, 1);
+		} else {
+			let list = this.datGuiSelected.__controllers;
+
+			while (list.length > 0) {
+				this.datGuiSelected.remove(list[0]);
+			}
+		}
 	}
 
 	//#region selecting a obj
@@ -1794,6 +1886,7 @@ export default class LevelEditor extends UIManager {
 		//selected obj saved
 		this.worldObjSelected = select;
 		console.log("New Obj selected: ", this.worldObjSelected.name);
+		console.log("New Obj selected: ", this.worldObjSelected);
 
 		//check for non implementation
 
@@ -1801,19 +1894,19 @@ export default class LevelEditor extends UIManager {
 		this.worldObjSelectAll(this.worldObjSelected, true, false);
 
 		this.worldObjHighlight();
+		this.modeEditSelectGUISetup(true);
 	}
 	/**
 	 * unselecting the object(s) in this.worldObjSelected.
 	 * @param {boolean | undefined} deleteObj should delete? default false.
 	 */
-	worldUnselect(deleteObj) {
-		if (deleteObj == undefined) deleteObj = false;
-
+	worldUnselect(deleteObj = false) {
 		if (this.worldObjSelected != undefined) {
 			//unselect all
 			this.worldObjSelectAll(this.worldObjSelected, false, deleteObj);
 
 			this.worldGraph.clear();
+			this.modeEditSelectGUISetup(false);
 			this.worldObjSelected = undefined;
 		}
 	}
@@ -1866,23 +1959,60 @@ export default class LevelEditor extends UIManager {
 	worldObjHighlight() {
 		this.worldGraph.clear();
 
-		/**
-		 * @type {Phaser.Math.Vector2[]}
-		 */
-		let vertArray;
+		let obj = this.worldObjSelected;
+		let geom = obj.input.hitArea;
+		let objPosition = new Phaser.Math.Vector2(obj.x, obj.y);
+		let objOrigin = new Phaser.Math.Vector2(
+			obj.displayOriginX,
+			obj.displayOriginY
+		);
 
-		let geom = this.worldObjSelected.input.hitArea;
+		//subtract origin from position
+		objPosition.subtract(objOrigin);
 
-		// this.worldObjSelected.rotation = 1;
+		switch (obj.type) {
+			case Phaser.GameObjects.Polygon.name:
+				let localPoints = Phaser.Utils.Objects.DeepCopy(geom.points);
+				// shift points by poly top left
+				// let polyBoundBox = Phaser.Geom.Polygon.GetAABB(geom, undefined);
+				// let boundTopLeft = new Phaser.Math.Vector2(
+				// 	polyBoundBox.x,
+				// 	polyBoundBox.y
+				// );
+				// this.scene.matter.vertices.translate(points, boundTopLeft, 1);
 
-		console.log("???????", this.worldObjSelected, geom);
+				this.scene.matter.vertices.rotate(localPoints, obj.rotation, objOrigin);
+				this.scene.matter.vertices.scale(
+					localPoints,
+					obj.scaleX,
+					obj.scaleY,
+					objOrigin
+				);
 
-		switch (geom.type) {
-			case Phaser.Geom.POLYGON:
-				vertArray = geom.points;
+				this.scene.matter.vertices.translate(localPoints, objPosition, 1);
+
+				this.worldGraph.strokePoints(localPoints, true);
+
+				//temp
+
 				break;
-			case Phaser.Geom.RECTANGLE:
-				vertArray = new Array();
+			case Phaser.GameObjects.Image.name:
+				// obj.
+
+				// obj.rotation = 2;
+
+				// obj.x - obj.width;
+
+				// let rec = new Phaser.Geom.Rectangle(
+				// 	obj.x,
+				// 	obj.y,
+				// 	obj.width,
+				// 	obj.height
+				// );
+
+				// console.log("log - rec: ", rec);
+
+				// this.worldGraph.strokeRectShape(rec);
 
 				break;
 			default:
@@ -1890,19 +2020,14 @@ export default class LevelEditor extends UIManager {
 				break;
 		}
 
-		let xoff = 0; //this.worldObjSelected.x;
-		let yoff = 0; //this.worldObjSelected.y;
-		for (let index = 0; index < vertArray.length; index++) {
-			const element2 = vertArray[index];
-			const element1 = vertArray.at(index - 1);
-
-			this.worldGraph.lineBetween(
-				element1.x + xoff,
-				element1.y + yoff,
-				element2.x + xoff,
-				element2.y + yoff
-			);
-		}
+		//x,y
+		this.worldGraph.fillCircle(obj.x, obj.y, 5);
+		//orign
+		this.worldGraph.strokeCircle(
+			obj.x - obj.displayOriginX,
+			obj.y - obj.displayOriginY,
+			10
+		);
 	}
 
 	worldObjCheckCanBeSelceted(obj) {
@@ -1921,6 +2046,37 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+	//edit
+
+	worldEditRotate(mod) {
+		if (
+			this.worldObjSelected != undefined &&
+			this.worldObjSelected.setAngle != undefined
+		) {
+			let power = 1;
+			// this.worldObjSelected.rotation += (Phaser.Math.PI2 * 2) / (10 * mod);
+			this.worldObjSelected.setAngle(this.worldObjSelected.angle + power * mod);
+
+			this.worldObjSelected.refresh();
+			this.worldObjHighlight();
+		}
+	}
+
+	worldEditScale(mod) {
+		if (
+			this.worldObjSelected != undefined &&
+			this.worldObjSelected.setScale != undefined
+		) {
+			let power = 0.01;
+			// this.worldObjSelected.rotation += (Phaser.Math.PI2 * 2) / (10 * mod);
+			this.worldObjSelected.setScale(
+				this.worldObjSelected.scaleX + power * mod
+			);
+
+			this.worldObjSelected.refresh();
+			this.worldObjHighlight();
+		}
+	}
 
 	//#endregion edit
 	//#region listeners general
@@ -2174,6 +2330,84 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion saving
+	//#region object interactivity
+
+	/**
+	 * setup code for interactable world objects
+	 */
+	interactiveSetup(obj, hitArea, hitAreaCallback) {
+		/**
+		 * interactive config
+		 * @type {Phaser.Types.Input.InputConfiguration}
+		 */
+		let interactiveConfig = {
+			hitArea: hitArea,
+			hitAreaCallback: hitAreaCallback,
+			pixelPerfect: false,
+			draggable: false,
+			useHandCursor: true,
+		};
+
+		let fallbackFunc = function () {
+			console.log("OBJECT INTERACTIVE - fallback function for: ", this.name);
+		};
+
+		obj.setInteractive(interactiveConfig);
+
+		//start
+		obj.on(
+			"dragstart",
+			/** @param {Phaser.Input.Pointer} pointer */
+			function (pointer) {
+				//#region moving
+				//set to dynamic
+				// this.setStatic(false);
+				//#endregion
+
+				console.log("drag start: ", this.name);
+			},
+			obj
+		);
+		//drag
+		obj.on(
+			"drag",
+			/**
+			 * @param {Phaser.Input.Pointer} pointer
+			 * @param {number} dragX
+			 * @param {number} dragY */
+			function (pointer, dragX, dragY) {
+				// this.setPosition(dragX, dragY);
+
+				if (!this.scene.debug.levelEditor.pointOnUI(pointer.x, pointer.y)) {
+					this.setPosition(dragX, dragY);
+				}
+				// this.scene.matter.body.translate(this.body, new Phaser.Math.Vector2(dragX, dragY));
+
+				// console.log("drag: ", this.name);
+			},
+			obj
+		);
+		//end
+		obj.on(
+			"dragend",
+			/** @param {Phaser.Input.Pointer} pointer */
+			function (pointer) {
+				//moving
+
+				//set to saaved static
+				// this.setStatic(this.saveStatic);
+
+				this.refresh();
+				console.log("drag end: ", this.name);
+			},
+			obj
+		);
+
+		//fallbacks
+		if (obj.refresh == undefined) obj.refresh = fallbackFunc;
+	}
+
+	//#endregion
 }
 
 /** enum-like for modes/states the Level editor can be in */
@@ -2205,6 +2439,6 @@ class LEVELEDITORMODES {
 
 class RECOURCETYPES {
 	static IMAGE = "image";
-	static POLY = "poly";
+	static POLYGON = "poly";
 	static NOTHING = undefined;
 }

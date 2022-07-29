@@ -7,12 +7,9 @@ export default class ImageInteractive extends Phaser.GameObjects.Image {
 	 * @param {string | Phaser.Textures.Texture} texture
 	 * @param {string | number | undefined} frame
 	 */
-	constructor(scene, x, y, texture, frame, interactiveConfig) {
+	constructor(name, scene, x, y, texture, frame) {
 		super(scene, x, y, texture, frame);
 
-		this.setInteractive(interactiveConfig);
-
-
-    
+		this.setName(name);
 	}
 }

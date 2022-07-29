@@ -366,18 +366,6 @@ export default class SceneMainGame extends GameScenes {
 			// let zeroCenterArr = Phaser.Utils.Objects.DeepCopy(vecArr);
 			// this.matter.vertices.translate(zeroCenterArr, center, -1);
 
-			/**
-			 * interactive config
-			 * @type {Phaser.Types.Input.InputConfiguration}
-			 */
-			let interactiveConfig = {
-				hitArea: new Phaser.Geom.Polygon(zeroTopLeftArr),
-				hitAreaCallback: Phaser.Geom.Polygon.Contains,
-				pixelPerfect: false,
-				draggable: false,
-				useHandCursor: true,
-			};
-
 			collconf.vertices = vecArr;
 			vertObj = new CollisionInstance(
 				"collisionInstance",
@@ -385,8 +373,13 @@ export default class SceneMainGame extends GameScenes {
 				center.x,
 				center.y,
 				zeroTopLeftArr,
-				collconf,
-				interactiveConfig
+				collconf
+			);
+
+			this.debug.levelEditor.interactiveSetup(
+				vertObj,
+				new Phaser.Geom.Polygon(zeroTopLeftArr),
+				Phaser.Geom.Polygon.Contains
 			);
 
 			// vertObj = new devPoly(
@@ -450,32 +443,28 @@ export default class SceneMainGame extends GameScenes {
 	 * @returns {Phaser.GameObjects.Image | ImageInteractive}
 	 */
 	mapObjCreate_Image(interactive, x, y, texture, frame) {
-		let constructor = interactive ? ImageInteractive : Phaser.GameObjects.Image;
+		let name = "image_" + (typeof texture === "string" ? texture : texture.key);
 		let imageObj;
-
-		/**
-		 * interactive config
-		 * @type {Phaser.Types.Input.InputConfiguration}
-		 */
-		let interactiveConfig = {
-			pixelPerfect: false,
-			draggable: false,
-			useHandCursor: true,
-		};
+		let obj;
 
 		if (typeof x === "object") {
-			imageObj = new constructor(
-				this,
-				x.x,
-				x.y,
-				x.texture,
-				x.frame,
-				interactiveConfig
-			);
-			Phaser.Utils.Objects.Extend(imageObj, x);
-		} else {
-			imageObj = new constructor(this, x, y, texture, frame, interactiveConfig);
+			obj = x;
+
+			x = obj.x;
+			y = obj.y;
+			texture = obj.texture;
+			frame = obj.frame;
 		}
+
+		if (interactive) {
+			imageObj = new ImageInteractive(name, this, x, y, texture, frame);
+			this.debug.levelEditor.interactiveSetup(imageObj);
+		} else {
+			imageObj = new Phaser.GameObjects.Image(this, x, y, texture, frame);
+			imageObj.setName(name);
+		}
+
+		if (obj != undefined) Phaser.Utils.Objects.Extend(imageObj, obj);
 
 		this.add.existing(imageObj);
 
