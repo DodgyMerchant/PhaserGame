@@ -754,7 +754,7 @@ export default class LevelEditor extends UIManager {
 				margin: 0,
 				padding: 0,
 			},
-			header_h: 25,
+			header_h: 20,
 
 			//entry
 
@@ -1571,7 +1571,7 @@ export default class LevelEditor extends UIManager {
 			undefined,
 			undefined,
 			this.gridConf.header_h,
-			{ margin: 0, padding: 0 },
+			this.gridConf.header_config,
 			0.5,
 			0.5,
 			"type - " + type,
@@ -1582,22 +1582,18 @@ export default class LevelEditor extends UIManager {
 		);
 
 		let asset_height =
-			assetGrid.UIE_getInnerHeight() -
-			(this.assets.typeNum *
-				(this.gridConf.header_h +
-					UIElement.UIE_configGetMargin(this.gridConf.header_config, 3, 0) +
-					UIElement.UIE_configGetMargin(this.gridConf.header_config, 1, 0) +
-					UIElement.UIE_configGetPadding(this.gridConf.header_config, 3, 0) +
-					UIElement.UIE_configGetPadding(this.gridConf.header_config, 1, 0) +
-					UIElement.UIE_configGetMargin(this.gridConf.list_config, 3, 0) +
-					UIElement.UIE_configGetMargin(this.gridConf.list_config, 1, 0) +
-					UIElement.UIE_configGetPadding(this.gridConf.list_config, 3, 0) +
-					UIElement.UIE_configGetPadding(this.gridConf.list_config, 1, 0))) /
-				this.assets.number;
+			(this.CreateAssetGrid.UIE_getInnerHeight() -
+				this.assets.typeNum *
+					(assetGridLabel.UIE_getTotalHeight() +
+						UIElement.UIE_configGetMargin(this.gridConf.list_config, 3, 0) +
+						UIElement.UIE_configGetMargin(this.gridConf.list_config, 1, 0) +
+						UIElement.UIE_configGetPadding(this.gridConf.list_config, 3, 0) +
+						UIElement.UIE_configGetPadding(this.gridConf.list_config, 1, 0))) /
+			Math.ceil(this.assets.number / this.gridConf.list_rowNum);
 
-		let leng = list.length;
-
-		Math.ceil(leng / this.gridConf.list_rowNum);
+		console.log("this.assets.typeNum", this.assets.typeNum);
+		console.log("this.assets.number", this.assets.number);
+		console.log("asset_height", asset_height);
 
 		//go through list and create an asset entry for every asset in list
 		let y_base = assetGridLabel.UIE_getOutterY2(false);
@@ -1607,10 +1603,13 @@ export default class LevelEditor extends UIManager {
 		let winc = assetGrid.UIE_getInnerWidth() / this.gridConf.list_rowNum;
 		let hinc = Math.min(winc, asset_height);
 
+		console.log("winc", winc);
+
 		let w = 1 / this.gridConf.list_rowNum;
 		let h = hinc;
 		let entry = 0;
 		let key;
+		let leng = list.length;
 		for (let index = 0; index < leng; index++) {
 			x = (index % this.gridConf.list_rowNum) * winc;
 			y = y_base + Math.floor(index / this.gridConf.list_rowNum) * hinc;
@@ -2131,6 +2130,8 @@ export default class LevelEditor extends UIManager {
 			let power = 1;
 			// this.worldObjSelected.rotation += (Phaser.Math.PI2 * 2) / (10 * mod);
 			this.worldObjSelected.setAngle(this.worldObjSelected.angle + power * mod);
+
+			this.worldObjSelectRefresh();
 		}
 	}
 
@@ -2145,8 +2146,7 @@ export default class LevelEditor extends UIManager {
 				this.worldObjSelected.scaleX + power * mod
 			);
 
-			this.worldObjSelected.refresh();
-			this.worldObjHighlight();
+			this.worldObjSelectRefresh();
 		}
 	}
 
