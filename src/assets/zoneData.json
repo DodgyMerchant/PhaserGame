@@ -4,7 +4,7 @@
 			"name": "Tutorial",
 			"key": "Zone_Tutorial",
 			"connection": [],
-			"poly": 0,
+			"polygon": 0,
 			"vert": [
 				{ "x": 100, "y": 100 },
 				{ "x": 200, "y": 100 },
@@ -16,7 +16,7 @@
 			"name": "TestZone",
 			"key": "Zone_TestZone",
 			"connection": [],
-			"poly": 0,
+			"polygon": 0,
 			"vert": [
 				{ "x": 200, "y": 200 },
 				{ "x": 300, "y": 200 },
