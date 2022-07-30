@@ -23,8 +23,13 @@
 			},
 			{
 				"type": "image",
-				"key": "worldWallSmall",
-				"url": "src/assets/World/SmallWall-TEMP.png"
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
 			},
 			{
 				"type": "image",
@@ -35,21 +40,6 @@
 				"type": "image",
 				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "worldWallBig",
-				"url": "src/assets/World/BigWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "worldWallSmall",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "worldWallBig",
-				"url": "src/assets/World/BigWall-TEMP.png"
 			}
 		]
 	}
