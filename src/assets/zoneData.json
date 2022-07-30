@@ -1,20 +1,37 @@
 {
-	"tutorial": {
+	"zones": [
+		{
+			"name": "Tutorial",
+			"key": "Zone_Tutorial",
+			"connection": ["Zone_TestZone"],
+			"polygon": 0,
+			"vert": [
+				{ "x": -100, "y": -100 },
+				{ "x": 100, "y": -100 },
+				{ "x": 100, "y": 100 },
+				{ "x": -100, "y": 100 }
+			]
+		},
+		{
+			"name": "TestZone",
+			"key": "Zone_TestZone",
+			"connection": ["Zone_Tutorial"],
+			"polygon": 0,
+			"vert": [
+				{ "x": 200, "y": 200 },
+				{ "x": 300, "y": 200 },
+				{ "x": 300, "y": 300 },
+				{ "x": 200, "y": 300 }
+			]
+		}
+	],
+	"Zone_Tutorial": {
+		"index": 0,
 		"files": [
-			{
-				"type": "image",
-				"key": "playerImageBody",
-				"url": "src/assets/Player/playerBodyTEMP.png"
-			},
 			{
 				"type": "image",
 				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "worldWallBig",
-				"url": "src/assets/World/BigWall-TEMP.png"
 			}
 		],
 		"mapData": {
@@ -87,8 +104,77 @@
 						{ "x": -738.6363676387421, "y": -560.9090939484355 }
 					]
 				}
+			],
+			"worldImages": [
+				{
+					"name": "image_worldWallSmall",
+					"x": 332,
+					"y": 191,
+					"scaleX": 1,
+					"scaleY": 1,
+					"depth": 0,
+					"alpha": 1,
+					"rotation": 0,
+					"originX": 0.5,
+					"originY": 0.5,
+					"scrollFactorX": 1.16,
+					"scrollFactorY": 1.16,
+					"visible": true,
+					"texture": "worldWallSmall"
+				},
+				{
+					"name": "image_worldWallSmall",
+					"x": 305,
+					"y": 379,
+					"scaleX": 2.6000000000000014,
+					"scaleY": 1,
+					"depth": 0,
+					"alpha": 1,
+					"rotation": 0.48869219055841207,
+					"originX": 0.5,
+					"originY": 0.5,
+					"scrollFactorX": 1,
+					"scrollFactorY": 1,
+					"visible": true,
+					"texture": "worldWallSmall"
+				},
+				{
+					"name": "image_worldWallSmall",
+					"x": 161,
+					"y": 203,
+					"scaleX": 3.7000000000000024,
+					"scaleY": 2.300000000000001,
+					"depth": 0,
+					"alpha": 1,
+					"rotation": 0.5759586531581284,
+					"originX": 0.5,
+					"originY": 0.5,
+					"scrollFactorX": 1,
+					"scrollFactorY": 1,
+					"visible": true,
+					"texture": "worldWallSmall"
+				},
+				{
+					"name": "image_worldWallSmall",
+					"x": 88,
+					"y": 412,
+					"scaleX": 1,
+					"scaleY": 1,
+					"depth": 0,
+					"alpha": 1,
+					"rotation": -0.4014257279586957,
+					"originX": 0.5,
+					"originY": 0.5,
+					"scrollFactorX": 1,
+					"scrollFactorY": 1,
+					"visible": true,
+					"texture": "worldWallSmall"
+				}
 			]
 		}
 	},
-	"zone1": {}
+	"Zone_TestZone": {
+		"index": 0,
+		"files": []
+	}
 }

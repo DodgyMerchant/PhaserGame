@@ -6,10 +6,10 @@ export default class UIElement extends UIObj {
 	 * @param {String} name a name
 	 * @param {Phaser.Scene} scene The Scene to which this Game Object belongs. A Game Object can only belong to one Scene at a time.
 	 * @param {number} depth deptch of the object. Hight number = ontop of other objects
-	 * @param {number | UIElement | undefined} x The top position of the object. Undefined for the most left position. UIElement to orient this obj to the right to it. This has the highest priority.
-	 * @param {number | UIElement | undefined} y The top position of the object. Undefined for the most top position. UIElement to orient this obj to the bottom to it. This has the highest priority.
-	 * @param {number | undefined} w width of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. w<=1 will be handled as a percentage of all possible space.
-	 * @param {number | undefined} h heigth of the UI object. undefiend causes the object to take up all possivble space INSIDE a UI element parent, respecting their settings. h<=1 will be handled as a percentage of all possible space.
+	 * @param {number | UIElement | undefined} x The top position of the object. Undefined for the most left position. UIElement to orient this obj to the right to it. negative values will be handled moving from the opposite side of the parents space. This has the highest priority.
+	 * @param {number | UIElement | undefined} y The top position of the object. Undefined for the most top position. UIElement to orient this obj to the bottom to it. negative values will be handled moving from the opposite side of the parents space. This has the highest priority.
+	 * @param {number | UIObj | UIElement | undefined} w width of the UI object. w<=1 will be handled as a percentage of all possible space. an reference to sibling will use their x as x2. referencing the parent will take up all its space. undefiend causes the object to expand to the next obj or to all space.
+	 * @param {number | UIObj | UIElement | undefined} h heigth of the UI object. h<=1 will be handled as a percentage of all possible space. an reference to sibling will use their x as x2. referencing the parent will take up all its space. undefiend causes the object to expand to the next obj or to all space.
 	 * @param {UIConfig | undefined} UiConfig Config object for UI classes. alll settings are EXCLUDED in the total width/heigth of the element. meaning if you set the width you set the width. no shenanigans.
 	 * @param {boolean | undefined} cascadeEnable The vertical position of this Game Object in the world. Default 0.
 	 * @param {boolean | undefined} cascadeDisable The vertical position of this Game Object in the world. Default 0.
@@ -43,28 +43,11 @@ export default class UIElement extends UIObj {
         //if reference ti UIElement obj
         (x instanceof UIElement
           //is reference use its position
-				  ? x.UIE_getFurthestX() + 
+				  ? x.UIE_getOutterX2(false) + 
           //adding non intitialized margin left
 
           //check for undefined
-          (UiConfig!=undefined
-            //is noot undefined
-            //check for object
-            ? ( typeof UiConfig.margin === "object"
-              //is object
-              //check for property defined
-              ? (UiConfig.margin.Left != undefined
-                //is defined return property
-                ? UiConfig.margin.Left
-                //is not defined, return 0
-                : 0
-                )
-              //isnt an object, assume its a number, return it
-              : UiConfig.margin
-              )
-            //is undefined
-            : 0
-          )
+          UIElement.UIE_configGetMargin(UiConfig,2,0)
           //not a reference use as normal coordinate
 				  : x),
 
@@ -78,28 +61,11 @@ export default class UIElement extends UIObj {
         //if reference ti UIElement obj
         (y instanceof UIElement
           //is reference use its position
-				  ? y.UIE_getFurthestY() + 
+				  ? y.UIE_getOutterY2(false) + 
           //adding non intitialized margin top
 
           //check for undefined
-          (UiConfig!=undefined
-            //is noot undefined
-            //check for object
-            ? ( typeof UiConfig.margin === "object"
-              //is object
-              //check for property defined
-              ? (UiConfig.margin.Top != undefined
-                //is defined return property
-                ? UiConfig.margin.Top
-                //is not defined, return 0
-                : 0
-                )
-              //isnt an object, assume its a number, return it
-              : UiConfig.margin
-              )
-            //is undefined
-            : 0
-          )
+          UIElement.UIE_configGetMargin(UiConfig,3,0)
           //not a reference use as normal coordinate
 				  : y),
 
@@ -111,6 +77,7 @@ export default class UIElement extends UIObj {
 		//width and height
 		/*
     value == undefined    as large as possible on that spectrum (w/h).
+    value of type object  use that objects ounds aas x2/y2
     value <= 1            handles widdth and height as a percentage value of possible space.
     value is other        haandles as normal value.
     */
@@ -256,7 +223,7 @@ export default class UIElement extends UIObj {
 		// 	this.parentContainer.height
 		// );
 
-		console.log("refresh - UIElement: ", this.name);
+		// console.log("refresh - UIElement: ", this.name);
 
 		//refresh my children
 		super.refresh();
@@ -271,8 +238,35 @@ export default class UIElement extends UIObj {
 		let x, y;
 
 		//worls with and without parents, applies noparent margin aapplication
-		x = this.UIE_getPositionRestrictedX(this.targetX, true);
-		y = this.UIE_getPositionRestrictedY(this.targetY, true);
+
+		if (
+			typeof this.targetX === "number" &&
+			this.targetX < 0 &&
+			this.parentContainer instanceof UIElement
+		) {
+			x = this.UIE_getPositionRestrictedX(
+				this.parentContainer.UIE_getInnerWidth() + this.targetX,
+				true
+			);
+		} else {
+			x = this.UIE_getPositionRestrictedX(this.targetX, true);
+		}
+
+		if (
+			typeof this.targetY === "number" &&
+			this.targetY < 0 &&
+			this.parentContainer instanceof UIElement
+		) {
+			y = this.UIE_getPositionRestrictedY(
+				this.parentContainer.UIE_getInnerHeight() + this.targetY,
+				true
+			);
+		} else {
+			y = this.UIE_getPositionRestrictedY(this.targetY, true);
+		}
+
+		// x = this.UIE_getPositionRestrictedX(this.targetX, true);
+		// y = this.UIE_getPositionRestrictedY(this.targetY, true);
 
 		this.setPosition(x, y);
 	}
@@ -296,6 +290,18 @@ export default class UIElement extends UIObj {
 			// console.log("me: ", this.name, " totalW: ", totalW);
 
 			//if width is special propertie apply it
+			if (
+				typeof this.originalW === "object" &&
+				this.originalW instanceof UIElement
+			) {
+				//my parent given as width
+				if (this.originalW == this.parentContainer) {
+					w = totalW;
+				} else {
+					w = this.originalW.UIE_getOutterX1(false) - this.x;
+				}
+			}
+
 			if (this.originalW == undefined || this.originalW <= 1) {
 				w =
 					totalW * (this.originalW <= 1 ? this.originalW : 1) -
@@ -310,8 +316,20 @@ export default class UIElement extends UIObj {
 			//#endregion
 			//#region height
 
-			// prettier-ignore
 			let totalH = this.parentContainer.UIE_getInnerHeight();
+
+			//if width is special propertie apply it
+			if (
+				typeof this.originalH === "object" &&
+				this.originalH instanceof UIElement
+			) {
+				//my parent given as width
+				if (this.originalH == this.parentContainer) {
+					h = totalH;
+				} else {
+					h = this.originalH.UIE_getOutterY1(false) - this.y;
+				}
+			}
 
 			//if width is special propertie apply it
 			if (this.originalH == undefined || this.originalH <= 1) {
@@ -420,21 +438,6 @@ export default class UIElement extends UIObj {
 	UIE_getTotalHeight() {
 		return this.UIE_getHeight() + this.marginTop + this.marginBottom;
 	}
-
-	/**
-	 * furthest x position.
-	 * x + width + marginRight.
-	 */
-	UIE_getFurthestX() {
-		return this.x + this.UIE_getWidth() + this.marginRight;
-	}
-	/**
-	 * furthest y position.
-	 * y + height + marginBottom.
-	 */
-	UIE_getFurthestY() {
-		return this.y + this.UIE_getHeight() + this.marginBottom;
-	}
 	/**
 	 * gets the elements inner width
 	 * width - padding
@@ -477,6 +480,84 @@ export default class UIElement extends UIObj {
 	 */
 	UIE_getInnerY2(relative = false) {
 		return (relative ? 0 : this.y) + this.UIE_getHeight() - this.paddingBottom;
+	}
+	/**
+	 * gets the elements outter x1
+	 * @param relative value should be relative to object
+	 */
+	UIE_getOutterX1(relative = false) {
+		return (relative ? 0 : this.x) - this.marginLeft;
+	}
+	/**
+	 * gets the elements outter y1
+	 * @param relative value should be relative to object
+	 */
+	UIE_getOutterY1(relative = false) {
+		return (relative ? 0 : this.y) - this.marginTop;
+	}
+	/**
+	 * gets the elements outter x2
+	 * @param relative value should be relative to object
+	 */
+	UIE_getOutterX2(relative = false) {
+		return (relative ? 0 : this.x) + this.UIE_getWidth() + this.marginRight;
+	}
+	/**
+	 * gets the elements outter y2
+	 * @param relative value should be relative to object
+	 */
+	UIE_getOutterY2(relative = false) {
+		return (relative ? 0 : this.y) + this.UIE_getHeight() + this.marginBottom;
+	}
+
+	//static
+	/**
+	 * safe way to get the data
+	 * @param {UIConfig} config
+	 * @param {number} direction direction as a number, clockwise sarting right. 0 = Right, 1= Bottom, 2= Left, 3= Top
+	 * @param {any | undefined} fallback return this if nothing is found
+	 */
+	static UIE_configGetMargin(config, direction, fallback) {
+		if (config != undefined) {
+			if (typeof config.margin === "object")
+				switch (direction) {
+					case 0:
+						return config.margin.Right;
+					case 1:
+						return config.margin.Bottom;
+					case 2:
+						return config.margin.Left;
+					case 3:
+						return config.margin.Top;
+				}
+			else if (typeof config.margin === "number") return config.margin;
+		}
+
+		return fallback;
+	}
+	/**
+	 * safe way to get the data
+	 * @param {UIConfig} config
+	 * @param {number} direction direction as a number, clockwise sarting right. 0 = Right, 1= Bottom, 2= Left, 3= Top
+	 * @param {any | undefined} fallback return this if nothing is found
+	 */
+	static UIE_configGetPadding(config, direction, fallback) {
+		if (config != undefined) {
+			if (typeof config.padding === "object")
+				switch (direction) {
+					case 0:
+						return config.padding.Right;
+					case 1:
+						return config.padding.Bottom;
+					case 2:
+						return config.padding.Left;
+					case 3:
+						return config.padding.Top;
+				}
+			else if (typeof config.padding === "number") return config.padding;
+		}
+
+		return fallback;
 	}
 }
 

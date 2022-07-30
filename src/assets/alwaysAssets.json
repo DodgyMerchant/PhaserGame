@@ -1,0 +1,14 @@
+{
+	"final": {
+		"files": [
+			{
+				"type": "image",
+				"key": "playerImageBody",
+				"url": "src/assets/Player/playerBodyTEMP.png"
+			}
+		]
+	},
+	"temp": {
+		"files": []
+	}
+}

@@ -87,15 +87,37 @@ export default class UILabel extends UIPanel {
 		super.refresh();
 
 		// if (this.parentContainer instanceof UIElement)
-		this.UI_Label_repositionText(this.UI_Label_posH, this.UI_Label_posV);
+		this.UI_Label_recalculate();
 
 		// console.log("refresh - UILabel: ", this.name);
 	}
 
-	UI_Label_repositionText(h, v) {
+	/**
+	 * sets the new text position and recalculates
+	 * @param {number | undefined} h 0-1
+	 * @param {number | undefined} v 0-1
+	 */
+	UI_Label_repositionText(h = this.UI_Label_posH, v = this.UI_Label_posV) {
+		this.UI_Label_posH = h;
+		this.UI_Label_posV = v;
+
+		this.UI_Label_recalculate();
+	}
+
+	UI_Label_recalculate() {
 		this.UI_Label_text.setPosition(
-			(this.width - this.UI_Label_text.width) * h,
-			(this.height - this.UI_Label_text.height) * v
+			(this.width - this.UI_Label_text.width) * this.UI_Label_posH,
+			(this.height - this.UI_Label_text.height) * this.UI_Label_posV
 		);
+	}
+
+	/**
+	 * set the string of the UI label text, recalculaates
+	 * @param {string | string[]} str
+	 */
+	UI_Label_setText(str) {
+		this.UI_Label_text.setText(str);
+
+		this.UI_Label_recalculate();
 	}
 }

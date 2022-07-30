@@ -146,13 +146,14 @@ export default class UIButton extends UILabel {
 				eventTrigger,
 				function (pointer, relX, relY, stopPropagation) {
 					// this.scene.input.stopPropagation();
-          
+
 					this.UI_Button_zone.parentContainer.emit(
 						eventEmitted,
 						pointer,
 						relX,
 						relY,
-						stopPropagation
+						stopPropagation,
+						this
 					);
 				},
 				this
@@ -164,16 +165,16 @@ export default class UIButton extends UILabel {
 		super.refresh();
 
 		// if (this.parentContainer instanceof UIElement) {
-			this.UI_Button_zone.setSize(this.width, this.height);
-			this.UI_Button_zone.input.hitArea.width = this.width;
-			this.UI_Button_zone.input.hitArea.height = this.height;
+		this.UI_Button_zone.setSize(this.width, this.height);
+		this.UI_Button_zone.input.hitArea.width = this.width;
+		this.UI_Button_zone.input.hitArea.height = this.height;
 
-			// console.log(
-			// 	"resize button: ",
-			// 	this.width,
-			// 	this.height,
-			// 	this.UI_Button_zone.input.hitArea
-			// );
+		// console.log(
+		// 	"resize button: ",
+		// 	this.width,
+		// 	this.height,
+		// 	this.UI_Button_zone.input.hitArea
+		// );
 		// }
 
 		// console.log("refresh - UIButton: ", this.name);

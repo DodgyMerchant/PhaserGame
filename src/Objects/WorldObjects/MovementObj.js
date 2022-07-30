@@ -44,7 +44,7 @@ export default class MovementObj extends PhyObj {
 		 * Method called to get input for movement
 		 * @param {Phaser.Math.Vector2 | undefined} vec2 optional vector to overwrite
 		 * @returns {Phaser.Math.Vector2} vector with a limit of 1
-		 * @type method
+		 * @type {function}
 		 */
 		this.moveInputMethod;
 		if (movementConfig.moveMeth != undefined)
@@ -55,7 +55,7 @@ export default class MovementObj extends PhyObj {
 		 * set by using moveRotMethodSet
 		 * @param {Phaser.Math.Vector2 | undefined} vec2 optional vector to overwrite
 		 * @returns {Phaser.Math.Vector2} vector with a limit of 1
-		 * @type {method | boolean}
+		 * @type {function | boolean}
 		 */
 		this.moveRotInputMethod;
 		/**
@@ -144,17 +144,17 @@ export default class MovementObj extends PhyObj {
 		// 		this.body.velocity.y.toFixed(2)
 		// 	);
 
-		if (this.body.speed != 0)
-			console.log(
-				"fps: ",
-				this.scene.game.loop.actualFps.toFixed(2),
-				" / ",
-				this.scene.game.loop.targetFps,
-				" / ",
-				delta,
-				"spd: ",
-				this.body.speed.toFixed(4)
-			);
+		// if (this.body.speed != 0)
+		// 	console.log(
+		// 		"fps: ",
+		// 		this.scene.game.loop.actualFps.toFixed(2),
+		// 		" / ",
+		// 		this.scene.game.loop.targetFps,
+		// 		" / ",
+		// 		delta,
+		// 		"spd: ",
+		// 		this.body.speed.toFixed(4)
+		// 	);
 
 		//#endregion
 	}
@@ -206,7 +206,7 @@ export default class MovementObj extends PhyObj {
 
 	/**
 	 * sets the rotation method
-	 * @param {method | boolean} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation.
+	 * @param {function | boolean} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation.
 	 */
 	moveRotMethodSet(rotMeth) {
 		if (typeof rotMeth == "function") {
@@ -332,16 +332,16 @@ export default class MovementObj extends PhyObj {
 
 /*
 @param {State} state tstate the object is in
-@param {method | undefined} moveMeth Method called to get input for movement, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set moveInputMethod
-@param {method | boolean | undefined} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation. If it cant be supplied set moveInputMethod.
+@param {function | undefined} moveMeth Method called to get input for movement, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. If it cant be supplied set moveInputMethod
+@param {function | boolean | undefined} rotMeth Method called to get input for object rotation, specifications: return a vec2D: Phaser.Math.Vector2, 1 parameter: vec2 2D vector that can be overridden Phaser.Math.Vector2. OR if movement input should be direkty translaated to object rotation. If it cant be supplied set moveInputMethod.
 */
 /**
  * @typedef {{
  * speed: (number),
  * rotSpeed: (number),
  * state: (State),
- * moveMeth: (method | undefined),
- * rotMeth: (method | boolean | undefined),
+ * moveMeth: (function | undefined),
+ * rotMeth: (function | boolean | undefined),
  * }} MovementConfig Config for a movement object
  */
 
