@@ -7,8 +7,6 @@ export default class SceneMainMenu extends Phaser.Scene {
 			pack: {},
 		});
 
-		
-
 		//#region config
 
 		/**
@@ -44,7 +42,7 @@ export default class SceneMainMenu extends Phaser.Scene {
 
 		//#endregion
 
-		console.log("menu assest: ", this.cache.json.get("menuAssets"));
+		console.log("MENU assest: ", this.cache.json.get("menuAssets"));
 		//#region camera
 		this.cameras.main.setBackgroundColor(this.camConfig.backCol);
 
@@ -95,13 +93,12 @@ export default class SceneMainMenu extends Phaser.Scene {
 
 		//add the zones list to cache
 		this.cache.json.add("zones", zones);
-		console.log("zones: ", this.cache.json.get("zones"));
 
 		//go through list of all zones, get the key from thev enry and enter the raw zone into the json chache
 		for (let index = 0; index < zones.length; index++) {
 			let zoneEntry = zones[index];
 			let zoneKey = zoneEntry.key;
-			let zoneData = Phaser.Utils.Objects.GetValue(data, zoneKey, undefined);
+			let zoneData = Phaser.Utils.Objects.GetFastValue(data, zoneKey, undefined);
 
 			//create polygon from zone vertecy data
 			zoneEntry.poly = new Phaser.Geom.Polygon(zoneEntry.vert);
@@ -109,13 +106,10 @@ export default class SceneMainMenu extends Phaser.Scene {
 			zoneData.index = index;
 
 			this.cache.json.add(zoneKey, zoneData);
-			console.log("zone: ", zoneKey, zoneData);
 		}
 
 		//remove file from cache
 		this.cache.json.remove(key);
-
-		console.log("log - this.cache.json.getKeys: ", this.cache.json.getKeys());
 	}
 
 	//#endregion

@@ -183,7 +183,6 @@ export default class SceneMainGame extends GameScenes {
 
 		//#region zones
 		this.zoneList = this.cache.json.get("zones");
-		console.log("this.zoneList: ", this.zoneList);
 
 		// this.zoneCheckPointConnected(this.playerConfig.x, this.playerConfig.y, 1);
 
@@ -207,7 +206,7 @@ export default class SceneMainGame extends GameScenes {
 		console.log("SceneMainGame - temp map loading");
 
 		let data = this.game.cache.json.get("Zone_Tutorial");
-		console.log("CREATELEVEL - data: ", data);
+		// console.log("CREATELEVEL - data: ", data);
 		this.CreateMapFromData(data.mapData);
 
 		//#endregion creating zones
@@ -489,7 +488,7 @@ export default class SceneMainGame extends GameScenes {
 		let list;
 
 		//collision
-		list = Phaser.Utils.Objects.GetValue(
+		list = Phaser.Utils.Objects.GetFastValue(
 			mapdata,
 			ZONEDATA.type_collisionInstance
 		);
@@ -498,7 +497,7 @@ export default class SceneMainGame extends GameScenes {
 		});
 
 		//images
-		list = Phaser.Utils.Objects.GetValue(mapdata, ZONEDATA.type_worldImage);
+		list = Phaser.Utils.Objects.GetFastValue(mapdata, ZONEDATA.type_worldImage);
 		list.forEach((element) => {
 			this.mapObjCreate_Image(this.debug_issetup, element);
 		});
@@ -592,13 +591,9 @@ export default class SceneMainGame extends GameScenes {
 				for (let index = 0; index < newZone.files.length; index++) {
 					file = newZone.files[index];
 
-					console.log("LOAD ZONE - file: ", file);
-
+					//load respective recource
 					// prettier-ignore
-					Phaser.Utils.Objects.GetValue(this.load, file.type).call(this.load, file);
-					// this.load.image(file);
-
-					// (file);
+					Phaser.Utils.Objects.GetFastValue(this.load, file.type).call(this.load, file);
 				}
 
 				//add to list
@@ -609,8 +604,6 @@ export default class SceneMainGame extends GameScenes {
 		if (manual && newCount > 0) {
 			this.load.start();
 		}
-
-		console.log("log - this.zoneLoadedList: ", this.zoneLoadedList);
 	}
 
 	//#endregion

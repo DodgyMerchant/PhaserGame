@@ -634,8 +634,7 @@ export default class LevelEditor extends UIManager {
 			true
 		).on(
 			"SaveButtonPress",
-			function (a, b, c, d, e) {
-				console.log("a,b,c,d,e: ", a, b, c, d, e);
+			function () {
 				this.UISaveInteraction();
 			},
 			this
@@ -1731,6 +1730,15 @@ export default class LevelEditor extends UIManager {
 				},
 				this
 			);
+			//duplicate
+			this.inputKeys.worldEditDuplicate.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldEditDuplicate();
+				},
+				this
+			);
 
 			//rotating
 			this.inputKeys.worldEditRotateLeft.on(
@@ -1781,6 +1789,8 @@ export default class LevelEditor extends UIManager {
 			this.inputKeys.worldEditDelete.removeListener("down", undefined, this);
 			// deleting objs
 			this.inputKeys.worldEditUnselect.removeListener("down", undefined, this);
+			// duplicate
+			this.inputKeys.worldEditDuplicate.removeListener("down", undefined, this);
 
 			//rotating
 			this.inputKeys.worldEditRotateLeft.removeListener(
@@ -2143,6 +2153,8 @@ export default class LevelEditor extends UIManager {
 		}
 	}
 
+	worldEditDuplicate() {}
+
 	//#endregion edit
 	//#region listeners general
 
@@ -2254,24 +2266,42 @@ export default class LevelEditor extends UIManager {
 
 	loadAssetDataComplete(key, type, data) {
 		//setp data
-		console.log("LEVELEDITOR load packfile complete: ", key, type, data);
+		// console.log("LEVELEDITOR load packfile complete: ", key, type, data);
 
 		let list = data.all.files;
 		let leng = list.length;
+		let fileKey, fileType, file, checkFunc;
 		for (let index = 0; index < leng; index++) {
-			let file = list[index];
+			file = list[index];
+			fileKey = file.key;
+			fileType = file.type;
 
-			this.assets.dataMap.set(file.key, file);
+			this.assets.dataMap.set(fileKey, file);
 
-			//setting up the individual sprite data load events
-			this.scene.load.once(
-				"filecomplete-" + file.type + "-" + file.key,
-				this.loadAssetComplete,
-				this
-			);
+			switch (fileType) {
+				case RECOURCETYPES.IMAGE:
+					checkFunc = this.scene.textures;
+					break;
+				default:
+					checkFunc = Phaser.Utils.Objects.GetFastValue(
+						this.scene.cache,
+						fileType,
+						undefined
+					);
+				// console.log( "LEVELEDITOR - loadAssetDataComplete - unknown filetype in editor: ", fileKey, fileKey );
+			}
+
+			if (!checkFunc.exists(fileKey)) {
+				//setting up the individual sprite data load events
+				this.scene.load.once(
+					"filecomplete-" + fileType + "-" + fileKey,
+					this.loadAssetComplete,
+					this
+				);
+			} else {
+				this.loadAssetComplete(fileKey, fileType);
+			}
 		}
-
-		console.log("this.assets", this.assets);
 	}
 
 	loadAssetComplete(key, type, data) {
@@ -2296,7 +2326,6 @@ export default class LevelEditor extends UIManager {
 	loadComplete(loader, totalComplete, totalFailed) {
 		// console.log("LEVELEDITOR load finished: ", totalComplete, totalFailed);
 
-		console.log("assets: ", this.assets);
 		this.AssetGridBuild();
 	}
 
@@ -2307,6 +2336,8 @@ export default class LevelEditor extends UIManager {
 		console.log("SAVE BUTTON PRESS");
 
 		let data = this.saveProcessList(this.saveableList);
+
+		console.log("data to save: ", data);
 
 		this.scene.load.saveJSON(data, "levelData");
 	}
@@ -2322,8 +2353,6 @@ export default class LevelEditor extends UIManager {
 		let files = data.files;
 		let depCollectList = [];
 
-		let list1 = [];
-
 		/** @type {object} */
 		let objInfo;
 		/** @type {Array} */
@@ -2338,7 +2367,6 @@ export default class LevelEditor extends UIManager {
 			obj = arr[index];
 			objInfo = this.saveProcessObj(obj);
 			if (objInfo == undefined) continue;
-			console.log("SAVE - objInfo - : ", objInfo);
 
 			//workout dependencies
 			objDependencies = obj.recourceDependency.list;
@@ -2351,7 +2379,8 @@ export default class LevelEditor extends UIManager {
 			}
 
 			//pushes data onto respective list
-			dataList = Phaser.Utils.Objects.GetValue(
+			// dataList = Phaser.Utils.Objects.GetValue(
+			dataList = Phaser.Utils.Objects.GetFastValue(
 				mapdata,
 				objInfo.type,
 				undefined
@@ -2359,18 +2388,22 @@ export default class LevelEditor extends UIManager {
 			dataList.push(objInfo.obj);
 		}
 
-		console.log("data pre: ", depCollectList, this.assets.dataMap);
-
 		//add files from dependencies
+		let recourceData, key;
 		for (let index = 0; index < depCollectList.length; index++) {
 			//get dependant recource and find associated data in the aassets storage
 			//add the data to the daat that should be be saved
-			let data = this.assets.dataMap.get(depCollectList[index]);
-			console.log("data: ", data);
-			files.push(data);
-		}
+			key = depCollectList[index];
+			recourceData = this.assets.dataMap.get(key);
 
-		console.log("files: ", files);
+			if (!recourceData)
+				console.log(
+					"SAVE - CANNOT RESOLVE RECOURCE DEPENDENCY - missing reference in LevelEditor recources: ",
+					key
+				);
+
+			files.push(recourceData);
+		}
 
 		return data;
 	}
