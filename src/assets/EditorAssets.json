@@ -3,173 +3,53 @@
 		"files": [
 			{
 				"type": "image",
-				"key": "WallSmall",
+				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallBig",
+				"key": "worldWallBig",
 				"url": "src/assets/World/BigWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallSmall2",
+				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallSmall2",
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallSmall2",
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallSmall2",
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
 			}
 		]
 	}

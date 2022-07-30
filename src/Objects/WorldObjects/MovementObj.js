@@ -144,17 +144,17 @@ export default class MovementObj extends PhyObj {
 		// 		this.body.velocity.y.toFixed(2)
 		// 	);
 
-		if (this.body.speed != 0)
-			console.log(
-				"fps: ",
-				this.scene.game.loop.actualFps.toFixed(2),
-				" / ",
-				this.scene.game.loop.targetFps,
-				" / ",
-				delta,
-				"spd: ",
-				this.body.speed.toFixed(4)
-			);
+		// if (this.body.speed != 0)
+		// 	console.log(
+		// 		"fps: ",
+		// 		this.scene.game.loop.actualFps.toFixed(2),
+		// 		" / ",
+		// 		this.scene.game.loop.targetFps,
+		// 		" / ",
+		// 		delta,
+		// 		"spd: ",
+		// 		this.body.speed.toFixed(4)
+		// 	);
 
 		//#endregion
 	}
