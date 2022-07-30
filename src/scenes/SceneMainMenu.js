@@ -98,7 +98,11 @@ export default class SceneMainMenu extends Phaser.Scene {
 		for (let index = 0; index < zones.length; index++) {
 			let zoneEntry = zones[index];
 			let zoneKey = zoneEntry.key;
-			let zoneData = Phaser.Utils.Objects.GetFastValue(data, zoneKey, undefined);
+			let zoneData = Phaser.Utils.Objects.GetFastValue(
+				data,
+				zoneKey,
+				undefined
+			);
 
 			//create polygon from zone vertecy data
 			zoneEntry.poly = new Phaser.Geom.Polygon(zoneEntry.vert);

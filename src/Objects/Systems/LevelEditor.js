@@ -2153,7 +2153,14 @@ export default class LevelEditor extends UIManager {
 		}
 	}
 
-	worldEditDuplicate() {}
+	worldEditDuplicate() {
+		console.log("insert");
+
+		if (this.worldObjSelected != undefined) {
+			console.log("log - this.worldObjSelected: ", this.worldObjSelected);
+			console.log("eeeee", this.worldObjSelected.constructor);
+		}
+	}
 
 	//#endregion edit
 	//#region listeners general
@@ -2270,41 +2277,42 @@ export default class LevelEditor extends UIManager {
 
 		let list = data.all.files;
 		let leng = list.length;
-		let fileKey, fileType, file, checkFunc;
+		let fileKey, fileType, file;
 		for (let index = 0; index < leng; index++) {
 			file = list[index];
 			fileKey = file.key;
 			fileType = file.type;
 
 			this.assets.dataMap.set(fileKey, file);
+			this.loadEnterAsset(fileKey, fileType);
 
-			switch (fileType) {
-				case RECOURCETYPES.IMAGE:
-					checkFunc = this.scene.textures;
-					break;
-				default:
-					checkFunc = Phaser.Utils.Objects.GetFastValue(
-						this.scene.cache,
-						fileType,
-						undefined
-					);
-				// console.log( "LEVELEDITOR - loadAssetDataComplete - unknown filetype in editor: ", fileKey, fileKey );
-			}
+			// switch (fileType) {
+			// 	case RECOURCETYPES.IMAGE:
+			// 		checkFunc = this.scene.textures;
+			// 		break;
+			// 	default:
+			// 		checkFunc = Phaser.Utils.Objects.GetFastValue(
+			// 			this.scene.cache,
+			// 			fileType,
+			// 			undefined
+			// 		);
+			// 	// console.log( "LEVELEDITOR - loadAssetDataComplete - unknown filetype in editor: ", fileKey, fileKey );
+			// }
 
-			if (!checkFunc.exists(fileKey)) {
-				//setting up the individual sprite data load events
-				this.scene.load.once(
-					"filecomplete-" + fileType + "-" + fileKey,
-					this.loadAssetComplete,
-					this
-				);
-			} else {
-				this.loadAssetComplete(fileKey, fileType);
-			}
+			// if (!checkFunc.exists(fileKey)) {
+			// 	//setting up the individual sprite data load events
+			// 	this.scene.load.once(
+			// 		"filecomplete-" + fileType + "-" + fileKey,
+			// 		this.loadEnterAsset,
+			// 		this
+			// 	);
+			// } else {
+			// 	this.loadEnterAsset(fileKey, fileType);
+			// }
 		}
 	}
 
-	loadAssetComplete(key, type, data) {
+	loadEnterAsset(key, type, data) {
 		// console.log("LEVELEDITOR load complete: ", key, type, data);
 
 		//maintain asset list
