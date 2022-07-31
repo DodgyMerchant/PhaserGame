@@ -12,6 +12,6 @@ export default class ImageInteractive extends Phaser.GameObjects.Image {
 
 		this.setName(name);
 
-    this.display
+    
 	}
 }
