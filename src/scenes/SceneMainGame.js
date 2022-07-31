@@ -493,13 +493,13 @@ export default class SceneMainGame extends GameScenes {
 			ZONEDATA.type_collisionInstance
 		);
 		list.forEach((element) => {
-			this.mapObjCreate_Collision(this.debug_issetup, element.vert);
+			this.mapObjCreate_Collision(this.debug_leveleditor, element.vert);
 		});
 
 		//images
 		list = Phaser.Utils.Objects.GetFastValue(mapdata, ZONEDATA.type_worldImage);
 		list.forEach((element) => {
-			this.mapObjCreate_Image(this.debug_issetup, element);
+			this.mapObjCreate_Image(this.debug_leveleditor, element);
 		});
 	}
 
