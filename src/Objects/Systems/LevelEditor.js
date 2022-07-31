@@ -2625,7 +2625,12 @@ export default class LevelEditor extends UIManager {
 							this.__gui.levelEditor.worldObjSelectRefresh();
 						});
 
-					// folder.add(obj, "frame");
+					gui
+						.addColor(obj, "tintTopLeft")
+						.listen()
+						.onChange(function (value) {
+							obj.setTint(value);
+						});
 
 					break;
 				case RECOURCETYPES.OBJ_POLYGON:
