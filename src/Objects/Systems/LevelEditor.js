@@ -3,7 +3,7 @@ import UIManager from "../UI/Abstract/UIManager";
 import UIObj from "../UI/Abstract/UIObj";
 import UIElement, { UIConfig } from "../UI/UIElement";
 import CollisionInstance from "../WorldObjects/Dev/CollisionInstance";
-import { MAPDATAINFO } from "../../scenes/SceneMainGame";
+import { ZONEDATA } from "../../scenes/SceneMainGame";
 import ImageInteractive from "../WorldObjects/Dev/imageInteractive";
 
 /**
@@ -30,8 +30,9 @@ export default class LevelEditor extends UIManager {
 			name: "LevelEditorDatGUI",
 			closeOnTop: false,
 		});
+		this.datgui.folderArr = [];
 
-		this.datGuiSelected = this.datgui.addFolder("Selected Obj");
+		this.datGuiSelected = this.datGuiFolderCreate(this.datgui, "Selected Obj");
 		this.datGuiSelected.open();
 
 		//#endregion
@@ -42,6 +43,7 @@ export default class LevelEditor extends UIManager {
 			number: 0,
 			typeNum: 0,
 			map: new Map(),
+			dataMap: new Map(),
 		};
 		this.loadAssets();
 
@@ -632,8 +634,7 @@ export default class LevelEditor extends UIManager {
 			true
 		).on(
 			"SaveButtonPress",
-			function (a, b, c, d, e) {
-				console.log("a,b,c,d,e: ", a, b, c, d, e);
+			function () {
 				this.UISaveInteraction();
 			},
 			this
@@ -753,7 +754,7 @@ export default class LevelEditor extends UIManager {
 				margin: 0,
 				padding: 0,
 			},
-			header_h: 25,
+			header_h: 20,
 
 			//entry
 
@@ -1503,7 +1504,6 @@ export default class LevelEditor extends UIManager {
 
 				break;
 			case RECOURCETYPES.NOTHING:
-				console.log("RECOURCE SETUP - empty type attemt setup", bool);
 				break;
 			default:
 				console.log("RECOURCE SETUP - type not setup: ", type, bool);
@@ -1570,7 +1570,7 @@ export default class LevelEditor extends UIManager {
 			undefined,
 			undefined,
 			this.gridConf.header_h,
-			{ margin: 0, padding: 0 },
+			this.gridConf.header_config,
 			0.5,
 			0.5,
 			"type - " + type,
@@ -1581,22 +1581,14 @@ export default class LevelEditor extends UIManager {
 		);
 
 		let asset_height =
-			assetGrid.UIE_getInnerHeight() -
-			(this.assets.typeNum *
-				(this.gridConf.header_h +
-					UIElement.UIE_configGetMargin(this.gridConf.header_config, 3, 0) +
-					UIElement.UIE_configGetMargin(this.gridConf.header_config, 1, 0) +
-					UIElement.UIE_configGetPadding(this.gridConf.header_config, 3, 0) +
-					UIElement.UIE_configGetPadding(this.gridConf.header_config, 1, 0) +
-					UIElement.UIE_configGetMargin(this.gridConf.list_config, 3, 0) +
-					UIElement.UIE_configGetMargin(this.gridConf.list_config, 1, 0) +
-					UIElement.UIE_configGetPadding(this.gridConf.list_config, 3, 0) +
-					UIElement.UIE_configGetPadding(this.gridConf.list_config, 1, 0))) /
-				this.assets.number;
-
-		let leng = list.length;
-
-		Math.ceil(leng / this.gridConf.list_rowNum);
+			(this.CreateAssetGrid.UIE_getInnerHeight() -
+				this.assets.typeNum *
+					(assetGridLabel.UIE_getTotalHeight() +
+						UIElement.UIE_configGetMargin(this.gridConf.list_config, 3, 0) +
+						UIElement.UIE_configGetMargin(this.gridConf.list_config, 1, 0) +
+						UIElement.UIE_configGetPadding(this.gridConf.list_config, 3, 0) +
+						UIElement.UIE_configGetPadding(this.gridConf.list_config, 1, 0))) /
+			Math.ceil(this.assets.number / this.gridConf.list_rowNum);
 
 		//go through list and create an asset entry for every asset in list
 		let y_base = assetGridLabel.UIE_getOutterY2(false);
@@ -1610,6 +1602,7 @@ export default class LevelEditor extends UIManager {
 		let h = hinc;
 		let entry = 0;
 		let key;
+		let leng = list.length;
 		for (let index = 0; index < leng; index++) {
 			x = (index % this.gridConf.list_rowNum) * winc;
 			y = y_base + Math.floor(index / this.gridConf.list_rowNum) * hinc;
@@ -1737,6 +1730,15 @@ export default class LevelEditor extends UIManager {
 				},
 				this
 			);
+			//duplicate
+			this.inputKeys.worldEditDuplicate.on(
+				"down",
+				function () {
+					// console.log("Level Editor World Input worldVertClose down");
+					this.worldEditDuplicate();
+				},
+				this
+			);
 
 			//rotating
 			this.inputKeys.worldEditRotateLeft.on(
@@ -1787,6 +1789,8 @@ export default class LevelEditor extends UIManager {
 			this.inputKeys.worldEditDelete.removeListener("down", undefined, this);
 			// deleting objs
 			this.inputKeys.worldEditUnselect.removeListener("down", undefined, this);
+			// duplicate
+			this.inputKeys.worldEditDuplicate.removeListener("down", undefined, this);
 
 			//rotating
 			this.inputKeys.worldEditRotateLeft.removeListener(
@@ -1817,20 +1821,82 @@ export default class LevelEditor extends UIManager {
 		if (bool && !(typeof this.worldObjSelected === "object")) return;
 		// this.worldObjSelected
 		// this.datGuiSelected
+		let gui = this.datGuiSelected;
+
+		//this.__gui.levelEditor.worldObjSelectRefresh();
+		//this.__gui.levelEditor.worldObjSelected
+		//this.__gui.levelEditor
 
 		if (bool) {
-			this.datGuiSelected.add(this.worldObjSelected, "name");
-			this.datGuiSelected.add(this.worldObjSelected, "x");
-			this.datGuiSelected.add(this.worldObjSelected, "y");
+			let refresh = function () {
+				this.__gui.levelEditor.worldObjSelectRefresh();
+			};
 
-			this.datGuiSelected.add(this.worldObjSelected, "originX", 0, 1);
-			this.datGuiSelected.add(this.worldObjSelected, "originY", 0, 1);
-		} else {
-			let list = this.datGuiSelected.__controllers;
+			let obj = this.worldObjSelected;
+			gui.add(obj, "name").listen();
+			gui.add(obj, "type").listen();
 
-			while (list.length > 0) {
-				this.datGuiSelected.remove(list[0]);
+			gui.add(obj, "x").step(1).listen().onChange(refresh);
+			gui.add(obj, "y").step(1).listen().onChange(refresh);
+
+			gui.add(obj, "displayWidth").step(1).listen().onChange(refresh);
+			gui.add(obj, "displayHeight").step(1).listen().onChange(refresh);
+
+			gui.add(obj, "width").step(1).listen().onChange(refresh);
+			gui.add(obj, "height").step(1).listen().onChange(refresh);
+
+			gui.add(obj, "scaleX", 0.001).listen().onChange(refresh);
+			gui.add(obj, "scaleY", 0.001).listen().onChange(refresh);
+
+			gui.add(obj, "depth", -1000, 999, 1).listen().onChange(refresh);
+			gui.add(obj, "alpha", 0, 1, 0.01).listen().onChange(refresh);
+
+			gui
+				.add(obj, "rotation", -Math.PI, Math.PI, (Math.PI * 2) / 100)
+				.listen()
+				.onChange(refresh);
+			gui.add(obj, "angle", -180, 180).listen().onChange(refresh);
+
+			gui.add(obj, "originX", 0, 1, 0.01).listen().onChange(refresh);
+			gui.add(obj, "originY", 0, 1, 0.01).listen().onChange(refresh);
+
+			gui.add(obj, "scrollFactorX").step(0.01).listen().onChange(refresh);
+			gui.add(obj, "scrollFactorY").step(0.01).listen().onChange(refresh);
+
+			gui.add(obj, "visible", true).listen().onChange(refresh);
+
+			switch (obj.type) {
+				case RECOURCETYPES.OBJ_IMAGE:
+					let folder = this.datGuiFolderCreate(gui, "Image");
+					folder.open();
+
+					//texture
+					// obj.texture.__tempParentConnection = obj;
+					folder.add(obj.texture, "key").listen();
+					folder
+						.add(
+							obj.texture,
+							"key",
+							this.assets.map.get(obj.type.toLowerCase())
+						)
+						.listen()
+						// .onFinishChange(obj.setTexture);
+						.onFinishChange(function (value) {
+							this.__gui.levelEditor.worldObjSelected.setTexture(value);
+							this.__gui.levelEditor.worldObjSelectRefresh();
+						});
+
+					// folder.add(obj, "frame");
+
+					break;
+				case RECOURCETYPES.OBJ_POLYGON:
+					break;
+
+				default:
+					break;
 			}
+		} else {
+			gui.clear();
 		}
 	}
 
@@ -1936,10 +2002,17 @@ export default class LevelEditor extends UIManager {
 	 */
 	worldObjSelectOne(obj, bool, deleteObj = false) {
 		if (bool) {
-			if (!(obj instanceof CollisionInstance)) {
-				console.log(
-					"Oh nooooo, semi implemented object type selected, the system doesnt support this"
-				);
+			switch (obj.type) {
+				case RECOURCETYPES.OBJ_IMAGE:
+					break;
+				case RECOURCETYPES.OBJ_POLYGON:
+					break;
+
+				default:
+					console.log(
+						"Oh nooooo, semi implemented object type selected, the system doesnt support this"
+					);
+					break;
 			}
 
 			this.scene.input.setDraggable(obj, true);
@@ -1947,7 +2020,6 @@ export default class LevelEditor extends UIManager {
 			this.scene.input.setDraggable(obj, false);
 
 			if (deleteObj) {
-				console.log("del????????");
 				obj.destroy(false);
 			}
 		}
@@ -2045,6 +2117,11 @@ export default class LevelEditor extends UIManager {
 		return false;
 	}
 
+	worldObjSelectRefresh() {
+		this.worldObjSelected.refresh();
+		this.worldObjHighlight();
+	}
+
 	//#endregion
 	//edit
 
@@ -2057,8 +2134,7 @@ export default class LevelEditor extends UIManager {
 			// this.worldObjSelected.rotation += (Phaser.Math.PI2 * 2) / (10 * mod);
 			this.worldObjSelected.setAngle(this.worldObjSelected.angle + power * mod);
 
-			this.worldObjSelected.refresh();
-			this.worldObjHighlight();
+			this.worldObjSelectRefresh();
 		}
 	}
 
@@ -2073,8 +2149,16 @@ export default class LevelEditor extends UIManager {
 				this.worldObjSelected.scaleX + power * mod
 			);
 
-			this.worldObjSelected.refresh();
-			this.worldObjHighlight();
+			this.worldObjSelectRefresh();
+		}
+	}
+
+	worldEditDuplicate() {
+		console.log("insert");
+
+		if (this.worldObjSelected != undefined) {
+			console.log("log - this.worldObjSelected: ", this.worldObjSelected);
+			console.log("eeeee", this.worldObjSelected.constructor);
 		}
 	}
 
@@ -2179,20 +2263,7 @@ export default class LevelEditor extends UIManager {
 		//pack file complete
 		this.scene.load.once(
 			"filecomplete-packfile-" + this.assestsDataKey,
-			function (key, type, data) {
-				// console.log("LEVELEDITOR load complete: ", key, type);
-
-				let arr = data.all.files;
-				for (let index = 0; index < arr.length; index++) {
-					let file = arr[index];
-
-					this.scene.load.once(
-						"filecomplete-" + file.type + "-" + file.key,
-						this.loadAssetComplete,
-						this
-					);
-				}
-			},
+			this.loadAssetDataComplete,
 			this
 		);
 
@@ -2200,8 +2271,49 @@ export default class LevelEditor extends UIManager {
 		this.scene.load.once("complete", this.loadComplete, this);
 	}
 
-	loadAssetComplete(key, type, data) {
-		// console.log("LEVELEDITOR load complete: ", key, type);
+	loadAssetDataComplete(key, type, data) {
+		//setp data
+		// console.log("LEVELEDITOR load packfile complete: ", key, type, data);
+
+		let list = data.all.files;
+		let leng = list.length;
+		let fileKey, fileType, file;
+		for (let index = 0; index < leng; index++) {
+			file = list[index];
+			fileKey = file.key;
+			fileType = file.type;
+
+			this.assets.dataMap.set(fileKey, file);
+			this.loadEnterAsset(fileKey, fileType);
+
+			// switch (fileType) {
+			// 	case RECOURCETYPES.IMAGE:
+			// 		checkFunc = this.scene.textures;
+			// 		break;
+			// 	default:
+			// 		checkFunc = Phaser.Utils.Objects.GetFastValue(
+			// 			this.scene.cache,
+			// 			fileType,
+			// 			undefined
+			// 		);
+			// 	// console.log( "LEVELEDITOR - loadAssetDataComplete - unknown filetype in editor: ", fileKey, fileKey );
+			// }
+
+			// if (!checkFunc.exists(fileKey)) {
+			// 	//setting up the individual sprite data load events
+			// 	this.scene.load.once(
+			// 		"filecomplete-" + fileType + "-" + fileKey,
+			// 		this.loadEnterAsset,
+			// 		this
+			// 	);
+			// } else {
+			// 	this.loadEnterAsset(fileKey, fileType);
+			// }
+		}
+	}
+
+	loadEnterAsset(key, type, data) {
+		// console.log("LEVELEDITOR load complete: ", key, type, data);
 
 		//maintain asset list
 
@@ -2222,7 +2334,6 @@ export default class LevelEditor extends UIManager {
 	loadComplete(loader, totalComplete, totalFailed) {
 		// console.log("LEVELEDITOR load finished: ", totalComplete, totalFailed);
 
-		console.log("assets: ", this.assets);
 		this.AssetGridBuild();
 	}
 
@@ -2234,6 +2345,8 @@ export default class LevelEditor extends UIManager {
 
 		let data = this.saveProcessList(this.saveableList);
 
+		console.log("data to save: ", data);
+
 		this.scene.load.saveJSON(data, "levelData");
 	}
 
@@ -2243,29 +2356,66 @@ export default class LevelEditor extends UIManager {
 	 * @return {object} jason object
 	 */
 	saveProcessList(arr) {
-		let data = Phaser.Utils.Objects.DeepCopy(MAPDATAINFO.DataDefault);
+		let data = Phaser.Utils.Objects.DeepCopy(ZONEDATA.DataDefault);
+		let mapdata = data.mapData;
+		let files = data.files;
+		let depCollectList = [];
 
 		/** @type {object} */
 		let objInfo;
 		/** @type {Array} */
 		let dataList;
 
-		// Phaser.Utils.Objects.
-
 		//go through list and process
+		let obj, objDependencies, dep;
 		let leng = arr.length;
 		for (let index = 0; index < leng; index++) {
-			objInfo = this.saveProcessObj(arr[index]);
+			//process obj
+
+			obj = arr[index];
+			objInfo = this.saveProcessObj(obj);
 			if (objInfo == undefined) continue;
 
-			console.log("SAVE - objInfo - : ", objInfo);
+			//workout dependencies
+			objDependencies = obj.recourceDependency.list;
+			if (objDependencies != undefined) {
+				//go through obkject dependencies and all all new to collection list
+				for (let index = 0; index < objDependencies.length; index++) {
+					dep = objDependencies[index];
+					if (depCollectList.indexOf(dep) == -1) depCollectList.push(dep);
+				}
+			}
 
-			dataList = Phaser.Utils.Objects.GetValue(data, objInfo.type, undefined);
+			//pushes data onto respective list
+			// dataList = Phaser.Utils.Objects.GetValue(
+			dataList = Phaser.Utils.Objects.GetFastValue(
+				mapdata,
+				objInfo.type,
+				undefined
+			);
 			dataList.push(objInfo.obj);
+		}
+
+		//add files from dependencies
+		let recourceData, key;
+		for (let index = 0; index < depCollectList.length; index++) {
+			//get dependant recource and find associated data in the aassets storage
+			//add the data to the daat that should be be saved
+			key = depCollectList[index];
+			recourceData = this.assets.dataMap.get(key);
+
+			if (!recourceData)
+				console.log(
+					"SAVE - CANNOT RESOLVE RECOURCE DEPENDENCY - missing reference in LevelEditor recources: ",
+					key
+				);
+
+			files.push(recourceData);
 		}
 
 		return data;
 	}
+
 	/**
 	 * process all savable things in the scene
 	 * @param {object} arr
@@ -2275,29 +2425,14 @@ export default class LevelEditor extends UIManager {
 	 * }} information object
 	 */
 	saveProcessObj(obj) {
-		//go through list and process
-
-		if (obj instanceof CollisionInstance) {
-			//interactive physics wall
-
-			//let data = {
-			// 	type: MAPDATAINFO.type_collisionInstance,
-			// 	obj: {
-			// 		vert: [],
-			// 	},
-			// };
-			// obj.body.vertices.forEach((vec) => {
-			// 	data.obj.vert.push({
-			// 		x: vec.x,
-			// 		y: vec.y,
-			// 	});
-			// });
-			//return data;
-
-			// return MAPDATAINFO.data_collisionInstance(obj.body.vertices);
-			return MAPDATAINFO.data_collisionInstance(obj.body.vertices);
-		} else {
-			console.log("SAVE - temporary saving solution");
+		switch (obj.type) {
+			case RECOURCETYPES.OBJ_POLYGON:
+				return ZONEDATA.data_collisionInstance(obj);
+			case RECOURCETYPES.OBJ_IMAGE:
+				return ZONEDATA.data_worldImage(obj);
+			default:
+				console.log("SAVE - object type couldnt be identified");
+				break;
 		}
 	}
 
@@ -2308,7 +2443,7 @@ export default class LevelEditor extends UIManager {
 	 * @param {Phaser.GameObjects.GameObject} obj
 	 */
 	enableSaving(obj) {
-		console.log("SAVE - enableSaving of: ", obj.name);
+		// console.log("SAVE - enableSaving of: ", obj.name);
 
 		this.saveableList.push(obj);
 
@@ -2330,10 +2465,60 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion saving
-	//#region object interactivity
+	//#region object setup
+
+	/**
+	 *
+	 * @param {*} obj
+	 * @param {*} hitArea
+	 * @param {*} hitAreaCallback
+	 */
+	objectSetup(obj, hitArea, hitAreaCallback) {
+		this.interactiveSetup(obj, hitArea, hitAreaCallback);
+
+		this.enableSaving(obj);
+
+		this.objectRecourceSetup(obj);
+
+		return obj;
+	}
+
+	/**
+	 *
+	 * @param {Phaser.GameObjects.GameObject} obj
+	 */
+	objectRecourceSetup(obj) {
+		/**
+		 * @type {Map}
+		 */
+		obj.recourceDependency = {
+			/**
+			 * list with dependencies
+			 * @type {string[]}
+			 */
+			list: [],
+
+			add: function (string) {
+				if (this.list.indexOf(string) == -1) {
+					this.list.push(string);
+				}
+			},
+		};
+
+		if (typeof obj.texture === "object") {
+			obj.recourceDependency.add(obj.texture.key);
+		} else if (typeof obj.texture === "string") {
+			obj.recourceDependency.add(obj.texture);
+		}
+
+		// console.log("dependency setup", obj.name, obj.recourceDependency);
+	}
 
 	/**
 	 * setup code for interactable world objects
+	 * @param {Phaser.GameObjects.GameObject} obj
+	 * @param {any} hitArea The object / shape to use as the Hit Area. If not given it will try to create a Rectangle based on the texture frame.
+	 * @param {Phaser.Types.Input.HitAreaCallback | undefined} hitAreaCallback
 	 */
 	interactiveSetup(obj, hitArea, hitAreaCallback) {
 		/**
@@ -2352,6 +2537,7 @@ export default class LevelEditor extends UIManager {
 			console.log("OBJECT INTERACTIVE - fallback function for: ", this.name);
 		};
 
+		//setup
 		obj.setInteractive(interactiveConfig);
 
 		//start
@@ -2408,6 +2594,51 @@ export default class LevelEditor extends UIManager {
 	}
 
 	//#endregion
+	//#region dat gui
+
+	/**
+	 *
+	 * @param {GUI} parent
+	 * @param {string} propName
+	 * @returns {GUI} the folder
+	 */
+	datGuiFolderCreate(parent, propName) {
+		let folder = parent.addFolder(propName);
+		/**
+		 * @type {GUI}
+		 */
+		folder.folderArr = [];
+		parent.folderArr.push(folder);
+		/**
+		 * clears all folder children
+		 */
+		folder.clear = function () {
+			let list = this.__controllers;
+
+			while (list.length > 0) {
+				this.remove(list[0]);
+			}
+
+			//folders
+			list = this.folderArr;
+			let leng = list.length;
+
+			if (leng > 0) {
+				let folder;
+				for (let index = 0; index < leng; index++) {
+					folder = list[index];
+					this.removeFolder(folder);
+				}
+				this.folderArr = [];
+			}
+		};
+
+		folder.levelEditor = this;
+
+		return folder;
+	}
+
+	//#endregion
 }
 
 /** enum-like for modes/states the Level editor can be in */
@@ -2438,7 +2669,27 @@ class LEVELEDITORMODES {
 }
 
 class RECOURCETYPES {
+	/** identifier of the image recource
+	 * @type {string}
+	 */
 	static IMAGE = "image";
-	static POLYGON = "poly";
+	/** identifier of the CUSTOM polygon recource
+	 * @type {string}
+	 */
+	static POLYGON = "polygon";
+	/** identifier of the no recource
+	 * @type {string}
+	 */
 	static NOTHING = undefined;
+
+	//object
+
+	/** identifier of the Object Instance for image recources polygon recource
+	 * @type {string}
+	 */
+	static OBJ_IMAGE = "Image";
+	/** identifier of the Object Instance for polygon recources polygon recource
+	 * @type {string}
+	 */
+	static OBJ_POLYGON = "Polygon";
 }

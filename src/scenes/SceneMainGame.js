@@ -180,6 +180,17 @@ export default class SceneMainGame extends GameScenes {
 
 	preload() {
 		super.preload();
+
+		//#region zones
+		this.zoneList = this.cache.json.get("zones");
+
+		// this.zoneCheckPointConnected(this.playerConfig.x, this.playerConfig.y, 1);
+
+		//temp
+		this.zoneLoadedList = [];
+		this.zoneLoad([this.cache.json.get("Zone_Tutorial")], false);
+
+		//#endregion
 	}
 
 	create() {
@@ -190,25 +201,15 @@ export default class SceneMainGame extends GameScenes {
 		ACCUMULATOR.AccumulatorSetup(this, this);
 
 		//#endregion
-		//#region level
-
-		this.zoneList = this.cache.json.get("zones");
-
-		//#region get zones to load
-
-		//#endregion
-
 		//#region creating zones
 
 		console.log("SceneMainGame - temp map loading");
 
 		let data = this.game.cache.json.get("Zone_Tutorial");
-		console.log("CREATELEVEL - data: ", data);
+		// console.log("CREATELEVEL - data: ", data);
 		this.CreateMapFromData(data.mapData);
 
-		//#endregion
-
-		//#endregion
+		//#endregion creating zones
 		//#region aliveGroup
 
 		this.aliveGroup = this.add.group({
@@ -376,7 +377,7 @@ export default class SceneMainGame extends GameScenes {
 				collconf
 			);
 
-			this.debug.levelEditor.interactiveSetup(
+			this.debug.levelEditor.objectSetup(
 				vertObj,
 				new Phaser.Geom.Polygon(zeroTopLeftArr),
 				Phaser.Geom.Polygon.Contains
@@ -403,8 +404,6 @@ export default class SceneMainGame extends GameScenes {
 			// );
 
 			//add as savable
-
-			this.debug.levelEditor.enableSaving(vertObj);
 
 			// vertObj = this.matter.add.image(
 			// 	center.x,
@@ -443,7 +442,7 @@ export default class SceneMainGame extends GameScenes {
 	 * @returns {Phaser.GameObjects.Image | ImageInteractive}
 	 */
 	mapObjCreate_Image(interactive, x, y, texture, frame) {
-		let name = "image_" + (typeof texture === "string" ? texture : texture.key);
+		let name;
 		let imageObj;
 		let obj;
 
@@ -454,17 +453,23 @@ export default class SceneMainGame extends GameScenes {
 			y = obj.y;
 			texture = obj.texture;
 			frame = obj.frame;
+			name = obj.name;
+		} else {
+			name = "image_" + (typeof texture === "string" ? texture : texture.key);
 		}
 
 		if (interactive) {
 			imageObj = new ImageInteractive(name, this, x, y, texture, frame);
-			this.debug.levelEditor.interactiveSetup(imageObj);
+
+			this.debug.levelEditor.objectSetup(imageObj);
 		} else {
 			imageObj = new Phaser.GameObjects.Image(this, x, y, texture, frame);
 			imageObj.setName(name);
 		}
 
 		if (obj != undefined) Phaser.Utils.Objects.Extend(imageObj, obj);
+
+		imageObj.setTexture(imageObj.texture);
 
 		this.add.existing(imageObj);
 
@@ -479,10 +484,22 @@ export default class SceneMainGame extends GameScenes {
 	 * @param {object} key
 	 */
 	CreateMapFromData(mapdata) {
-		console.log("mapdata.collisionInstances", mapdata.collisionInstances);
+		// console.log("mapdata.collisionInstances", mapdata.collisionInstances);
+		let list;
 
-		mapdata.collisionInstances.forEach((element) => {
+		//collision
+		list = Phaser.Utils.Objects.GetFastValue(
+			mapdata,
+			ZONEDATA.type_collisionInstance
+		);
+		list.forEach((element) => {
 			this.mapObjCreate_Collision(this.debug_issetup, element.vert);
+		});
+
+		//images
+		list = Phaser.Utils.Objects.GetFastValue(mapdata, ZONEDATA.type_worldImage);
+		list.forEach((element) => {
+			this.mapObjCreate_Image(this.debug_issetup, element);
 		});
 	}
 
@@ -512,54 +529,108 @@ export default class SceneMainGame extends GameScenes {
 	 * checks of position falls into a zone
 	 * @param {number} x position in world space
 	 * @param {number} y position in world space
-	 * @param {number} connectionRange number of zone connections to include
+	 * @param {number} range number of zone connections to include
 	 * @returns {obj[]} list with cache strings referring to the zones
 	 */
-	zoneCheckPointConnected(x, y, connectionRange) {
+	zoneCheckPointConnected(x, y, range) {
 		let list = this.zoneCheckPoint(x, y);
-		let result = list;
-		let leng = list.length;
+		let result = list.slice(); //shallow copy
 
-		for (let index = 0; index < leng; index++) {
-			//get zone entry from list
-			zone = list[index];
-		}
+		//go through list of found zones in this spot
+		this.zoneGrabConnection(list, range, result);
 
 		return result;
 	}
 
 	/**
 	 *
-	 * @param {obj} zone
+	 * @param {obj | obj[]} zones
 	 * @param {number} range how maany zones deep the connections should be returned, 0 just this zones connections, 1 all connections of connected zones ...
+	 * @param {obj[]} fillList
 	 * @returns {object[]}
 	 */
-	zoneGrabConnection(zone, range) {
+	zoneGrabConnection(zones, range, fillList) {
+		if (fillList == undefined) fillList = [];
 		/** @type {Array} */
-		var list = zone.connection.slice();
-		var leng = list.length;
 
-		for (let index = 0; index < leng; index++) {
-			list[index];
+		var leng;
+
+		console.log(
+			"log - this.cache.json.get(zone.connection[0]): ",
+			this.cache.json.get(zone.connection[0])
+		);
+
+		//do next step?
+		if (range > 0) {
+			leng = list.length;
+			for (let index = 0; index < leng; index++) {
+				this.zoneGrabConnection(list[index], range - 1);
+			}
+		}
+	}
+
+	/**
+	 *
+	 * @param {obj[]} zoneList
+	 * @param {boolean} manual manual start of the loader
+	 */
+	zoneLoad(zoneList, manual = false) {
+		let newCount = 0;
+
+		let newZone;
+		for (var i = 0, len = zoneList.length; i < len; i++) {
+			newZone = zoneList[i];
+
+			//check for new
+			if (this.zoneLoadedList.indexOf(newZone) == -1) {
+				newCount++;
+
+				console.log("LOAD ZONE - newZone: ", newZone);
+
+				let file;
+				for (let index = 0; index < newZone.files.length; index++) {
+					file = newZone.files[index];
+
+					//load respective recource
+					// prettier-ignore
+					Phaser.Utils.Objects.GetFastValue(this.load, file.type).call(this.load, file);
+				}
+
+				//add to list
+				this.zoneLoadedList.push(newZone);
+			}
+		}
+
+		if (manual && newCount > 0) {
+			this.load.start();
 		}
 	}
 
 	//#endregion
 }
 
-export class MAPDATAINFO {
+export class ZONEDATA {
 	static DataDefault = {
-		collisionInstances: [],
-		worldImages: [],
+		index: 0,
+		files: [],
+		mapData: {
+			collisionInstances: [],
+			worldImages: [],
+		},
 	};
+
+	// static DataDefault = {
+	// 	collisionInstances: [],
+	// 	worldImages: [],
+	// };
 
 	static type_collisionInstance = "collisionInstances";
 	/**
 	 * obj to data
-	 * @param {MatterJS.Vector[] | undefined} vecArr
-	 * @returns
+	 * @param {Phaser.GameObjects.Polygon | CollisionInstance} obj
+	 * @returns {object}
 	 */
-	static data_collisionInstance(vecArr) {
+	static data_collisionInstance(obj) {
 		let data = {
 			type: this.type_collisionInstance,
 			obj: {
@@ -567,6 +638,7 @@ export class MAPDATAINFO {
 			},
 		};
 
+		let vecArr = obj.body.vertices;
 		if (vecArr != undefined) {
 			vecArr.forEach((vec) => {
 				data.obj.vert.push({
@@ -592,26 +664,38 @@ export class MAPDATAINFO {
 	/**
 	 * obj to data
 	 * @param {Phaser.GameObjects.Image} imageObj
-	 * @returns
+	 * @returns {object}
 	 */
-	static data_collisionInstance(imageObj) {
+	static data_worldImage(imageObj) {
 		let data = {
 			type: this.type_worldImage,
 			obj: {
+				name: imageObj.name,
+
 				x: imageObj.x,
 				y: imageObj.y,
-				rotation: imageObj.rotation,
-				alpha: imageObj.alpha,
-				blendMode: imageObj.blendMode,
-				depth: imageObj.depth,
+
 				scaleX: imageObj.scaleX,
 				scaleY: imageObj.scaleY,
-				frame: imageObj.frame,
+
+				depth: imageObj.depth,
+				alpha: imageObj.alpha,
+
+				rotation: imageObj.rotation,
+
+				originX: imageObj.originX,
+				originY: imageObj.originY,
+
 				scrollFactorX: imageObj.scrollFactorX,
 				scrollFactorY: imageObj.scrollFactorY,
-				texture: imageObj.texture.key,
-				tint: imageObj.tint,
+
 				visible: imageObj.visible,
+
+				texture: imageObj.texture.key,
+
+				// blendMode: imageObj.blendMode,
+				// tint: imageObj.tintTopLeft,
+				// frame: imageObj.frame,
 			},
 		};
 

@@ -3,37 +3,42 @@
 		"files": [
 			{
 				"type": "image",
-				"key": "WallSmall",
-				"url": "src/assets/World/pipes.png"
-			},
-			{
-				"type": "image",
-				"key": "WallBig",
-				"url": "src/assets/World/metalPipeStraight.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/metalPipe.png"
-			},
-			{
-				"type": "image",
-				"key": "WallSmall2",
+				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallSmall2",
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallSmall2",
-				"url": "src/assets/World/SmallWall-TEMP.png"
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
 			},
 			{
 				"type": "image",
-				"key": "WallSmall2",
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallBig",
+				"url": "src/assets/World/BigWall-TEMP.png"
+			},
+			{
+				"type": "image",
+				"key": "worldWallSmall",
 				"url": "src/assets/World/SmallWall-TEMP.png"
 			}
 		]

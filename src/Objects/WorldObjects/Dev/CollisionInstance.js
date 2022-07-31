@@ -23,6 +23,8 @@ export default class CollisionInstance extends devPhyPoly {
 		// this.setOrigin(0);
 		// this.setOrigin(0.5);
 		// this.setOrigin(1);
+
+    
 	}
 
 	convert() {

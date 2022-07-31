@@ -11,5 +11,7 @@ export default class ImageInteractive extends Phaser.GameObjects.Image {
 		super(scene, x, y, texture, frame);
 
 		this.setName(name);
+
+    this.display
 	}
 }
