@@ -30,6 +30,7 @@ export default class LevelEditor extends UIManager {
 			name: "LevelEditorDatGUI",
 			closeOnTop: false,
 		});
+		this.datgui.levelEditor = this;
 		this.datgui.folderArr = [];
 
 		this.datGuiSelected = this.datGuiFolderCreate(this.datgui, "Selected Obj");
@@ -1817,89 +1818,6 @@ export default class LevelEditor extends UIManager {
 		this.worldUnselect(true);
 	}
 
-	modeEditSelectGUISetup(bool) {
-		if (bool && !(typeof this.worldObjSelected === "object")) return;
-		// this.worldObjSelected
-		// this.datGuiSelected
-		let gui = this.datGuiSelected;
-
-		//this.__gui.levelEditor.worldObjSelectRefresh();
-		//this.__gui.levelEditor.worldObjSelected
-		//this.__gui.levelEditor
-
-		if (bool) {
-			let refresh = function () {
-				this.__gui.levelEditor.worldObjSelectRefresh();
-			};
-
-			let obj = this.worldObjSelected;
-			gui.add(obj, "name").listen();
-			gui.add(obj, "type").listen();
-
-			gui.add(obj, "x").step(1).listen().onChange(refresh);
-			gui.add(obj, "y").step(1).listen().onChange(refresh);
-
-			gui.add(obj, "displayWidth").step(1).listen().onChange(refresh);
-			gui.add(obj, "displayHeight").step(1).listen().onChange(refresh);
-
-			gui.add(obj, "width").step(1).listen().onChange(refresh);
-			gui.add(obj, "height").step(1).listen().onChange(refresh);
-
-			gui.add(obj, "scaleX", 0.001).listen().onChange(refresh);
-			gui.add(obj, "scaleY", 0.001).listen().onChange(refresh);
-
-			gui.add(obj, "depth", -1000, 999, 1).listen().onChange(refresh);
-			gui.add(obj, "alpha", 0, 1, 0.01).listen().onChange(refresh);
-
-			gui
-				.add(obj, "rotation", -Math.PI, Math.PI, (Math.PI * 2) / 100)
-				.listen()
-				.onChange(refresh);
-			gui.add(obj, "angle", -180, 180).listen().onChange(refresh);
-
-			gui.add(obj, "originX", 0, 1, 0.01).listen().onChange(refresh);
-			gui.add(obj, "originY", 0, 1, 0.01).listen().onChange(refresh);
-
-			gui.add(obj, "scrollFactorX").step(0.01).listen().onChange(refresh);
-			gui.add(obj, "scrollFactorY").step(0.01).listen().onChange(refresh);
-
-			gui.add(obj, "visible", true).listen().onChange(refresh);
-
-			switch (obj.type) {
-				case RECOURCETYPES.OBJ_IMAGE:
-					let folder = this.datGuiFolderCreate(gui, "Image");
-					folder.open();
-
-					//texture
-					// obj.texture.__tempParentConnection = obj;
-					folder.add(obj.texture, "key").listen();
-					folder
-						.add(
-							obj.texture,
-							"key",
-							this.assets.map.get(obj.type.toLowerCase())
-						)
-						.listen()
-						// .onFinishChange(obj.setTexture);
-						.onFinishChange(function (value) {
-							this.__gui.levelEditor.worldObjSelected.setTexture(value);
-							this.__gui.levelEditor.worldObjSelectRefresh();
-						});
-
-					// folder.add(obj, "frame");
-
-					break;
-				case RECOURCETYPES.OBJ_POLYGON:
-					break;
-
-				default:
-					break;
-			}
-		} else {
-			gui.clear();
-		}
-	}
-
 	//#region selecting a obj
 
 	/**
@@ -2636,6 +2554,94 @@ export default class LevelEditor extends UIManager {
 		folder.levelEditor = this;
 
 		return folder;
+	}
+
+	modeEditSelectGUISetup(bool) {
+		if (bool && !(typeof this.worldObjSelected === "object")) return;
+		// this.worldObjSelected
+		// this.datGuiSelected
+		let gui = this.datGuiSelected;
+
+		//this.__gui.levelEditor.worldObjSelectRefresh();
+		//this.__gui.levelEditor.worldObjSelected
+		//this.__gui.levelEditor
+
+		if (bool) {
+			let refresh = function () {
+				this.__gui.levelEditor.worldObjSelectRefresh();
+			};
+
+			let obj = this.worldObjSelected;
+			gui.add(obj, "name").listen();
+			gui.add(obj, "type").listen();
+
+			gui.add(obj, "x").step(1).listen().onChange(refresh);
+			gui.add(obj, "y").step(1).listen().onChange(refresh);
+
+			gui.add(obj, "displayWidth").step(1).listen().onChange(refresh);
+			gui.add(obj, "displayHeight").step(1).listen().onChange(refresh);
+
+			gui.add(obj, "width").step(1).listen().onChange(refresh);
+			gui.add(obj, "height").step(1).listen().onChange(refresh);
+
+			gui.add(obj, "scaleX", 0.001).listen().onChange(refresh);
+			gui.add(obj, "scaleY", 0.001).listen().onChange(refresh);
+
+			gui.add(obj, "depth", -500, 500, 1).listen().onChange(refresh);
+			gui.add(obj, "alpha", 0, 1, 0.01).listen().onChange(refresh);
+
+			gui
+				.add(obj, "rotation", -Math.PI, Math.PI, (Math.PI * 2) / 100)
+				.listen()
+				.onChange(refresh);
+			gui.add(obj, "angle", -180, 180).listen().onChange(refresh);
+
+			gui.add(obj, "originX", 0, 1, 0.01).listen().onChange(refresh);
+			gui.add(obj, "originY", 0, 1, 0.01).listen().onChange(refresh);
+
+			gui.add(obj, "scrollFactorX", -20, 20, 1).listen().onChange(refresh);
+			gui.add(obj, "scrollFactorY", -20, 20, 1).listen().onChange(refresh);
+
+			gui.add(obj, "visible", true).listen().onChange(refresh);
+
+			switch (obj.type) {
+				case RECOURCETYPES.OBJ_IMAGE:
+					let folder = this.datGuiFolderCreate(gui, "Image");
+					folder.open();
+
+					//texture
+					// obj.texture.__tempParentConnection = obj;
+					folder.add(obj.texture, "key").listen();
+					folder
+						.add(
+							obj.texture,
+							"key",
+							this.assets.map.get(obj.type.toLowerCase())
+						)
+						.listen()
+						// .onFinishChange(obj.setTexture);
+						.onFinishChange(function (value) {
+							this.__gui.levelEditor.worldObjSelected.setTexture(value);
+							this.__gui.levelEditor.worldObjSelectRefresh();
+						});
+
+					gui
+						.addColor(obj, "tintTopLeft")
+						.listen()
+						.onChange(function (value) {
+							obj.setTint(value);
+						});
+
+					break;
+				case RECOURCETYPES.OBJ_POLYGON:
+					break;
+
+				default:
+					break;
+			}
+		} else {
+			gui.clear();
+		}
 	}
 
 	//#endregion
