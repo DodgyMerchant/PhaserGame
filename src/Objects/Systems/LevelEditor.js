@@ -30,6 +30,7 @@ export default class LevelEditor extends UIManager {
 			name: "LevelEditorDatGUI",
 			closeOnTop: false,
 		});
+
 		this.datgui.levelEditor = this;
 		this.datgui.folderArr = [];
 
@@ -2560,6 +2561,7 @@ export default class LevelEditor extends UIManager {
 		if (bool && !(typeof this.worldObjSelected === "object")) return;
 		// this.worldObjSelected
 		// this.datGuiSelected
+
 		let gui = this.datGuiSelected;
 
 		//this.__gui.levelEditor.worldObjSelectRefresh();
@@ -2571,48 +2573,66 @@ export default class LevelEditor extends UIManager {
 				this.__gui.levelEditor.worldObjSelectRefresh();
 			};
 
+			let folder_general = this.datGuiFolderCreate(gui, "General");
+			folder_general.open();
+
 			let obj = this.worldObjSelected;
-			gui.add(obj, "name").listen();
-			gui.add(obj, "type").listen();
 
-			gui.add(obj, "x").step(1).listen().onChange(refresh);
-			gui.add(obj, "y").step(1).listen().onChange(refresh);
+			folder_general.add(obj, "name").listen();
+			folder_general.add(obj, "type").listen();
 
-			gui.add(obj, "displayWidth").step(1).listen().onChange(refresh);
-			gui.add(obj, "displayHeight").step(1).listen().onChange(refresh);
+			folder_general.add(obj, "x").step(1).listen().onChange(refresh);
+			folder_general.add(obj, "y").step(1).listen().onChange(refresh);
 
-			gui.add(obj, "width").step(1).listen().onChange(refresh);
-			gui.add(obj, "height").step(1).listen().onChange(refresh);
+			folder_general
+				.add(obj, "displayWidth")
+				.step(1)
+				.listen()
+				.onChange(refresh);
+			folder_general
+				.add(obj, "displayHeight")
+				.step(1)
+				.listen()
+				.onChange(refresh);
 
-			gui.add(obj, "scaleX", 0.001).listen().onChange(refresh);
-			gui.add(obj, "scaleY", 0.001).listen().onChange(refresh);
+			folder_general.add(obj, "width").step(1).listen().onChange(refresh);
+			folder_general.add(obj, "height").step(1).listen().onChange(refresh);
 
-			gui.add(obj, "depth", -500, 500, 1).listen().onChange(refresh);
-			gui.add(obj, "alpha", 0, 1, 0.01).listen().onChange(refresh);
+			folder_general.add(obj, "scaleX", 0.001).listen().onChange(refresh);
+			folder_general.add(obj, "scaleY", 0.001).listen().onChange(refresh);
 
-			gui
+			folder_general.add(obj, "depth", -500, 500, 1).listen().onChange(refresh);
+			folder_general.add(obj, "alpha", 0, 1, 0.01).listen().onChange(refresh);
+
+			folder_general
 				.add(obj, "rotation", -Math.PI, Math.PI, (Math.PI * 2) / 100)
 				.listen()
 				.onChange(refresh);
-			gui.add(obj, "angle", -180, 180).listen().onChange(refresh);
+			folder_general.add(obj, "angle", -180, 180).listen().onChange(refresh);
 
-			gui.add(obj, "originX", 0, 1, 0.01).listen().onChange(refresh);
-			gui.add(obj, "originY", 0, 1, 0.01).listen().onChange(refresh);
+			folder_general.add(obj, "originX", 0, 1, 0.01).listen().onChange(refresh);
+			folder_general.add(obj, "originY", 0, 1, 0.01).listen().onChange(refresh);
 
-			gui.add(obj, "scrollFactorX", -20, 20, 1).listen().onChange(refresh);
-			gui.add(obj, "scrollFactorY", -20, 20, 1).listen().onChange(refresh);
+			folder_general
+				.add(obj, "scrollFactorX", -20, 20, 0.001)
+				.listen()
+				.onChange(refresh);
+			folder_general
+				.add(obj, "scrollFactorY", -20, 20, 0.001)
+				.listen()
+				.onChange(refresh);
 
-			gui.add(obj, "visible", true).listen().onChange(refresh);
+			folder_general.add(obj, "visible", true).listen().onChange(refresh);
 
 			switch (obj.type) {
 				case RECOURCETYPES.OBJ_IMAGE:
-					let folder = this.datGuiFolderCreate(gui, "Image");
-					folder.open();
+					let folder_image = this.datGuiFolderCreate(gui, "Image");
+					folder_image.open();
 
 					//texture
 					// obj.texture.__tempParentConnection = obj;
-					folder.add(obj.texture, "key").listen();
-					folder
+					folder_image.add(obj.texture, "key").listen();
+					folder_image
 						.add(
 							obj.texture,
 							"key",
@@ -2625,7 +2645,7 @@ export default class LevelEditor extends UIManager {
 							this.__gui.levelEditor.worldObjSelectRefresh();
 						});
 
-					gui
+					folder_image
 						.addColor(obj, "tintTopLeft")
 						.listen()
 						.onChange(function (value) {

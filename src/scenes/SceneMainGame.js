@@ -5,9 +5,8 @@ import DebugSceneObj from "../Objects/Systems/DebugSceneObj";
 import CollisionInstance from "../Objects/WorldObjects/Dev/CollisionInstance";
 import ACCUMULATOR from "../Objects/Systems/Accumulator";
 import GameScenes from "./abstract/GameScenes";
-import devPoly from "../Objects/WorldObjects/Dev/abstract/devPoly";
-import devPhyPoly from "../Objects/WorldObjects/Dev/abstract/devPhyPoly";
 import ImageInteractive from "../Objects/WorldObjects/Dev/imageInteractive";
+import { ConnectConfig } from "../Objects/WorldObjects/ConnectObj";
 
 export default class SceneMainGame extends GameScenes {
 	/**
@@ -66,9 +65,10 @@ export default class SceneMainGame extends GameScenes {
 				jumpSpeed: jump_speed,
 				connAirFric: connected_air_Fric,
 				connCat: COLLCAT.CONNECTER,
-				connWith: COLLCAT.CONNECTABLE,
+				connWith: COLLCAT.ALL, //COLLCAT.CONNECTABLE,
 				jumpMeth: undefined,
 			},
+
 			moveConf: {
 				speed: speed,
 				rotSpeed: 0, //system in player sets it
@@ -89,7 +89,7 @@ export default class SceneMainGame extends GameScenes {
 				density: 2.7 * 0.7, //density of aluminium * approx how much of it is actually mass
 
 				collisionFilter: {
-					category: COLLCAT.crunch([COLLCAT.PLAYER]),
+					category: COLLCAT.crunch([COLLCAT.PLAYER, COLLCAT.GAMEOBJ]),
 					mask: COLLCAT.crunch([COLLCAT.MAP, COLLCAT.PLAYER, COLLCAT.GAMEOBJ]),
 				},
 			},
@@ -104,7 +104,7 @@ export default class SceneMainGame extends GameScenes {
 			label: "MapCollisionInstance",
 			isStatic: true,
 			collisionFilter: {
-				category: COLLCAT.crunch([COLLCAT.MAP, COLLCAT.CONNECTABLE]),
+				category: COLLCAT.crunch([COLLCAT.MAP, COLLCAT.CONNECTABLE]), //COLLCAT.CONNECTABLE
 				mask: COLLCAT.crunch([
 					COLLCAT.PLAYER,
 					COLLCAT.MAP,
@@ -160,6 +160,8 @@ export default class SceneMainGame extends GameScenes {
 		 * @type {Player}
 		 */
 		this.player;
+
+		this.mapPolyList = [];
 
 		//#endregion
 		//#region loading
@@ -346,6 +348,7 @@ export default class SceneMainGame extends GameScenes {
 	 */
 	mapObjCreate_Collision(interactive, vecArr) {
 		let center = this.matter.vertices.centre(vecArr);
+		let poly = new Phaser.Geom.Polygon(vecArr);
 		let vertObj;
 
 		if (interactive) {
@@ -357,7 +360,6 @@ export default class SceneMainGame extends GameScenes {
 			/** @type {Phaser.Types.Physics.Matter.MatterBodyConfig} */
 			let collconf = Phaser.Utils.Objects.DeepCopy(this.mapCollisionConfig);
 
-			let poly = new Phaser.Geom.Polygon(vecArr);
 			let boundBox = Phaser.Geom.Polygon.GetAABB(poly, undefined);
 			let boundTopLeft = new Phaser.Math.Vector2(boundBox.x, boundBox.y);
 
@@ -412,6 +414,10 @@ export default class SceneMainGame extends GameScenes {
 			// 	undefined,
 			// 	this.mapCollisionConfig
 			// );
+
+      //establish connection
+      vertObj.body.custom_poly = poly;
+			poly.custom_body = vertObj.body;
 		} else {
 			// vertObj = this.matter.add.fromVertices(
 			// 	center.x,
@@ -426,9 +432,15 @@ export default class SceneMainGame extends GameScenes {
 				vecArr,
 				this.mapCollisionConfig
 			);
+
+      //establish connection
+      vertObj.custom_poly = poly;
+			poly.custom_body = vertObj;
 		}
 
-		// console.log("log - vertObj: ", vertObj);
+		// this.mapPolyAdd(poly);
+
+		console.log("log - vertObj: ", vertObj);
 		return vertObj;
 	}
 
@@ -474,6 +486,27 @@ export default class SceneMainGame extends GameScenes {
 		this.add.existing(imageObj);
 
 		return imageObj;
+	}
+
+	/**
+	 *
+	 * @param {Phaser.Geom.Polygon} poly
+	 */
+	mapPolyAdd(poly) {
+		this.mapPolyList.push(poly);
+	}
+
+	/**
+	 *
+	 * @param {Phaser.Geom.Polygon} poly
+	 */
+	mapPolyRemove(poly) {
+		poly = poly;
+
+		let index = this.mapPolyList.indexOf(poly);
+		if (index != -1) {
+			this.mapPolyList.splice(index, 1);
+		}
 	}
 
 	//#endregion

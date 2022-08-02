@@ -93,10 +93,7 @@ export default class Player extends ConnectObj {
 
 		//#endregion
 
-		//#region TEST TEST TEST TEST TEST TEST TEST TEST temporary TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST
-
-		//used to update the air friction property
-		super.connSetConnected(true);
+		
 
 		//#endregion
 	}
@@ -243,4 +240,4 @@ export default class Player extends ConnectObj {
 /**
  * @type {PlayerConfig}
  */
-let obj = {};
+
