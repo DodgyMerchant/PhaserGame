@@ -2561,7 +2561,6 @@ export default class LevelEditor extends UIManager {
 		if (bool && !(typeof this.worldObjSelected === "object")) return;
 		// this.worldObjSelected
 		// this.datGuiSelected
-
 		let gui = this.datGuiSelected;
 
 		//this.__gui.levelEditor.worldObjSelectRefresh();
