@@ -2,6 +2,11 @@ export default class GameScenes extends Phaser.Scene {
 	constructor(debugSetup, debugEnabled, debugEditor) {
 		super();
 
+		if (!debugSetup) {
+			debugEnabled = false;
+			debugEditor = false;
+		}
+
 		this.debug_issetup = debugSetup;
 		this.debug_enabled = debugEnabled;
 		this.debug_leveleditor = debugEditor;
