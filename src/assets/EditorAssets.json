@@ -3,43 +3,153 @@
 		"files": [
 			{
 				"type": "image",
-				"key": "worldWallSmall",
-				"url": "src/assets/World/SmallWall-TEMP.png"
+				"key": "Beton",
+				"url": "src/assets/World/Beton.PNG"
+			},
+			{
+				"type": "image",
+				"key": "bricks",
+				"url": "src/assets/World/bricks.PNG"
+			},
+			{
+				"type": "image",
+				"key": "bridge",
+				"url": "src/assets/World/bridge.PNG"
 			},
 			{
 				"type": "image",
 				"key": "worldWallBig",
-				"url": "src/assets/World/BigWall-TEMP.png"
+				"url": "src/assets/World/cables.PNG"
 			},
 			{
 				"type": "image",
-				"key": "worldWallSmall",
-				"url": "src/assets/World/SmallWall-TEMP.png"
+				"key": "cablesHaning",
+				"url": "src/assets/World/cablesHanging.PNG"
 			},
 			{
 				"type": "image",
-				"key": "worldWallBig",
-				"url": "src/assets/World/BigWall-TEMP.png"
+				"key": "copperPipeCurveLeft",
+				"url": "src/assets/World/copperPipeCurveLeft.PNG"
 			},
 			{
 				"type": "image",
-				"key": "worldWallBig",
-				"url": "src/assets/World/BigWall-TEMP.png"
+				"key": "copperPipeCurveRight",
+				"url": "src/assets/World/copperPipeCurveRight.PNG"
 			},
 			{
 				"type": "image",
-				"key": "worldWallBig",
-				"url": "src/assets/World/BigWall-TEMP.png"
+				"key": "copperPipeStraight",
+				"url": "src/assets/World/copperPipeStraight.PNG"
 			},
 			{
 				"type": "image",
-				"key": "worldWallBig",
-				"url": "src/assets/World/BigWall-TEMP.png"
+				"key": "gravelBottomCenter",
+				"url": "src/assets/World/gravelBottomCenter.PNG"
 			},
 			{
 				"type": "image",
-				"key": "worldWallSmall",
-				"url": "src/assets/World/SmallWall-TEMP.png"
+				"key": "gravelBottomLeft",
+				"url": "src/assets/World/gravelBottomLeft.PNG"
+			},
+			{
+				"type": "image",
+				"key": "gravelBottomRight",
+				"url": "src/assets/World/gravelBottomRight.PNG"
+			},
+			{
+				"type": "image",
+				"key": "gravelSlopeLeft",
+				"url": "src/assets/World/gravelSlopeLeft.PNG"
+			},
+			{
+				"type": "image",
+				"key": "gravelSlopeRight",
+				"url": "src/assets/World/gravelSlopeRight.PNG"
+			},
+			{
+				"type": "image",
+				"key": "gravelTopCenter",
+				"url": "src/assets/World/gravelTopCenter.PNG"
+			},
+			{
+				"type": "image",
+				"key": "gravelTopRight",
+				"url": "src/assets/World/gravelTopRight.PNG"
+			},
+			{
+				"type": "image",
+				"key": "gravelTopLeft",
+				"url": "src/assets/World/gravelTopLeft.PNG"
+			},
+			{
+				"type": "image",
+				"key": "metal",
+				"url": "src/assets/World/metal.PNG"
+			},
+			{
+				"type": "image",
+				"key": "metal90",
+				"url": "src/assets/World/metal90.PNG"
+			},
+			{
+				"type": "image",
+				"key": "metal120",
+				"url": "src/assets/World/metal120.PNG"
+			},
+			{
+				"type": "image",
+				"key": "pipeCurve",
+				"url": "src/assets/World/pipeCurve.PNG"
+			},
+			{
+				"type": "image",
+				"key": "pipeCurveRight",
+				"url": "src/assets/World/pipeCurveRight.PNG"
+			},
+			{
+				"type": "image",
+				"key": "pipeStraight",
+				"url": "src/assets/World/metal90.PNG"
+			},
+			{
+				"type": "image",
+				"key": "severalPipes",
+				"url": "src/assets/World/severalPipes.PNG"
+			},
+			{
+				"type": "image",
+				"key": "trash1",
+				"url": "src/assets/World/trash1.PNG"
+			},
+			{
+				"type": "image",
+				"key": "trash2",
+				"url": "src/assets/World/trash2.PNG"
+			},
+			{
+				"type": "image",
+				"key": "trash3",
+				"url": "src/assets/World/trash3.PNG"
+			},
+			{
+				"type": "image",
+				"key": "trash4",
+				"url": "src/assets/World/trash4.PNG"
+			},
+			{
+				"type": "image",
+				"key": "triangle",
+				"url": "src/assets/World/triangle.PNG"
+			},
+			{
+				"type": "image",
+				"key": "wheel",
+				"url": "src/assets/World/wheel.PNG"
+			},
+			{
+				"type": "image",
+				"key": "arm",
+				"url": "src/assets/World/arm.PNG"
 			}
 		]
 	}

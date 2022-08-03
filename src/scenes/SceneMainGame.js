@@ -190,6 +190,8 @@ export default class SceneMainGame extends GameScenes {
 		this.zoneLoadedList = [];
 		this.zoneLoad([this.cache.json.get("Zone_Tutorial")], false);
 
+    	this.load.audio('audio_ambienceMusic', 'assets/sound/Atmosphere.mp3');
+
 		//#endregion
 	}
 
@@ -242,6 +244,18 @@ export default class SceneMainGame extends GameScenes {
 			this.camConfig.lerpX,
 			this.camConfig.lerpY
 		);
+
+		this.music = this.sound.add('audio_ambienceMusic');
+    	var musicConfig = {
+        mute: false,
+        volume: 1,
+        rate: 1,
+        detune: 0,
+        seek: 0,
+        loop: true,
+        delay: 0
+    	}
+		this.music.play(musicConfig);
 
 		//#endregion
 
