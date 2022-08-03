@@ -78,11 +78,7 @@ export default class SceneMainGame extends GameScenes {
 			},
 			phyConfig: {
 				label: "PlayerObjectBody",
-				vertices: new Phaser.Geom.Circle(0, 0, 20).getPoints(
-					15,
-					undefined,
-					undefined
-				),
+				vertices: new Phaser.Geom.Circle(0, 0, 20).getPoints(15, undefined, undefined),
 				friction: 0.1, //0.04285714286
 				frictionAir: 1, //DO NOT SET, OVERWRITTEN BY connConf.connAirFric
 				frictionStatic: 0.04285714286, //0.04285714286
@@ -105,12 +101,7 @@ export default class SceneMainGame extends GameScenes {
 			isStatic: true,
 			collisionFilter: {
 				category: COLLCAT.crunch([COLLCAT.MAP, COLLCAT.CONNECTABLE]), //COLLCAT.CONNECTABLE
-				mask: COLLCAT.crunch([
-					COLLCAT.PLAYER,
-					COLLCAT.MAP,
-					COLLCAT.GAMEOBJ,
-					COLLCAT.CONNECTER,
-				]),
+				mask: COLLCAT.crunch([COLLCAT.PLAYER, COLLCAT.MAP, COLLCAT.GAMEOBJ, COLLCAT.CONNECTER]),
 			},
 		};
 
@@ -192,7 +183,7 @@ export default class SceneMainGame extends GameScenes {
 		this.zoneLoadedList = [];
 		this.zoneLoad([this.cache.json.get("Zone_Tutorial")], false);
 
-    	this.load.audio('audio_ambienceMusic', 'assets/sound/Atmosphere.mp3');
+		this.load.audio("audio_ambienceMusic", "./src/assets/sound/Atmosphere.mp3");
 
 		//#endregion
 	}
@@ -238,25 +229,21 @@ export default class SceneMainGame extends GameScenes {
 
 		this.mainCam.setBackgroundColor(this.camConfig.backCol);
 
-		this.mainCam.startFollow(
-			this.player,
-			false,
-			this.camConfig.lerpX,
-			this.camConfig.lerpY,
-			this.camConfig.lerpX,
-			this.camConfig.lerpY
-		);
+		this.mainCam.startFollow(this.player, false, this.camConfig.lerpX, this.camConfig.lerpY, this.camConfig.lerpX, this.camConfig.lerpY);
 
-		this.music = this.sound.add('audio_ambienceMusic');
-    	var musicConfig = {
-        mute: false,
-        volume: 1,
-        rate: 1,
-        detune: 0,
-        seek: 0,
-        loop: true,
-        delay: 0
-    	}
+		//#endregion
+		//#region
+
+		this.music = this.sound.add("audio_ambienceMusic");
+		var musicConfig = {
+			mute: false,
+			volume: 0.08,
+			rate: 1,
+			detune: 0,
+			seek: 0,
+			loop: true,
+			delay: 0,
+		};
 		this.music.play(musicConfig);
 
 		//#endregion
@@ -297,6 +284,10 @@ export default class SceneMainGame extends GameScenes {
 		console.log("debug setup done");
 	}
 
+	debug_music() {
+		this.music_toggle(this.music);
+	}
+
 	//#endregion
 	//#region create game objects
 
@@ -309,15 +300,7 @@ export default class SceneMainGame extends GameScenes {
 	gameObjectCreatePlayer(config) {
 		let player = this.gameObjectCreateCustom(config, Player, true);
 
-		console.log(
-			"PLAYER CREATED: ",
-			"friction",
-			player.body.friction,
-			"frictionAir",
-			player.body.frictionAir,
-			"frictionStatic",
-			player.body.frictionStatic
-		);
+		console.log("PLAYER CREATED: ", "friction", player.body.friction, "frictionAir", player.body.frictionAir, "frictionStatic", player.body.frictionStatic);
 
 		return player;
 	}
@@ -384,20 +367,9 @@ export default class SceneMainGame extends GameScenes {
 			// this.matter.vertices.translate(zeroCenterArr, center, -1);
 
 			collconf.vertices = vecArr;
-			vertObj = new CollisionInstance(
-				"collisionInstance",
-				this,
-				center.x,
-				center.y,
-				zeroTopLeftArr,
-				collconf
-			);
+			vertObj = new CollisionInstance("collisionInstance", this, center.x, center.y, zeroTopLeftArr, collconf);
 
-			this.debug.levelEditor.objectSetup(
-				vertObj,
-				new Phaser.Geom.Polygon(zeroTopLeftArr),
-				Phaser.Geom.Polygon.Contains
-			);
+			this.debug.levelEditor.objectSetup(vertObj, new Phaser.Geom.Polygon(zeroTopLeftArr), Phaser.Geom.Polygon.Contains);
 
 			// vertObj = new devPoly(
 			// 	"collisionInstance",
@@ -429,8 +401,8 @@ export default class SceneMainGame extends GameScenes {
 			// 	this.mapCollisionConfig
 			// );
 
-      //establish connection
-      vertObj.body.custom_poly = poly;
+			//establish connection
+			vertObj.body.custom_poly = poly;
 			poly.custom_body = vertObj.body;
 		} else {
 			// vertObj = this.matter.add.fromVertices(
@@ -440,21 +412,16 @@ export default class SceneMainGame extends GameScenes {
 			// 	this.mapCollisionConfig
 			// );
 
-			vertObj = this.matter.add.fromVertices(
-				center.x,
-				center.y,
-				vecArr,
-				this.mapCollisionConfig
-			);
+			vertObj = this.matter.add.fromVertices(center.x, center.y, vecArr, this.mapCollisionConfig);
 
-      //establish connection
-      vertObj.custom_poly = poly;
+			//establish connection
+			vertObj.custom_poly = poly;
 			poly.custom_body = vertObj;
 		}
 
 		// this.mapPolyAdd(poly);
 
-		console.log("log - vertObj: ", vertObj);
+		// console.log("log - vertObj: ", vertObj);
 		return vertObj;
 	}
 
@@ -535,10 +502,7 @@ export default class SceneMainGame extends GameScenes {
 		let list;
 
 		//collision
-		list = Phaser.Utils.Objects.GetFastValue(
-			mapdata,
-			ZONEDATA.type_collisionInstance
-		);
+		list = Phaser.Utils.Objects.GetFastValue(mapdata, ZONEDATA.type_collisionInstance);
 		list.forEach((element) => {
 			this.mapObjCreate_Collision(this.debug_leveleditor, element.vert);
 		});
@@ -602,10 +566,7 @@ export default class SceneMainGame extends GameScenes {
 
 		var leng;
 
-		console.log(
-			"log - this.cache.json.get(zone.connection[0]): ",
-			this.cache.json.get(zone.connection[0])
-		);
+		console.log("log - this.cache.json.get(zone.connection[0]): ", this.cache.json.get(zone.connection[0]));
 
 		//do next step?
 		if (range > 0) {
@@ -651,6 +612,26 @@ export default class SceneMainGame extends GameScenes {
 		if (manual && newCount > 0) {
 			this.load.start();
 		}
+	}
+
+	//#endregion
+
+	//#region
+
+	/**
+	 *
+	 * @param {Phaser.Sound.BaseSound} music
+	 */
+	music_toggle(music) {
+		if (music.isPaused) {
+			music.resume();
+		} else if (music.isPlaying) {
+			music.pause();
+		} else {
+			music.play();
+		}
+
+		console.log("log - this.music.isPaused: ", music.isPlaying, music.isPaused);
 	}
 
 	//#endregion

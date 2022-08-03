@@ -105,6 +105,15 @@ export default class DebugSceneObj extends UIManager {
 			this
 		);
 
+		this.KeyEditorToggle = this.scene.input.keyboard.addKey("M"); // Get key object
+		this.KeyEditorToggle.on(
+			"down",
+			function (event) {
+				this.scene.debug_music();
+			},
+			this
+		);
+
 		//#endregion
 		//#region ui
 
@@ -115,37 +124,9 @@ export default class DebugSceneObj extends UIManager {
 			padding: 10,
 		};
 
-		this.DebugUILabel = this.UILabelCreate(
-			this,
-			"DebugNoticeLabel",
-			this.depth,
-			0,
-			0,
-			150,
-			20,
-			uiconfig,
-			0.5,
-			0.5,
-			"Debug Enabled",
-			this.debugGraphConf,
-			this.debugTextConf,
-			true,
-			true
-		);
+		this.DebugUILabel = this.UILabelCreate(this, "DebugNoticeLabel", this.depth, 0, 0, 150, 20, uiconfig, 0.5, 0.5, "Debug Enabled", this.debugGraphConf, this.debugTextConf, true, true);
 
-		this.debugUI = this.UIPanelCreate(
-			this,
-			"DebugUI",
-			this.depth,
-			0,
-			this.DebugUILabel,
-			100,
-			100,
-			uiconfig,
-			this.debugGraphConf,
-			true,
-			true
-		);
+		this.debugUI = this.UIPanelCreate(this, "DebugUI", this.depth, 0, this.DebugUILabel, 100, 100, uiconfig, this.debugGraphConf, true, true);
 
 		let tx1 = this.debugUI.UIE_getInnerX1(true) + 0;
 		let ty1 = this.debugUI.UIE_getInnerY1(true) + 0;
@@ -239,13 +220,7 @@ export default class DebugSceneObj extends UIManager {
 			bool = !this.active;
 		} else {
 			if (this.active == bool) {
-				console.log(
-					"TOGGLE - Object ",
-					this.name,
-					" already in this state: ",
-					this.active,
-					"!"
-				);
+				console.log("TOGGLE - Object ", this.name, " already in this state: ", this.active, "!");
 				return;
 			}
 		}
@@ -332,16 +307,10 @@ export default class DebugSceneObj extends UIManager {
 
 		let w, h;
 		if (this.debugText.width > this.debugUI.UIE_getInnerWidth()) {
-			w =
-				this.debugText.width +
-				this.debugUI.paddingLeft +
-				this.debugUI.paddingRight;
+			w = this.debugText.width + this.debugUI.paddingLeft + this.debugUI.paddingRight;
 		}
 		if (this.debugText.height > this.debugUI.UIE_getInnerHeight()) {
-			h =
-				this.debugText.height +
-				this.debugUI.paddingTop +
-				this.debugUI.paddingBottom;
+			h = this.debugText.height + this.debugUI.paddingTop + this.debugUI.paddingBottom;
 		}
 		if (w != undefined || h != undefined) {
 			this.debugUI.UIE_setSize(w, h);
