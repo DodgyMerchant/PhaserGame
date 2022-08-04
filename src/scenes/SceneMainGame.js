@@ -190,7 +190,7 @@ export default class SceneMainGame extends GameScenes {
 		this.zoneLoadedList = [];
 		this.zoneLoad([this.cache.json.get("Zone_Tutorial")], false);
 
-    	this.load.audio('audio_ambienceMusic', 'assets/sound/Atmosphere.mp3');
+    	this.load.audio('audio_ambienceMusic', './src/assets/sound/Atmosphere.mp3');
 
 		//#endregion
 	}

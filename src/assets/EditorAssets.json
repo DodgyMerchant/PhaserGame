@@ -150,6 +150,16 @@
 				"type": "image",
 				"key": "arm",
 				"url": "src/assets/World/arm.PNG"
+			},
+			{
+				"type": "image",
+				"key": "background",
+				"url": "src/assets/World/background.jpg"
+			},
+			{
+				"type": "image",
+				"key": "Clouds",
+				"url": "src/assets/World/Clouds.PNG"
 			}
 		]
 	}
