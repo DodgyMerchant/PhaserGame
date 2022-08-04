@@ -2580,7 +2580,6 @@ export default class LevelEditor extends UIManager {
 			folder_general.add(obj, "name").listen();
 			folder_general.add(obj, "type").listen();
 
-
 			folder_general.add(obj, "x").step(1).listen().onChange(refresh);
 			folder_general.add(obj, "y").step(1).listen().onChange(refresh);
 
@@ -2694,6 +2693,9 @@ class LEVELEDITORMODES {
 	static mode_create = LEVELEDITORMODES.modeAdd("modeCreate");
 }
 
+/**
+ * enum-like for recource types custon and phaser
+ */
 class RECOURCETYPES {
 	/** identifier of the image recource
 	 * @type {string}

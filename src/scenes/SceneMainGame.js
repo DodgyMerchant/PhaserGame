@@ -49,8 +49,8 @@ export default class SceneMainGame extends GameScenes {
 		 */
 		this.playerConfig = {
 			name: "PlayerObject",
-			x: 0,
-			y: 0,
+			x: 2001, //2001 //0
+			y: 450, //450 //0
 			/** sprite key:  */
 			textureBody_Key: "playerImageBody",
 
@@ -78,7 +78,11 @@ export default class SceneMainGame extends GameScenes {
 			},
 			phyConfig: {
 				label: "PlayerObjectBody",
-				vertices: new Phaser.Geom.Circle(0, 0, 20).getPoints(15, undefined, undefined),
+				vertices: new Phaser.Geom.Circle(0, 0, 20).getPoints(
+					15,
+					undefined,
+					undefined
+				),
 				friction: 0.1, //0.04285714286
 				frictionAir: 1, //DO NOT SET, OVERWRITTEN BY connConf.connAirFric
 				frictionStatic: 0.04285714286, //0.04285714286
@@ -101,7 +105,12 @@ export default class SceneMainGame extends GameScenes {
 			isStatic: true,
 			collisionFilter: {
 				category: COLLCAT.crunch([COLLCAT.MAP, COLLCAT.CONNECTABLE]), //COLLCAT.CONNECTABLE
-				mask: COLLCAT.crunch([COLLCAT.PLAYER, COLLCAT.MAP, COLLCAT.GAMEOBJ, COLLCAT.CONNECTER]),
+				mask: COLLCAT.crunch([
+					COLLCAT.PLAYER,
+					COLLCAT.MAP,
+					COLLCAT.GAMEOBJ,
+					COLLCAT.CONNECTER,
+				]),
 			},
 		};
 
@@ -229,7 +238,25 @@ export default class SceneMainGame extends GameScenes {
 
 		this.mainCam.setBackgroundColor(this.camConfig.backCol);
 
-		this.mainCam.startFollow(this.player, false, this.camConfig.lerpX, this.camConfig.lerpY, this.camConfig.lerpX, this.camConfig.lerpY);
+		this.mainCam.startFollow(
+			this.player,
+			false,
+			this.camConfig.lerpX,
+			this.camConfig.lerpY,
+			this.camConfig.lerpX,
+			this.camConfig.lerpY
+		);
+
+		//#endregion
+		//#region level editorv one time cam update
+
+		//if the level editor is used update the editor camera to the game cam position
+		if (this.debug_leveleditor == true) {
+			this.debug.levelEditor.CamEditor.setScroll(
+				this.mainCam.scrollX,
+				this.mainCam.scrollY
+			);
+		}
 
 		//#endregion
 		//#region
@@ -300,7 +327,15 @@ export default class SceneMainGame extends GameScenes {
 	gameObjectCreatePlayer(config) {
 		let player = this.gameObjectCreateCustom(config, Player, true);
 
-		console.log("PLAYER CREATED: ", "friction", player.body.friction, "frictionAir", player.body.frictionAir, "frictionStatic", player.body.frictionStatic);
+		console.log(
+			"PLAYER CREATED: ",
+			"friction",
+			player.body.friction,
+			"frictionAir",
+			player.body.frictionAir,
+			"frictionStatic",
+			player.body.frictionStatic
+		);
 
 		return player;
 	}
@@ -367,9 +402,20 @@ export default class SceneMainGame extends GameScenes {
 			// this.matter.vertices.translate(zeroCenterArr, center, -1);
 
 			collconf.vertices = vecArr;
-			vertObj = new CollisionInstance("collisionInstance", this, center.x, center.y, zeroTopLeftArr, collconf);
+			vertObj = new CollisionInstance(
+				"collisionInstance",
+				this,
+				center.x,
+				center.y,
+				zeroTopLeftArr,
+				collconf
+			);
 
-			this.debug.levelEditor.objectSetup(vertObj, new Phaser.Geom.Polygon(zeroTopLeftArr), Phaser.Geom.Polygon.Contains);
+			this.debug.levelEditor.objectSetup(
+				vertObj,
+				new Phaser.Geom.Polygon(zeroTopLeftArr),
+				Phaser.Geom.Polygon.Contains
+			);
 
 			// vertObj = new devPoly(
 			// 	"collisionInstance",
@@ -412,7 +458,12 @@ export default class SceneMainGame extends GameScenes {
 			// 	this.mapCollisionConfig
 			// );
 
-			vertObj = this.matter.add.fromVertices(center.x, center.y, vecArr, this.mapCollisionConfig);
+			vertObj = this.matter.add.fromVertices(
+				center.x,
+				center.y,
+				vecArr,
+				this.mapCollisionConfig
+			);
 
 			//establish connection
 			vertObj.custom_poly = poly;
@@ -502,7 +553,10 @@ export default class SceneMainGame extends GameScenes {
 		let list;
 
 		//collision
-		list = Phaser.Utils.Objects.GetFastValue(mapdata, ZONEDATA.type_collisionInstance);
+		list = Phaser.Utils.Objects.GetFastValue(
+			mapdata,
+			ZONEDATA.type_collisionInstance
+		);
 		list.forEach((element) => {
 			this.mapObjCreate_Collision(this.debug_leveleditor, element.vert);
 		});
@@ -566,7 +620,10 @@ export default class SceneMainGame extends GameScenes {
 
 		var leng;
 
-		console.log("log - this.cache.json.get(zone.connection[0]): ", this.cache.json.get(zone.connection[0]));
+		console.log(
+			"log - this.cache.json.get(zone.connection[0]): ",
+			this.cache.json.get(zone.connection[0])
+		);
 
 		//do next step?
 		if (range > 0) {
@@ -721,8 +778,9 @@ export class ZONEDATA {
 
 				texture: imageObj.texture.key,
 
+				tint: imageObj.tintTopLeft,
 				// blendMode: imageObj.blendMode,
-				// tint: imageObj.tintTopLeft,
+
 				// frame: imageObj.frame,
 			},
 		};
