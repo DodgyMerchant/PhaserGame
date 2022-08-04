@@ -1,5 +1,5 @@
 import MovementObj, { State } from "../WorldObjects/MovementObj";
-import { COLLCAT } from "./PhyObj";
+import { CollisionCategory } from "./PhyObj";
 
 /**
  * mecha object for bosses payer and other
@@ -53,7 +53,7 @@ export default class ConnectObj extends MovementObj {
 		 * @type {boolean}
 		 * */
 		this.connIsConnected;
-		this.connSetConnected(true);
+		this.connSetConnected(false);
 
 		/**
 		 * range in wich connection to aa object is possible
@@ -81,17 +81,42 @@ export default class ConnectObj extends MovementObj {
 				isSensor: true,
 				onCollideCallback: this.connStart,
 				onCollideEndCallback: this.connEnd,
-				sleepThreshold: 60,
+				onCollideActiveCallback: this.connActive,
+				// sleepThreshold: this.body.sleepThreshold,
+				sleepThreshold: 0,
 				label: "Connection Circle",
 			}
 		);
+		this.connCircle.gameObject = this;
 
-		// this.scene.matter.world.on("collisionstart", this.connStart);
-		// this.scene.matter.world.on("collisionend", this.connEnd);
+		// waking up the circle
+		// this.setSleepEndEvent(true);
+		// this.scene.matter.world.on(
+		// 	"sleepend",
+		// 	function (event, obj) {
+		// 		console.log("SLEEPND: ", event, obj);
 
-		// this.connCircle.gameObject = this;
+		// 		if (this.body === obj) {
+		// 			console.log("THIS IS ME!!!");
+		// 		}
+		// 	},
+		// 	this
+		// );
 
-		// console.log("this.connCircle: ", this.connCircle);
+		this.connList = [];
+		this.connLine = new Phaser.Geom.Line();
+
+		this.connGraphTest = this.scene.add.graphics({
+			fillStyle: {
+				color: 0x00ffff,
+				alpha: 1,
+			},
+			lineStyle: {
+				color: 0x00ffff,
+				width: 1,
+				alpha: 1,
+			},
+		});
 
 		//#endregion
 	}
@@ -116,15 +141,6 @@ export default class ConnectObj extends MovementObj {
 
 	//#region movement
 
-	/**
-	 * returns if the mech is jumping
-	 * can move + connected + jump input
-	 * @returns {boolean} if the mech is jumping
-	 */
-	mechIsJumping() {
-		return this.connGetConnected() && this.moveCanMoveGet() && this.connJumping;
-	}
-
 	//#endregion
 	//#region connections
 
@@ -133,16 +149,29 @@ export default class ConnectObj extends MovementObj {
 	 */
 	connUpdate() {
 		this.connCircleMaintenance();
-		this.connCheckConnected();
-		this.connFindFootholds();
-	}
 
-	/**
-	 * check if this object is connected
-	 */
-	connCheckConnected() {
-		// let overlap = this.scene.matter.overlap(this.connCircle);
-		// console.log("log - overlap: ", overlap);
+		this.connGraphTest.clear();
+
+		if (this.connGetConnected()) {
+			this.connFindFootholds();
+
+			let obj, check, poly;
+			for (let i = 0; i < this.connList.length; i++) {
+				obj = this.connList[i];
+				poly = obj.custom_poly;
+				// console.log("obj: ", obj);
+
+				this.connLine.setTo(this.x, this.y, obj.position.x, obj.position.y);
+				check = Phaser.Geom.Intersects.GetLineToPolygon(this.connLine, poly);
+				Phaser.Geom.Polygon;
+
+				if (check != null) {
+					// console.log("ayyyy", check);
+
+					this.connGraphTest.strokeCircle(check.x, check.y, 5);
+				}
+			}
+		}
 	}
 
 	connCircleMaintenance() {
@@ -165,18 +194,19 @@ export default class ConnectObj extends MovementObj {
 	 * @param {boolean} bool if the object is connected
 	 */
 	connSetConnected(bool) {
-		console.log("CONN - connection set for: ", this.name, " to: ", bool);
+		if (bool != this.connIsConnected) {
+			this.connIsConnected = bool;
+			// console.log("CONN - connection set for: ", this.name, " to: ", bool);
 
-		this.connIsConnected = bool;
+			switch (bool) {
+				case true:
+					this.setFrictionAir(this.move_ConnAirFric);
 
-		switch (bool) {
-			case true:
-				this.setFrictionAir(this.move_ConnAirFric);
-
-				break;
-			case false:
-				this.setFrictionAir(0);
-				break;
+					break;
+				case false:
+					this.setFrictionAir(0);
+					break;
+			}
 		}
 	}
 	/**
@@ -187,21 +217,105 @@ export default class ConnectObj extends MovementObj {
 		return this.connIsConnected;
 	}
 
-	connStart(a, b, c) {
-		console.log("CONN - Start a,b,c: ", a, b, c);
+	/**
+	 *
+	 * @param {object} pair
+	 */
+	connActive(pair) {
+		let contactList = pair.activeContacts;
+
+		// console.log("log - pair: ", pair);
+
+		let target = pair.bodyA; //map obj
+		let source = pair.bodyB; //connect circle
+		let obj = source.parent.gameObject;
+
+		// obj.connGraphTest.clear();
+
+		// let vertex;
+		// let leng = contactList.length;
+		// for (let i = 0; i < leng; i++) {
+		// 	vertex = contactList[i].vertex;
+
+		// 	obj.connGraphTest.strokeCircle(vertex.x, vertex.y, 20);
+		// }
 	}
 
-	connEnd(a, b, c) {
-		console.log("CONN - End a,b,c: ", a, b, c);
+	/**
+	 *
+	 * @param {object} pair
+	 */
+	connStart(pair) {
+		console.log("CONN - Start: ", pair);
+
+		let target = pair.bodyA; //map obj
+		let source = pair.bodyB; //connect circle
+
+		source.gameObject.connAdd(target);
+	}
+
+	/**
+	 *
+	 * @param {object} pair
+	 */
+	connEnd(pair) {
+		// console.log("CONN - End: ", pair);
+		let target = pair.bodyA; //map obj
+		let source = pair.bodyB; //connect circle
+
+		source.gameObject.connRemove(target);
+	}
+
+	/**
+	 * adds a connection to the list
+	 * @param {object} obj
+	 */
+	connAdd(obj) {
+		this.connList.push(obj);
+		// console.log("list: ", this.connList);
+		this.connCheckConnected();
+	}
+
+	/**
+	 * removes a connection from the list
+	 * @param {object} obj
+	 */
+	connRemove(obj) {
+		let index = this.connList.indexOf(obj);
+		if (index != -1) {
+			this.connList.splice(index, 1);
+			// console.log("list: ", this.connList);
+		}
+
+		this.connCheckConnected();
+	}
+
+	/**
+	 * check if this object is connected
+	 * and set
+	 */
+	connCheckConnected() {
+		this.connSetConnected(this.connList.length > 0);
 	}
 
 	//footholds
 
 	connFindFootholds() {
-		//Phaser.Geom.Intersects.GetRaysFromPointToPolygon
+		// let list = Phaser.Geom.Intersects.GetRaysFromPointToPolygon(
+		// 	this.x,
+		// 	this.y,
+		// 	this.scene.mapPolyList
+		// );
+		// console.log("POLY RAYS LIST: ", list);
+		// Phaser.Geom.Circle.
 	}
 
 	//#endregion
+	//overrides
+
+	moveCanMoveGet() {
+		return this.move_CanMove && this.connGetConnected();
+	}
 }
 
 /*
@@ -215,12 +329,8 @@ export default class ConnectObj extends MovementObj {
  * range: (number),
  * jumpSpeed: (number),
  * connAirFric: (number),
- * connCat: (CollisionCategory | CollisionCategory[]),
- * connWith: (CollisionCategory | CollisionCategory[]),
+ * connCat: (CollisionCategory),
+ * connWith: (CollisionCategory),
  * jumpMeth: (function | undefined),
  * }} ConnectConfig Config for a connect object
  */
-/**
- * @type {ConnectConfig}
- */
-let obj = {};

@@ -2,6 +2,11 @@ export default class GameScenes extends Phaser.Scene {
 	constructor(debugSetup, debugEnabled, debugEditor) {
 		super();
 
+		if (!debugSetup) {
+			debugEnabled = false;
+			debugEditor = false;
+		}
+
 		this.debug_issetup = debugSetup;
 		this.debug_enabled = debugEnabled;
 		this.debug_leveleditor = debugEditor;
@@ -62,19 +67,16 @@ export default class GameScenes extends Phaser.Scene {
 
 		this.load.on("progress", (p) => {
 			//draw loaading bar
-			this.load_bar.fillRect(
-				loadBarConfig.x1,
-				loadBarConfig.y1,
-				loadBarConfig.w * p,
-				loadBarConfig.h
-			);
+			this.load_bar.fillRect(loadBarConfig.x1, loadBarConfig.y1, loadBarConfig.w * p, loadBarConfig.h);
 
-			console.log("loading%: ", p);
+			// console.log("loading%: ", Math.floor(p * 100));
 		});
 		this.load.on("complete", (percent) => {
 			//draw loaading bar
 			// this.scene.start()
 			this.load_bar.destroy(true);
+
+			console.log("loading: complete");
 		});
 	}
 

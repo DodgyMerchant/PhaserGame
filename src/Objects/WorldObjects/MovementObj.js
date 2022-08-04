@@ -346,11 +346,6 @@ export default class MovementObj extends PhyObj {
  */
 
 /**
- * @type {MovementConfig}
- */
-let obj = {};
-
-/**
  * @typedef {symbol} State a sttate to be in for a MovementObj
  */
 /**

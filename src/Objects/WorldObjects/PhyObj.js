@@ -219,43 +219,43 @@ export class COLLCAT {
 	 * map
 	 * @type {CollisionCategory}
 	 * */
-	static MAP =          COLLCAT.catAdd(0b000001);
+	static MAP =          COLLCAT.catAdd(0x000001);
 	// prettier-ignore
 	/**
 	 * player
 	 * @type {CollisionCategory}
 	 * */
-	static PLAYER =       COLLCAT.catAdd(0b000010);
+	static PLAYER =       COLLCAT.catAdd(0x000010);
 	// prettier-ignore
 	/**
 	 * gameobj
 	 * @type {CollisionCategory}
 	 * */
-	static GAMEOBJ =      COLLCAT.catAdd(0b000100);
+	static GAMEOBJ =      COLLCAT.catAdd(0x000100);
 	// prettier-ignore
 	/**
 	 * connector for footholds
 	 * @type {CollisionCategory}
 	 * */
-	static CONNECTER =    COLLCAT.catAdd(0b001000);
+	static CONNECTER =    COLLCAT.catAdd(0x001000);
 	// prettier-ignore
 	/**
 	 * connectable, a foothold
 	 * @type {CollisionCategory}
 	 * */
-	static CONNECTABLE =  COLLCAT.catAdd(0b010000);
+	static CONNECTABLE =  COLLCAT.catAdd(0x010000);
 	// prettier-ignore
 	/**
 	 * nothing collides
 	 * @type {CollisionCategory}
 	 * */
-	static NOTHING =      COLLCAT.catAdd(0b00000000000000000000000000000000);
+	static NOTHING =      COLLCAT.catAdd(0x00000000000000);
 	// prettier-ignore
 	/**
 	 * all collides
 	 * @type {CollisionCategory}
 	 * */
-	static ALL =          COLLCAT.catAdd(0b11111111111111111111111111111111);
+	static ALL =          COLLCAT.catAdd(0x11111111111111);
 
 	/**
 	 * compiles array with collision 32bit categories into one 32bit number
