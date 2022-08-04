@@ -259,7 +259,7 @@ export default class SceneMainGame extends GameScenes {
 		}
 
 		//#endregion
-		//#region
+		//#region music
 
 		this.music = this.sound.add("audio_ambienceMusic");
 		var musicConfig = {
