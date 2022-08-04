@@ -3,6 +3,13 @@
 look into the Sample project Readme.
 run "npm start" in the terminal to start a live server
 
+## Debug
+
+`J`: toggle debug manager on/off and debug drawing.
+`L`: toggle Level Editor on and off.
+`M`: Pause/Unpause current music track.
+`EMTER`: Switch Editor modes.
+
 ## LEVEL EDITOR
 
 The Level Editor manual is in:

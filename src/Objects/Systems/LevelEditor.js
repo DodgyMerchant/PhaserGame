@@ -2694,6 +2694,9 @@ class LEVELEDITORMODES {
 	static mode_create = LEVELEDITORMODES.modeAdd("modeCreate");
 }
 
+/**
+ * enum-like for recource types custon and phaser
+ */
 class RECOURCETYPES {
 	/** identifier of the image recource
 	 * @type {string}

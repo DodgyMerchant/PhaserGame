@@ -12,6 +12,7 @@ Debug Manager can create a Level Editor automatically.
 
 `J`: toggle debug manager on/off and debug drawing.
 `L`: toggle Level Editor on and off.
+`M`: Pause/Unpause current music track.
 `EMTER`: Switch modes.
 
 ### camera:
