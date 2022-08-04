@@ -510,6 +510,7 @@
 			],
 			"worldImages": [
 				{
+
 					"name": "image_trash4",
 					"x": 1955.2636347484126,
 					"y": 727.586517819684,
@@ -1839,6 +1840,7 @@
 					"name": "image_gravelBottomCenter",
 					"x": 5110.281111931496,
 					"y": 1554.2333818588008,
+
 					"scaleX": 1,
 					"scaleY": 1,
 					"depth": 0,
