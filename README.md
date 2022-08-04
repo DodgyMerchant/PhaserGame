@@ -1,7 +1,16 @@
 # Phaser Game (Name Pending)
 
-look into the Sample project Readme.
-run "npm start" in the terminal to start a live server
+## starting
+
+### compiled / dist
+you can find the compiled project in the [distribution folder](dist).
+From there you can run a live server to run the game.
+At the moment the compiled version has Debug Mode adn the Level Editor enabled.
+
+
+### uncompiled or dev build
+Look into the [Sample Project Readme](Sample_README.md) for js node instructions.
+run "npm start" in the terminal to start a live server of the uncompiled project
 
 ## Debug
 
