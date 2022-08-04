@@ -721,8 +721,9 @@ export class ZONEDATA {
 
 				texture: imageObj.texture.key,
 
+				tint: imageObj.tintTopLeft,
 				// blendMode: imageObj.blendMode,
-				// tint: imageObj.tintTopLeft,
+
 				// frame: imageObj.frame,
 			},
 		};
