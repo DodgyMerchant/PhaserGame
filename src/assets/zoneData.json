@@ -525,7 +525,7 @@
 					"scrollFactorY": 0.307,
 					"visible": true,
 					"texture": "trash4",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash3",
@@ -542,7 +542,7 @@
 					"scrollFactorY": 0.303,
 					"visible": true,
 					"texture": "trash3",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash2",
@@ -559,7 +559,7 @@
 					"scrollFactorY": 0.303,
 					"visible": true,
 					"texture": "trash2",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash1",
@@ -576,7 +576,7 @@
 					"scrollFactorY": 0.307,
 					"visible": true,
 					"texture": "trash1",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash4",
@@ -593,7 +593,7 @@
 					"scrollFactorY": 0.309,
 					"visible": true,
 					"texture": "trash4",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash2",
@@ -610,7 +610,7 @@
 					"scrollFactorY": 0.302,
 					"visible": true,
 					"texture": "trash2",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash3",
@@ -627,7 +627,7 @@
 					"scrollFactorY": 0.308,
 					"visible": true,
 					"texture": "trash3",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash4",
@@ -644,7 +644,7 @@
 					"scrollFactorY": 0.302,
 					"visible": true,
 					"texture": "trash4",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash1",
@@ -661,7 +661,7 @@
 					"scrollFactorY": 0.306,
 					"visible": true,
 					"texture": "trash1",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash4",
@@ -678,7 +678,7 @@
 					"scrollFactorY": 0.3,
 					"visible": true,
 					"texture": "trash4",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash1",
@@ -695,7 +695,7 @@
 					"scrollFactorY": 0.3,
 					"visible": true,
 					"texture": "trash1",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash2",
@@ -712,7 +712,7 @@
 					"scrollFactorY": 0.302,
 					"visible": true,
 					"texture": "trash2",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash3",
@@ -729,7 +729,7 @@
 					"scrollFactorY": 0.3,
 					"visible": true,
 					"texture": "trash3",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash4",
@@ -746,7 +746,7 @@
 					"scrollFactorY": 0.292,
 					"visible": true,
 					"texture": "trash4",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash2",
@@ -763,7 +763,7 @@
 					"scrollFactorY": 0.302,
 					"visible": true,
 					"texture": "trash2",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash4",
@@ -780,7 +780,7 @@
 					"scrollFactorY": 0.311,
 					"visible": true,
 					"texture": "trash4",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash3",
@@ -797,7 +797,7 @@
 					"scrollFactorY": 0.301,
 					"visible": true,
 					"texture": "trash3",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_background",
@@ -831,7 +831,7 @@
 					"scrollFactorY": 0.308,
 					"visible": true,
 					"texture": "trash3",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_bridge",
@@ -950,7 +950,7 @@
 					"scrollFactorY": 0.306,
 					"visible": true,
 					"texture": "trash2",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash1",
@@ -967,7 +967,7 @@
 					"scrollFactorY": 0.3,
 					"visible": true,
 					"texture": "trash1",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash4",
@@ -984,7 +984,7 @@
 					"scrollFactorY": 0.306,
 					"visible": true,
 					"texture": "trash4",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash3",
@@ -1001,7 +1001,7 @@
 					"scrollFactorY": 0.3,
 					"visible": true,
 					"texture": "trash3",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash2",
@@ -1018,7 +1018,7 @@
 					"scrollFactorY": 0.305,
 					"visible": true,
 					"texture": "trash2",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash3",
@@ -1035,7 +1035,7 @@
 					"scrollFactorY": 0.304,
 					"visible": true,
 					"texture": "trash3",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_trash1",
@@ -1052,7 +1052,7 @@
 					"scrollFactorY": 0.304,
 					"visible": true,
 					"texture": "trash1",
-					"tint": 16777215
+					"tint": 1913144
 				},
 				{
 					"name": "image_copperPipeStraight",
