@@ -30,8 +30,8 @@
 		"files": [
 			{
 				"type": "image",
-				"key": "worldWallSmall",
-				"url": "src/assets/World/SmallWall-TEMP.png"
+				"key": "copperPipeStraight",
+				"url": "src/assets/World/copperPipeStraight.PNG"
 			}
 		],
 		"mapData": {
@@ -113,10 +113,23 @@
 				}
 			],
 			"worldImages": [
-				{ "name": "image_worldWallSmall", "x": 332, "y": 191, "scaleX": 1, "scaleY": 1, "depth": 0, "alpha": 1, "rotation": 0, "originX": 0.5, "originY": 0.5, "scrollFactorX": 1.16, "scrollFactorY": 1.16, "visible": true, "texture": "worldWallSmall", "tint": 13444132 },
-				{ "name": "image_worldWallSmall", "x": 305, "y": 379, "scaleX": 2.6000000000000014, "scaleY": 1, "depth": 0, "alpha": 1, "rotation": 0.48869219055841207, "originX": 0.5, "originY": 0.5, "scrollFactorX": 1, "scrollFactorY": 1, "visible": true, "texture": "worldWallSmall", "tint": 16777215 },
-				{ "name": "image_worldWallSmall", "x": 161, "y": 203, "scaleX": 3.7000000000000024, "scaleY": 2.300000000000001, "depth": 0, "alpha": 1, "rotation": 0.5759586531581284, "originX": 0.5, "originY": 0.5, "scrollFactorX": 1, "scrollFactorY": 1, "visible": true, "texture": "worldWallSmall", "tint": 16777215 },
-				{ "name": "image_worldWallSmall", "x": 88, "y": 412, "scaleX": 1, "scaleY": 1, "depth": 0, "alpha": 1, "rotation": -0.4014257279586957, "originX": 0.5, "originY": 0.5, "scrollFactorX": 1, "scrollFactorY": 1, "visible": true, "texture": "worldWallSmall", "tint": 16777215 }
+				{
+					"name": "image_copperPipeStraight",
+					"x": 360.4242686194702,
+					"y": 411.2424656593313,
+					"scaleX": 1,
+					"scaleY": 1,
+					"depth": 0,
+					"alpha": 1,
+					"rotation": 0,
+					"originX": 0.5,
+					"originY": 0.5,
+					"scrollFactorX": 1,
+					"scrollFactorY": 1,
+					"visible": true,
+					"texture": "copperPipeStraight",
+					"tint": 65280
+				}
 			]
 		}
 	},
