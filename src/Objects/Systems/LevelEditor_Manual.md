@@ -23,7 +23,7 @@ Debug Manager can create a Level Editor automatically.
 
 ### modes:
 
-`EMTER`: Switch modes.
+`ENTER`: Switch modes.
 
 #### Create
 

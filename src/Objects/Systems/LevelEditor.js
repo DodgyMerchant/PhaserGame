@@ -1030,7 +1030,7 @@ export default class LevelEditor extends UIManager {
 				break;
 
 			default:
-				console.log("MODE - SETUP - UNKNOWN MODE: ", mode);
+				console.error("LevelEditor.modeSetupMode: MODE - SETUP - UNKNOWN MODE: ", mode);
 				return;
 		}
 
@@ -1265,6 +1265,7 @@ export default class LevelEditor extends UIManager {
 		}
 	}
 
+
 	worldVertReset() {
 		this.worldGraph.clear();
 		this.worldVertList = new Array();
@@ -1366,6 +1367,8 @@ export default class LevelEditor extends UIManager {
 		button.recourceSubject = subject;
 		button.recourceType = type;
 
+    RECOURCETYPES
+
 		switch (type) {
 			case RECOURCETYPES.IMAGE:
 				let image = new Phaser.GameObjects.Image(
@@ -1391,6 +1394,7 @@ export default class LevelEditor extends UIManager {
 				button.moveAbove(button.UI_Label_text, image);
 				break;
 			case RECOURCETYPES.POLYGON:
+
 				break;
 			case "object":
 
@@ -1428,7 +1432,7 @@ export default class LevelEditor extends UIManager {
 			case RECOURCETYPES.POLYGON:
 				break;
 			default:
-				console.log(
+				console.error(
 					"recource button type not supported, contact admin: ",
 					obj.recourceType,
 					obj.recourceSubject
@@ -1496,8 +1500,6 @@ export default class LevelEditor extends UIManager {
 	 */
 	recourceSetup(type, bool, subject) {
 		switch (type) {
-			// case RECOURCETYPES.IMAGE:
-			// 	break;
 			case RECOURCETYPES.POLYGON:
 				this.worldVertSetup(bool, subject);
 				break;
@@ -2712,7 +2714,8 @@ class RECOURCETYPES {
 
 	//object
 
-	/** identifier of the Object Instance for image recources polygon recource
+	/**
+   * identifier of the Object Instance for image recources polygon recource
 	 * @type {string}
 	 */
 	static OBJ_IMAGE = "Image";
